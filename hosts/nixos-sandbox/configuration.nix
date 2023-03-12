@@ -7,7 +7,6 @@
   _module.args = {
     nixinate = {
       host = "nixos-sandbox";
-      sshUser = "root";
       buildOn = "remote";
     };
   };
