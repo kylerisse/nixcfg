@@ -10,13 +10,39 @@
     self,
     nixinate,
     nixpkgs,
+    ...
   } @ inputs: {
     apps = nixinate.nixinate.x86_64-linux self;
-    nixosConfigurations = {
+    nixosConfigurations =
+      let
+        common =
+          ({ modulePath, ...}: {
+            imports = [
+              ./modules/users
+              ./modules/ssh-server
+            ];
+          });
+        kvm-guest =
+          ({ modulePath, ...}: {
+            imports = [
+              ./modules/kvm-guest
+            ];
+          });
+      in
+      {
       nixos-sandbox = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
           ./hosts/nixos-sandbox/configuration.nix
+          common
+        ];
+      };
+      dev-router = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/dev-router/configuration.nix
+          kvm-guest
+          common
         ];
       };
     };
