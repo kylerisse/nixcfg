@@ -8,13 +8,18 @@
     nixinate = {
       host = "nixos-sandbox";
       buildOn = "remote";
+      sshUser = "kylerisse";
     };
   };
+
+  networking.hostName = "nixos-sandbox";
 
   environment.systemPackages = with pkgs; [
     vim
     git
   ];
 
-  system.stateVersion = "23.05";
+  time.timeZone = "America/Los_Angeles";
+
+  system.stateVersion = "22.11";
 }
