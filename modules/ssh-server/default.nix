@@ -6,4 +6,5 @@
     kbdInteractiveAuthentication = false;
     permitRootLogin = "no";
   };
+  networking.firewall.allowedTCPPorts = [ 22 ];
 }

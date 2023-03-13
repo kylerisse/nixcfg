@@ -21,7 +21,6 @@
         prefixLength = 24;
       }];
     };
-    firewall.allowedTCPPorts = [ 22 ];
   };
 
   time.timeZone = "America/Los_Angeles";
