@@ -28,6 +28,12 @@
               ./modules/kvm-guest
             ];
           });
+        soho-router =
+          ({ modulePath, ...}: {
+            imports = [
+              ./modules/multihome-nat
+            ];
+          });
       in
       {
       nixos-sandbox = nixpkgs.lib.nixosSystem {
@@ -43,6 +49,7 @@
           ./hosts/dev-router/configuration.nix
           kvm-guest
           common
+          soho-router
         ];
       };
     };
