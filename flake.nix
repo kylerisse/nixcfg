@@ -32,6 +32,7 @@
           ({ modulePath, ...}: {
             imports = [
               ./modules/multihome-nat
+              ./modules/dhcp-server
             ];
           });
       in
