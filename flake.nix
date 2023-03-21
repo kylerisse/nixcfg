@@ -31,7 +31,7 @@
         soho-router =
           ({ modulePath, ...}: {
             imports = [
-              ./modules/multihome-nat
+              ./modules/dualhome-nat
               ./modules/dhcp-server
             ];
           });

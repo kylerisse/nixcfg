@@ -24,9 +24,9 @@ in
     config = {
         boot = {
             kernelModules = [
-            "iptable_nat"
-            "iptable_filter"
-            "xt_nat"
+                "iptable_nat"
+                "iptable_filter"
+                "xt_nat"
             ];
             kernel.sysctl = {
                 "net.ipv4.tcp_syncookies" = true;
