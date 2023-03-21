@@ -4,6 +4,14 @@
     ./hardware-configuration.nix
   ];
 
+  _module.args = {
+    nixinate = {
+      host = "area76";
+      buildOn = "remote";
+      sshUser = "kylerisse";
+    };
+  };
+
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -114,17 +122,11 @@
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.kylerisse = {
-    isNormalUser = true;
-    uid = 9001;
-    description = "kylerisse";
-    extraGroups = [ "networkmanager" "wheel" ];
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPirA5WUlTLXEol/yr+QJDeWa3S8GW0u4TXzSxBxRrbs"
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJaBu1HK/Ou9wV2Ebz7NKVsRSZEKiJfvwmcictvnu8lu"
-    ];
+    extraGroups = [ "networkmanager" ];
     packages = with pkgs; [
       firefox
       gnome.gnome-terminal
+      git
     ];
   };
   security.sudo.wheelNeedsPassword = false;
@@ -149,15 +151,6 @@
   # };
 
   # List services that you want to enable:
-
-  # Enable the OpenSSH daemon.
-  services.openssh = {
-    enable = true;
-    passwordAuthentication = false;
-    kbdInteractiveAuthentication = false;
-    permitRootLogin = "no";
-  };
-  networking.firewall.allowedTCPPorts = [ 22 ];
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
