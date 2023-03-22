@@ -12,3 +12,6 @@ deploy-area76:
 
 update:
 	nix flake update
+
+lint:
+	nix-shell -p nixpkgs-fmt --command 'for i in `find ./ -name "*.nix"`; do echo $$i; nixpkgs-fmt $$i; done;'
