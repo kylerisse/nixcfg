@@ -5,6 +5,7 @@ let
 in
 {
   options.dhcp-server = {
+    enable = lib.mkEnableOption (lib.mdDoc "DHCP Server");
     interfaces = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ "eth0" ];
@@ -54,7 +55,7 @@ in
       description = "ipv4 subnet config";
     };
   };
-  config = {
+  config = lib.mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
       kea
     ];

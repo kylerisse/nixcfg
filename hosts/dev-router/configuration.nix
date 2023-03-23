@@ -12,10 +12,12 @@
     };
   };
 
+  dualhome-nat.enable = true;
   dualhome-nat.internalInterface = "enp2s0";
   dualhome-nat.externalInterface = "enp1s0";
   dualhome-nat.internalCIDR = "192.168.70.0/24";
 
+  dhcp-server.enable = true;
   dhcp-server.interfaces = [ "enp2s0" ];
   dhcp-server.dns = "192.168.73.1";
   dhcp-server.domain = "risse.tv";
