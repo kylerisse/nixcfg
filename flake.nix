@@ -33,6 +33,7 @@
               imports = [
                 ./modules/dualhome-nat
                 ./modules/dhcp-server
+                ./modules/dns-server
               ];
             });
         in
@@ -52,6 +53,7 @@
               common
               soho-router
             ];
+            specialArgs = { inherit self; };
           };
           area76 = nixpkgs.lib.nixosSystem {
             system = "x86_64-linux";
