@@ -4,12 +4,16 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
     nixinate.url = "github:matthewcroughan/nixinate";
+
+    darwin.url = "github:LnL7/nix-darwin/master";
+    darwin.inputs.nixpkgs.follows = "nixpkgs-unstable";
   };
 
   outputs =
     { self
     , nixinate
     , nixpkgs
+    , darwin
     , ...
     } @ inputs: {
       apps = nixinate.nixinate.x86_64-linux self;
@@ -62,6 +66,16 @@
               common
             ];
           };
+        }
+      {
+      darwinConfigurations =
+      {
+        flacon = darwin.lib.darwinSystem {
+          system = "";
+          modules = [
+            ./hosts/falcon/configuration.nix
+          ];
         };
-    };
+      };
+      };
 }
