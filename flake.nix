@@ -38,13 +38,6 @@
             });
         in
         {
-          nixos-sandbox = nixpkgs.lib.nixosSystem {
-            system = "x86_64-linux";
-            modules = [
-              ./hosts/nixos-sandbox/configuration.nix
-              common
-            ];
-          };
           dev-router = nixpkgs.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
