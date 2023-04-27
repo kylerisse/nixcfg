@@ -15,3 +15,6 @@ lint:
 
 tflint:
 	nix-shell -p terraform_1 --command 'for i in `find ./ -name "*.tf"`; do echo $$i; terraform fmt $$i; done;'
+
+mac:
+	darwin-rebuild switch
