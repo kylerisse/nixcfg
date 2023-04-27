@@ -116,6 +116,9 @@ in
     fish
     zsh
   ];
+  environment.variables = {
+    alt_hostname = "zugzug";
+  };
 
   # fish
   # also need to run chsh -s /run/current-system/sw/bin/fish
