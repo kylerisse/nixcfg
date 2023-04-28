@@ -133,6 +133,7 @@ in
     if test -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.fish'
         source '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.fish'
     end
+    fish_add_path --prepend /run/current-system/sw/bin
     # End Nix
   '';
 
