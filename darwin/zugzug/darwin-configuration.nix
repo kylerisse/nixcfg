@@ -18,6 +18,7 @@ in
     keep-outputs = true;
   };
   nix.configureBuildUsers = true;
+  nixpkgs.config.allowUnfree = true;
 
   # mac settings
   # some of these require a re-login to take effect (such as dock size and 24hr time)
