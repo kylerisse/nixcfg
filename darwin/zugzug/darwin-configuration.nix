@@ -47,7 +47,7 @@ in
   };
 
   system.defaults.dock = {
-    autohide = false;
+    autohide = true;
     expose-group-by-app = false;
     mru-spaces = false;
     show-recents = false;
