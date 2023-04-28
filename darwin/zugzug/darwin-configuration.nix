@@ -84,6 +84,10 @@ in
     bitwarden-cli
     chezmoi
     go
+    gocode
+    gopls
+    go-outline
+    gotools
     htop
     icdiff
     inetutils
@@ -98,6 +102,7 @@ in
     rakudo
     rnix-lsp
     openssh
+    protobuf
     python310
     python310Packages.pip
     python310Packages.boto3
