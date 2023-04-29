@@ -121,12 +121,49 @@
   # services.xserver.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.kylerisse = {
+  users.users.kylerisse = with pkgs; {
+    shell = fish;
     extraGroups = [ "networkmanager" ];
-    packages = with pkgs; [
-      firefox
-      gnome.gnome-terminal
+    packages = [
+      awscli2
+      bitwarden
+      bitwarden-cli
+      brave
+      chezmoi
       git
+      go
+      gocode
+      gopls
+      go-outline
+      gotools
+      gnome.gnome-terminal
+      gnumake
+      htop
+      icdiff
+      inetutils
+      jq
+      kubectl
+      kubectx
+      libressl
+      neovim
+      netcat
+      nixpkgs-fmt
+      nmap
+      rakudo
+      rnix-lsp
+      openssh
+      protobuf
+      python310
+      python310Packages.pip
+      python310Packages.boto3
+      python310Packages.botocore
+      silver-searcher
+      terraform_1
+      terraform-docs
+      terraform-lsp
+      virt-manager
+      vscode
+      yubikey-manager4
     ];
   };
   security.sudo.wheelNeedsPassword = false;
@@ -138,9 +175,15 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     vim
-    #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    #  wget
   ];
+
+  environment.shells = with pkgs; [
+    fish
+  ];
+
+  environment.variables.SHELL = "${pkgs.fish}/bin/fish";
+  programs.fish.enable = true;
+  programs.fish.useBabelfish = true;
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
