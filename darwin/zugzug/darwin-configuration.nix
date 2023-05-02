@@ -3,6 +3,14 @@ let
   inherit (lib) mkIf elem;
   caskPresent = cask: lib.any (x: x.name == cask) config.homebrew.casks;
   brewEnabled = config.homebrew.enable;
+  nixcfg-repo = pkgs.fetchFromGitHub {
+    owner = "kylerisse";
+    repo = "nixcfg";
+    rev = "master";
+    hash = "sha256-InePLQVflob0uhwAO6PsK/0Djgp9mXxsetiF5Oa6AxA=";
+  };
+  nixcfg-overlay = import (nixcfg-repo + "/overlay.nix");
+  nixpkgs = import <nixpkgs> { overlays = [ nixcfg-overlay ]; };
 in
 {
   # nix settings
@@ -13,7 +21,7 @@ in
       "nix-command"
       "flakes"
     ];
-    extra-platforms = lib.mkIf (pkgs.system == "aarch64-darwin") [ "x86_64-darwin" "aarch64-darwin" ];
+    extra-platforms = mkIf (pkgs.system == "aarch64-darwin") [ "x86_64-darwin" "aarch64-darwin" ];
     keep-derivations = true;
     keep-outputs = true;
   };
@@ -79,10 +87,12 @@ in
   # Just install everything as systemPackages rather than futz with home-manager for now
   # use chezmoi for compatibility with non NixOS / nix-darwin systems
   # some packages such as libressl and openssh already exist in OSX, but we want the latest
-  environment.systemPackages = with pkgs; [
+  environment.systemPackages = with nixpkgs; [
     awscli2
     bitwarden-cli
     chezmoi
+    dig
+    git
     go
     gocode
     gopls
@@ -109,10 +119,12 @@ in
     python310Packages.botocore
     silver-searcher
     terminal-notifier
+    terraform_1-4-2
     terraform_1
     terraform-docs
     terraform-lsp
     virt-manager
+    wget
     yubikey-manager4
   ];
   programs.nix-index.enable = true;
