@@ -7,7 +7,7 @@ let
     owner = "kylerisse";
     repo = "nixcfg";
     rev = "master";
-    hash = "sha256-InePLQVflob0uhwAO6PsK/0Djgp9mXxsetiF5Oa6AxA=";
+    hash = "sha256-ReCqP8SXejElpuBKuNBN8Por2NpOhHSEd57qqRI4ZPk=";
   };
   nixcfg-overlay = import (nixcfg-repo + "/overlay.nix");
   nixpkgs = import <nixpkgs> { overlays = [ nixcfg-overlay ]; };
@@ -119,6 +119,7 @@ in
     python310Packages.botocore
     silver-searcher
     terminal-notifier
+    terraform_1-3-9
     terraform_1-4-2
     terraform_1
     terraform-docs
