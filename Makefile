@@ -18,3 +18,8 @@ tflint:
 
 mac:
 	darwin-rebuild switch
+
+mac-update:
+	sudo -i nix-channel --add https://github.com/nixos/nixpkgs/archive/nixos-22.11.tar.gz nixpkgs
+	sudo -i nix-channel --add https://github.com/LnL7/nix-darwin/archive/master.tar.gz darwin
+	sudo -i nix-channel --update

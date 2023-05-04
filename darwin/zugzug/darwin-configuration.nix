@@ -7,7 +7,7 @@ let
     owner = "kylerisse";
     repo = "nixcfg";
     rev = "master";
-    hash = "sha256-ReCqP8SXejElpuBKuNBN8Por2NpOhHSEd57qqRI4ZPk=";
+    hash = "sha256-SXaetSVMaZHVl6kOQ6Kw8ggWkbDpUbcKmmWsgec7+c4=";
   };
   nixcfg-overlay = import (nixcfg-repo + "/overlay.nix");
   nixpkgs = import <nixpkgs> { overlays = [ nixcfg-overlay ]; };
@@ -90,7 +90,9 @@ in
   environment.systemPackages = with nixpkgs; [
     awscli2
     bitwarden-cli
+    checkov
     chezmoi
+    curl
     dig
     git
     go
@@ -108,15 +110,19 @@ in
     neovim
     netcat
     nixpkgs-fmt
+    nodePackages.jsonlint
     nmap
     rakudo
     rnix-lsp
     openssh
     protobuf
+    pylint
     python310
     python310Packages.pip
     python310Packages.boto3
     python310Packages.botocore
+    python310Packages.pytest
+    shellcheck
     silver-searcher
     terminal-notifier
     terraform_1-3-9
@@ -124,8 +130,11 @@ in
     terraform_1
     terraform-docs
     terraform-lsp
+    tflint
+    tfsec
     virt-manager
     wget
+    yamllint
     yubikey-manager4
   ];
   programs.nix-index.enable = true;
