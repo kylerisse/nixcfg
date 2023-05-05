@@ -23,15 +23,16 @@ stdenv.mkDerivation rec {
 
   src = ./.;
   pname = "terraform_1-3-9";
-  version = "1.3.9";
+  version = "binary";
+  vstring = "1.3.9";
 
   propagatedBuildInputs = with pkgs; [ unzip ];
 
   installPhase = ''
     mkdir -p $out/bin
     unzip $tfzip
-    cp terraform $out/bin/terraform-$version
-    chmod +x $out/bin/terraform-$version
+    cp terraform $out/bin/terraform-$vstring
+    chmod +x $out/bin/terraform-$vstring
   '';
 
   meta = with lib; {

@@ -6,12 +6,12 @@
 let
   cfg = {
     "aarch64-darwin" = {
-      url = "https://releases.hashicorp.com/terraform/1.4.2/terraform_1.4.2_darwin_arm64.zip";
-      sha256 = "af8ff7576c8fc41496fdf97e9199b00d8d81729a6a0e821eaf4dfd08aa763540";
+      url = "https://releases.hashicorp.com/terraform/1.4.6/terraform_1.4.6_darwin_arm64.zip";
+      sha256 = "30a2f87298ff9f299452119bd14afaa8d5b000c572f62fa64baf432e35d9dec1";
     };
     "x86_64-linux" = {
-      url = "https://releases.hashicorp.com/terraform/1.4.2/terraform_1.4.2_linux_amd64.zip";
-      sha256 = "9f3ca33d04f5335472829d1df7785115b60176d610ae6f1583343b0a2221a931";
+      url = "https://releases.hashicorp.com/terraform/1.4.6/terraform_1.4.6_linux_amd64.zip";
+      sha256 = "e079db1a8945e39b1f8ba4e513946b3ab9f32bd5a2bdf19b9b186d22c5a3d53b";
     };
   };
 in
@@ -22,9 +22,9 @@ stdenv.mkDerivation rec {
   };
 
   src = ./.;
-  pname = "terraform_1-4-2";
+  pname = "terraform_1-4-6";
   version = "binary";
-  vstring = "1.4.2";
+  vstring = "1.4.6";
 
   propagatedBuildInputs = with pkgs; [ unzip ];
 
@@ -36,7 +36,7 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    description = "Terraform 1.4.2 (Hashicorp binary)";
+    description = "Terraform 1.4.6 (Hashicorp binary)";
     license = licenses.mpl20;
     maintainers = [ "kylerisse" ];
   };
