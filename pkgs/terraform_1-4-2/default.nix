@@ -23,18 +23,17 @@ stdenv.mkDerivation rec {
 
   src = ./.;
   pname = "terraform_1-4-2";
-  version = "1.4.2";
+  version = "binary";
+  vstring = "1.4.2";
 
   propagatedBuildInputs = with pkgs; [ unzip ];
 
   installPhase = ''
     mkdir -p $out/bin
     unzip $tfzip
-    cp terraform $out/bin/terraform-$version
-    chmod +x $out/bin/terraform-$version
+    cp terraform $out/bin/terraform-$vstring
+    chmod +x $out/bin/terraform-$vstring
   '';
-  ## TODO: add fish completions
-  ## TODO: fix out name of terraform_1-4-2-1.4.2
 
   meta = with lib; {
     description = "Terraform 1.4.2 (Hashicorp binary)";
