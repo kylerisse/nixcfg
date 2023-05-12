@@ -33,7 +33,7 @@ in
   system.defaults.NSGlobalDomain = {
     AppleShowAllFiles = true;
     AppleShowAllExtensions = true;
-    "com.apple.trackpad.scaling" = 3.0;
+    "com.apple.trackpad.scaling" = 1.0;
     AppleInterfaceStyleSwitchesAutomatically = true;
     AppleMeasurementUnits = "Inches";
     AppleMetricUnits = 0;
@@ -104,6 +104,7 @@ in
     icdiff
     inetutils
     jq
+    k9s
     kubectl
     kubectx
     libressl
