@@ -104,6 +104,7 @@ in
     icdiff
     inetutils
     jq
+    k9s
     kubectl
     kubectx
     libressl
