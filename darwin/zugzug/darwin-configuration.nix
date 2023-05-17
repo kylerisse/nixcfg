@@ -215,4 +215,9 @@ in
     "iterm2"
     "visual-studio-code"
   ];
+
+  # the nixpkgs version of helm doesn't currently support aarch64-darwin
+  homebrew.brews = [
+    "helm"
+  ];
 }
