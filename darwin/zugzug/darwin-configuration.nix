@@ -112,6 +112,7 @@ in
     netcat
     nixpkgs-fmt
     nodePackages.jsonlint
+    nodePackages_latest.markdownlint-cli
     nmap
     rakudo
     rnix-lsp
