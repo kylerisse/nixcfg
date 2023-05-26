@@ -6,8 +6,8 @@ let
   nixcfg-repo = pkgs.fetchFromGitHub {
     owner = "kylerisse";
     repo = "nixcfg";
-    rev = "7d63378225de37efe645acf91d3a9106cc0ec0c6";
-    hash = "sha256-y1mMKwgmwHeuhaVQNqywbFiNhOs7DeawLGfV8p6+wc4=";
+    rev = "062393f960aa395bdd7bd6fab31512fd5774ebcd";
+    hash = "sha256-j8oht4Cd1rq8N/he3rCQu8LARrh7iw1I2Z2kDW/38uI=";
   };
   nixcfg-overlay = import (nixcfg-repo + "/overlay.nix");
   nixpkgs = import <nixpkgs> { overlays = [ nixcfg-overlay ]; };
@@ -90,6 +90,7 @@ in
   environment.systemPackages = with nixpkgs; [
     awscli2
     bitwarden-cli
+    brotli
     checkov
     chezmoi
     curl
@@ -111,6 +112,7 @@ in
     neovim
     netcat
     nixpkgs-fmt
+    nodePackages.cspell
     nodePackages.jsonlint
     nodePackages_latest.markdownlint-cli
     nmap
@@ -119,11 +121,11 @@ in
     openssh
     protobuf
     pylint
-    python310
-    python310Packages.pip
-    python310Packages.boto3
-    python310Packages.botocore
-    python310Packages.pytest
+    python311
+    python311Packages.pip
+    python311Packages.boto3
+    python311Packages.botocore
+    python311Packages.pytest
     shellcheck
     silver-searcher
     terminal-notifier
