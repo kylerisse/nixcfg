@@ -36,6 +36,12 @@
                 ./modules/dns-server
               ];
             });
+          gamer =
+            ({ modulePath, ... }: {
+              imports = [
+                ./modules/gamer
+              ];
+            });
         in
         {
           dev-router = nixpkgs.lib.nixosSystem {
@@ -53,6 +59,7 @@
             modules = [
               ./hosts/area76/configuration.nix
               common
+              gamer
             ];
           };
         };
