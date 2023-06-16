@@ -6,8 +6,8 @@ let
   nixcfg-repo = pkgs.fetchFromGitHub {
     owner = "kylerisse";
     repo = "nixcfg";
-    rev = "062393f960aa395bdd7bd6fab31512fd5774ebcd";
-    hash = "sha256-j8oht4Cd1rq8N/he3rCQu8LARrh7iw1I2Z2kDW/38uI=";
+    rev = "11ccffd1b68b4e4e2dc10aadda0a05bf0b192120";
+    hash = "sha256-WI9+WaKWyfGEuX/QJk1G1VyqfbECLgvNXWp7TZImUSo=";
   };
   nixcfg-overlay = import (nixcfg-repo + "/overlay.nix");
   nixpkgs = import <nixpkgs> { overlays = [ nixcfg-overlay ]; };
@@ -215,6 +215,7 @@ in
   # these gui apps tend to run better through homebrew
   homebrew.casks = [
     "bitwarden"
+    "dbeaver-community"
     "iterm2"
     "visual-studio-code"
   ];
