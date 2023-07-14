@@ -6,8 +6,8 @@ let
   nixcfg-repo = pkgs.fetchFromGitHub {
     owner = "kylerisse";
     repo = "nixcfg";
-    rev = "11ccffd1b68b4e4e2dc10aadda0a05bf0b192120";
-    hash = "sha256-WI9+WaKWyfGEuX/QJk1G1VyqfbECLgvNXWp7TZImUSo=";
+    rev = "f5977aa2a01dd4598ce1429fde7403173408309c";
+    hash = "sha256-T9JeD7Mg2fCPAoABgEr8N53NSsw/uRdRB5nHFtabKs0=";
   };
   nixcfg-overlay = import (nixcfg-repo + "/overlay.nix");
   nixpkgs = import <nixpkgs> { overlays = [ nixcfg-overlay ]; };
@@ -132,6 +132,7 @@ in
     terraform_1-3-9
     terraform_1-4-2
     terraform_1-4-6
+    terraform_1-5-2
     terraform_1
     terraform-docs
     terraform-lsp
