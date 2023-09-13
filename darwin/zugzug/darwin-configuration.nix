@@ -6,11 +6,14 @@ let
   nixcfg-repo = pkgs.fetchFromGitHub {
     owner = "kylerisse";
     repo = "nixcfg";
-    rev = "20485debf3b7c3b1d2f612d872dfef3dbad2c2d7";
-    hash = "sha256-KM8SirGzrQU27C/lm976bfRrcqmFwXrfbZZPO0gym+I=";
+    rev = "f265bacfd8ec2af10b1601560a9f8e584022c869";
+    hash = "sha256-PhWV9M0CBkuGa6ybAMRl15qFU+k5mUy8YIs9XlMUsgY=";
   };
   nixcfg-overlay = import (nixcfg-repo + "/overlay.nix");
-  nixpkgs = import <nixpkgs> { overlays = [ nixcfg-overlay ]; };
+  nixpkgs = import <nixpkgs> {
+    config.allowUnfree = true;
+    overlays = [ nixcfg-overlay ];
+  };
 in
 {
   # nix settings
@@ -134,6 +137,7 @@ in
     terraform_1-4-6
     terraform_1-5-2
     terraform_1-5-4
+    terraform_1-5-7
     terraform_1
     terraform-docs
     terraform-lsp
