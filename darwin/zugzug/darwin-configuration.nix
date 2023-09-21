@@ -222,6 +222,7 @@ in
   homebrew.casks = [
     "bitwarden"
     "dbeaver-community"
+    "element"
     "iterm2"
     "visual-studio-code"
   ];
