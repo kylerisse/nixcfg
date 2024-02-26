@@ -100,7 +100,6 @@ in
     dig
     git
     go
-    gocode
     gopls
     go-outline
     gotools
@@ -147,7 +146,7 @@ in
     virt-manager
     wget
     yamllint
-    yubikey-manager4
+    yubikey-manager
   ];
   programs.nix-index.enable = true;
 
@@ -211,7 +210,6 @@ in
 
   homebrew.taps = [
     "homebrew/cask"
-    "homebrew/cask-drivers"
     "homebrew/cask-fonts"
     "homebrew/cask-versions"
     "homebrew/services"
