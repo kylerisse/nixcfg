@@ -221,6 +221,8 @@ in
     "bitwarden"
     "dbeaver-community"
     "element"
+    "firefox"
+    "flux"
     "iterm2"
     "visual-studio-code"
   ];
