@@ -218,11 +218,13 @@ in
   # these gui apps tend to run better through homebrew
   homebrew.casks = [
     "bitwarden"
+    "brave-browser"
     "dbeaver-community"
     "element"
     "firefox"
     "flux"
     "iterm2"
+    "slack"
     "visual-studio-code"
   ];
 
