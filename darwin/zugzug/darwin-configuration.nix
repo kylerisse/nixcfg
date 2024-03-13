@@ -209,7 +209,6 @@ in
   homebrew.global.brewfile = true;
 
   homebrew.taps = [
-    "homebrew/cask"
     "homebrew/cask-fonts"
     "homebrew/cask-versions"
     "homebrew/services"
