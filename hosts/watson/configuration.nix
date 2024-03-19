@@ -138,6 +138,32 @@
     ];
   };
 
+  # gnome exclusions
+  environment.gnome.excludePackages = (with pkgs.gnome; [
+    baobab
+    epiphany
+    pkgs.gnome-text-editor
+    # gnome-calculator
+    gnome-calendar
+    # gnome-characters
+    gnome-clocks
+    # pkgs.gnome-console
+    gnome-contacts
+    # gnome-font-viewer
+    gnome-logs
+    gnome-maps
+    gnome-music
+    gnome-system-monitor
+    gnome-weather
+    pkgs.loupe
+    # nautilus
+    pkgs.gnome-connections
+    simple-scan
+    pkgs.snapshot
+    totem
+    yelp
+  ]);
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
