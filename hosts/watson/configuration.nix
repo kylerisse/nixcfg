@@ -3,7 +3,10 @@
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
 { config, pkgs, ... }:
-
+let
+  monitorsXmlContent = builtins.readFile /home/kylerisse/.config/monitors.xml;
+  monitorsConfig = pkgs.writeText "gdm_monitors.xml" monitorsXmlContent;
+in
 {
   imports =
     [
@@ -163,6 +166,10 @@
     totem
     yelp
   ]);
+
+  systemd.tmpfiles.rules = [
+    "L+ /run/gdm/.config/monitors.xml - - - - ${monitorsConfig}"
+  ];
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
