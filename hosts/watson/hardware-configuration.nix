@@ -14,6 +14,7 @@
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
+
   fileSystems."/boot" =
     {
       device = "/dev/disk/by-label/BOOT";
@@ -59,6 +60,9 @@
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+
+  # allow emulation for raspberry pis
+  boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
 
   # Enable OpenGL
   hardware.opengl = {
