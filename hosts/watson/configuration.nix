@@ -29,7 +29,31 @@ in
   networking.hostName = "watson"; # Define your hostname.
 
   # Enable networking
-  networking.networkmanager.enable = true;
+  networking = {
+    useNetworkd = true;
+    firewall.enable = true;
+  };
+
+  systemd.network = {
+    enable = true;
+    netdevs.br0.netdevConfig = {
+      Kind = "bridge";
+      Name = "br0";
+    };
+    networks = {
+      "20-enp8s0" = {
+        matchConfig.Name = "enp8s0";
+        networkConfig.Bridge = "br0";
+        linkConfig.RequiredForOnline = "enslaved";
+      };
+      "30-br0" = {
+        matchConfig.Name = "br0";
+        enable = true;
+        networkConfig.DHCP = "yes";
+        linkConfig.RequiredForOnline = "routable";
+      };
+    };
+  };
 
   # Set your time zone.
   time.timeZone = "America/Los_Angeles";
@@ -68,7 +92,6 @@ in
   services.avahi = {
     enable = true;
     nssmdns4 = true;
-    openFirewall = true;
   };
 
   # Enable sound with pipewire.
@@ -167,6 +190,7 @@ in
     yelp
   ]);
 
+  # GDM should have same monitor config as the user
   systemd.tmpfiles.rules = [
     "L+ /run/gdm/.config/monitors.xml - - - - ${monitorsConfig}"
   ];
