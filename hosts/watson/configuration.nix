@@ -167,6 +167,7 @@ in
     yelp
   ]);
 
+  # GDM should have same monitor config as the user
   systemd.tmpfiles.rules = [
     "L+ /run/gdm/.config/monitors.xml - - - - ${monitorsConfig}"
   ];
