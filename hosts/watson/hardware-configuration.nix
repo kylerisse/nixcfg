@@ -27,6 +27,7 @@
     {
       device = "/dev/disk/by-label/NIXROOT";
       fsType = "ext4";
+      options = [ "noatime" "nodiratime" "discard" ];
     };
 
   boot.initrd.luks.devices."enc-home".device = "/dev/disk/by-label/CRYPT_HOME";
@@ -35,6 +36,7 @@
     {
       device = "/dev/disk/by-label/HOME";
       fsType = "ext4";
+      options = [ "noatime" "nodiratime" "discard" ];
     };
 
   boot.initrd.luks.devices."enc-backup".device = "/dev/disk/by-label/CRYPT_BACKUP";
