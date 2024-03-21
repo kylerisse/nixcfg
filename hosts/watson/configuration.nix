@@ -51,6 +51,8 @@ in
         enable = true;
         networkConfig.DHCP = "yes";
         linkConfig.RequiredForOnline = "routable";
+        # TODO: why doesn't this work when sent via DHCP?
+        domains = [ "risse.tv" ];
       };
     };
   };
