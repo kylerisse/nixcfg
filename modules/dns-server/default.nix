@@ -16,6 +16,11 @@ in
       description = "CIDRs allowed to recursive query";
       default = [ "192.168.0.0/24" "127.0.0.1/32" ];
     };
+    forwarders = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ "1.1.1.1" "9.9.9.9" ];
+      description = "DNS forwarders";
+    };
     zones = lib.mkOption {
       type = format.type;
       default = {
@@ -45,7 +50,7 @@ in
   config = {
     services.bind.enable = cfg.enable;
     services.bind.cacheNetworks = cfg.allowedCIDRs;
-    services.bind.forwarders = [ "1.1.1.1" "9.9.9.9" ];
+    services.bind.forwarders = cfg.forwarders;
     services.bind.forward = "first";
     services.bind.listenOn = cfg.listenOn;
     services.bind.zones = cfg.zones;
