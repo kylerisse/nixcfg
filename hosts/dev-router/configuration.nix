@@ -23,6 +23,22 @@ in
     ];
   };
 
+  ssh-server.enable = true;
+  ssh-server.listenAddresses = [
+    {
+      addr = "192.168.70.1";
+      port = 2222;
+    }
+    {
+      addr = "192.168.73.31";
+      port = 22;
+    }
+    {
+      addr = "127.0.0.1";
+      port = 22;
+    }
+  ];
+
   dualhome-nat.enable = true;
   dualhome-nat.internalInterface = "enp2s0";
   dualhome-nat.externalInterface = "enp1s0";
