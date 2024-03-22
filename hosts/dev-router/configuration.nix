@@ -64,8 +64,8 @@ in
   }];
 
   dns-server.enable = true;
-  dns-server.listenOn = [ "192.168.70.1" "192.168.73.31" "127.0.0.1" ];
-  dns-server.allowedCIDRs = [ "192.168.70.0/24" "192.168.73.0/24" "127.0.0.1/32" "::1/128" ];
+  dns-server.listenOn = [ "192.168.70.1" "127.0.0.1" ];
+  dns-server.allowedCIDRs = [ "192.168.70.0/24" "127.0.0.1/32" "::1/128" ];
   dns-server.zones =
     {
       "lab.risse.tv" = {
