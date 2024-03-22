@@ -66,11 +66,12 @@ in
   dns-server.enable = true;
   dns-server.listenOn = [ "192.168.70.1" "127.0.0.1" ];
   dns-server.allowedCIDRs = [ "192.168.70.0/24" "127.0.0.1/32" "::1/128" ];
+  dns-server.forwarders = [ "192.168.73.1" ];
   dns-server.zones =
     {
       "lab.risse.tv" = {
         master = true;
-        masters = [ "192.168.0.1" ];
+        masters = [ "192.168.70.1" ];
         file = pkgs.writeText "named.lab.risse.tv" ''
           $TTL 86400
           @ IN SOA dev-router.lab.risse.tv. admin.lab.risse.tv. (
@@ -86,7 +87,7 @@ in
           nixos-sandbox       IN    A       143.198.136.198
         '';
       };
-      "named.192.168.70" = {
+      "70.168.192.in-addr.arpa" = {
         master = true;
         masters = [ "192.168.70.1" ];
         file = pkgs.writeText "named.192.168.70" ''
@@ -118,5 +119,5 @@ in
 
   time.timeZone = "America/Los_Angeles";
 
-  system.stateVersion = "22.11";
+  system.stateVersion = "24.05";
 }

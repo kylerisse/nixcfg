@@ -51,7 +51,7 @@ in
     services.bind.enable = cfg.enable;
     services.bind.cacheNetworks = cfg.allowedCIDRs;
     services.bind.forwarders = cfg.forwarders;
-    services.bind.forward = "only";
+    services.bind.forward = "first";
     services.bind.listenOn = cfg.listenOn;
     services.bind.zones = cfg.zones;
     networking.firewall.allowedTCPPorts = [ 53 ];
