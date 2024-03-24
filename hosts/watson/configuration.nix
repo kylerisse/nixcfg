@@ -138,7 +138,11 @@ in
       discord
       element-desktop
       firefox
+      gcc
       git
+      go
+      gopls
+      go-outline
       gnumake
       htop
       icdiff
