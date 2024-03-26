@@ -6,8 +6,8 @@ let
   nixcfg-repo = pkgs.fetchFromGitHub {
     owner = "kylerisse";
     repo = "nixcfg";
-    rev = "a1f6ef48370ec26542a051319b742e1c1b5425ce";
-    hash = "sha256-vH+BdZqNTGLDkS7xtbUW8GQfd4RQiN5ZMtmh0ZfGHgw=";
+    rev = "de3615d35dc571879baae8a587ee9db2b8cdb4ae";
+    hash = "sha256-NKJ3pAaSVmJha8SmajYBi/Xb8WveLKfLeiNb+8oohvs=";
   };
   nixcfg-overlay = import (nixcfg-repo + "/overlay.nix");
   nixpkgs = import <nixpkgs> {
@@ -94,6 +94,7 @@ in
     awscli2
     bitwarden-cli
     brotli
+    btop
     checkov
     chezmoi
     curl
@@ -103,7 +104,6 @@ in
     gopls
     go-outline
     gotools
-    htop
     icdiff
     inetutils
     jq
@@ -119,25 +119,19 @@ in
     nodePackages_latest.markdownlint-cli
     nmap
     rakudo
-    rnix-lsp
     openssh
     protobuf
     pylint
-    python311
-    python311Packages.pip
-    python311Packages.boto3
-    python311Packages.botocore
-    python311Packages.pytest
+    python312
+    python312Packages.pip
+    python312Packages.boto3
+    python312Packages.botocore
+    python312Packages.pytest
     shellcheck
     silver-searcher
     terminal-notifier
-    terraform_1-3-9
-    terraform_1-4-2
-    terraform_1-4-6
-    terraform_1-5-2
-    terraform_1-5-4
-    terraform_1-5-7
     terraform_1-6-6
+    terraform_1-7-4
     terraform_1
     terraform-docs
     terraform-lsp
