@@ -4,12 +4,15 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixinate.url = "github:matthewcroughan/nixinate";
+    nix-darwin.url = "github:LnL7/nix-darwin";
+    nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
     { self
     , nixinate
     , nixpkgs
+    , nix-darwin
     , ...
     } @ inputs: {
       apps = nixinate.nixinate.x86_64-linux self;
@@ -63,5 +66,14 @@
             ];
           };
         };
+      darwinConfigurations = {
+        zugzug = nix-darwin.lib.darwinSystem {
+          nixpkgs.hostPlatform = "aarch64-darwin";
+          modules = [
+            ./darwin/zugzug/darwin-configuration.nix
+          ];
+          specialArgs = { inherit nix-darwin nixpkgs inputs; };
+        };
+      };
     };
 }

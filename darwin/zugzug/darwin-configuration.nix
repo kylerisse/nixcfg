@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+/*{ config, lib, pkgs, ... }:
 let
   inherit (lib) mkIf elem;
   caskPresent = cask: lib.any (x: x.name == cask) config.homebrew.casks;
@@ -14,7 +14,7 @@ let
     config.allowUnfree = true;
     overlays = [ nixcfg-overlay ];
   };
-in
+in*/
 {
   # nix settings
   nix.settings = {
