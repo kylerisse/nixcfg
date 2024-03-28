@@ -54,6 +54,13 @@
             ];
             specialArgs = { inherit self; };
           };
+          watson = nixpkgs.lib.nixosSystem {
+            system = "x86_64-linux";
+            modules = [
+              ./hosts/watson/configuration.nix
+              common
+            ];
+          };
         };
     };
 }
