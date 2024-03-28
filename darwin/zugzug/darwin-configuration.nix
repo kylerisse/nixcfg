@@ -32,46 +32,116 @@ in
   nixpkgs.config.allowUnfree = true;
 
   # mac settings
-  # some of these require a re-login to take effect (such as dock size and 24hr time)
+  system.startup.chime = false;
+
   system.defaults.NSGlobalDomain = {
     AppleShowAllFiles = true;
+    AppleEnableMouseSwipeNavigateWithScrolls = false;
+    AppleEnableSwipeNavigateWithScrolls = false;
     AppleShowAllExtensions = true;
     "com.apple.trackpad.scaling" = 1.0;
+    "com.apple.trackpad.enableSecondaryClick" = true;
+    "com.apple.trackpad.trackpadCornerClickBehavior" = 1;
+    "com.apple.swipescrolldirection" = false;
     AppleInterfaceStyleSwitchesAutomatically = true;
     AppleMeasurementUnits = "Inches";
     AppleMetricUnits = 0;
     AppleShowScrollBars = "Always";
+    AppleScrollerPagingBehavior = false;
     AppleTemperatureUnit = "Fahrenheit";
     InitialKeyRepeat = 15;
     KeyRepeat = 2;
     NSAutomaticCapitalizationEnabled = false;
     NSAutomaticDashSubstitutionEnabled = false;
     NSAutomaticPeriodSubstitutionEnabled = false;
+    NSAutomaticQuoteSubstitutionEnabled = false;
+    NSAutomaticSpellingCorrectionEnabled = false;
     NSDisableAutomaticTermination = true;
+    NSAutomaticWindowAnimationsEnabled = true;
     NSDocumentSaveNewDocumentsToCloud = false;
-    NSTableViewDefaultSizeMode = 2;
+    AppleWindowTabbingMode = "manual";
+    NSNavPanelExpandedStateForSaveMode = true;
+    NSNavPanelExpandedStateForSaveMode2 = true;
+    PMPrintingExpandedStateForPrint = true;
+    PMPrintingExpandedStateForPrint2 = true;
+    NSTableViewDefaultSizeMode = 1;
+    NSTextShowsControlCharacters = true;
+    NSUseAnimatedFocusRing = true;
+    NSScrollAnimationEnabled = true;
+    NSWindowResizeTime = 0.25;
+    NSWindowShouldDragOnGesture = false;
     _HIHideMenuBar = false;
     "com.apple.keyboard.fnState" = false;
-    "com.apple.sound.beep.volume" = 0.4;
+    "com.apple.sound.beep.volume" = 0.2;
     "com.apple.sound.beep.feedback" = 1;
-    "com.apple.swipescrolldirection" = false;
     AppleICUForce24HourTime = true;
+    "com.apple.springing.enabled" = false;
+    "com.apple.springing.delay" = 1.0;
   };
 
+  # firewall set to block and stealth mode with logging
+  system.defaults.alf = {
+    globalstate = 2;
+    loggingenabled = 1;
+    stealthenabled = 1;
+  };
+
+  system.defaults.menuExtraClock = {
+    IsAnalog = false;
+    Show24Hour = true;
+    ShowAMPM = false;
+    ShowDayOfMonth = true;
+    ShowDayOfWeek = true;
+    ShowDate = 1;
+    ShowSeconds = false;
+  };
+
+  # dock settings require re logging in
   system.defaults.dock = {
+    appswitcher-all-displays = true;
     autohide = true;
+    autohide-delay = 0.24;
+    autohide-time-modifier = 0.8;
+    dashboard-in-overlay = true;
     expose-group-by-app = false;
+    enable-spring-load-actions-on-all-items = true;
+    expose-animation-duration = 0.8;
+    launchanim = true;
     mru-spaces = false;
-    show-recents = false;
     tilesize = 24;
     mineffect = "genie";
+    magnification = false;
+    largesize = 24;
+    mouse-over-hilite-stack = true;
     minimize-to-application = false;
     orientation = "bottom";
     # Disable all hot corners
     wvous-bl-corner = 1;
     wvous-br-corner = 1;
-    wvous-tl-corner = 1;
+    wvous-tl-corner = 2;
     wvous-tr-corner = 1;
+    persistent-apps = [
+      "/System/Applications/Mission\ Control.app"
+      "/Applications/Microsoft\ Teams\ (work\ or\ school).app"
+      "/Applications/Microsoft\ Outlook.app"
+      "/Applications/Google\ Chrome.app"
+      "/Applications/Firefox.app"
+      "/System/Applications/System\ Settings.app"
+      "/Applications/iTerm.app"
+      "/Applications/Bitwarden.app"
+      "/Applications/Visual\ Studio Code.app"
+      "/Applications/Cisco/Cisco\ Secure\ Client.app"
+      "/Applications/zoom.us.app"
+      "/Applications/Element.app"
+      "/Applications/Brave Browser.app"
+      "/Applications/Slack.app"
+      "/System/Applications/Calculator.app"
+      "/Applications/Docker.app"
+    ];
+    show-process-indicators = true;
+    showhidden = true;
+    show-recents = false;
+    static-only = false;
   };
 
   system.defaults.spaces.spans-displays = false;
@@ -81,7 +151,22 @@ in
   };
 
   system.defaults.finder = {
+    AppleShowAllFiles = true;
+    ShowStatusBar = true;
+    ShowPathbar = true;
     FXEnableExtensionChangeWarning = true;
+    FXDefaultSearchScope = "SCcf";
+    FXPreferredViewStyle = "clmv"; #list
+    AppleShowAllExtensions = true;
+    CreateDesktop = false;
+    QuitMenuItem = false;
+    _FXShowPosixPathInTitle = true;
+  };
+
+  system.defaults.screencapture = {
+    location = "/Users/kyle.risse/Pictures/Screenshots";
+    type = "png";
+    disable-shadow = false;
   };
 
   # why is this not the default in MacOS?
