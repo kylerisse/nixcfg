@@ -1,11 +1,10 @@
-# Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
-
 { config, pkgs, ... }:
 let
-  monitorsXmlContent = builtins.readFile /home/kylerisse/.config/monitors.xml;
+  # gdm trickery
+  monitorsXmlContent = builtins.readFile ./monitors.xml;
   monitorsConfig = pkgs.writeText "gdm_monitors.xml" monitorsXmlContent;
+
+  ssh-server.enable = true;
 in
 {
   imports =
@@ -113,19 +112,10 @@ in
     #media-session.enable = true;
   };
 
-  security.sudo.wheelNeedsPassword = false;
-
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.kylerisse = with pkgs; {
-    isNormalUser = true;
-    uid = 9001;
-    description = "kylerisse";
     shell = pkgs.fish;
-    extraGroups = [ "networkmanager" "wheel" ];
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPirA5WUlTLXEol/yr+QJDeWa3S8GW0u4TXzSxBxRrbs"
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILd1LH8ULHcy7jk0GtajE2N5EIjzoytcgylAYc6CzR6+"
-    ];
+    extraGroups = [ "networkmanager" ];
 
     packages = with pkgs; [
       awscli2
