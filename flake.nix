@@ -54,12 +54,11 @@
             ];
             specialArgs = { inherit self; };
           };
-          area76 = nixpkgs.lib.nixosSystem {
+          watson = nixpkgs.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
-              ./hosts/area76/configuration.nix
+              ./hosts/watson/configuration.nix
               common
-              gamer
             ];
           };
         };
