@@ -2,14 +2,16 @@
   description = "NixOS configuration";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs-2311.url = "github:nixos/nixpkgs/nixos-23.11";
     nixinate.url = "github:matthewcroughan/nixinate";
   };
 
   outputs =
     { self
     , nixinate
-    , nixpkgs
+    , nixpkgs-unstable
+    , nixpkgs-2311
     , ...
     } @ inputs: {
       apps = nixinate.nixinate.x86_64-linux self;
@@ -44,7 +46,7 @@
             });
         in
         {
-          dev-router = nixpkgs.lib.nixosSystem {
+          dev-router = nixpkgs-2311.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
               ./hosts/dev-router/configuration.nix
@@ -54,7 +56,7 @@
             ];
             specialArgs = { inherit self; };
           };
-          watson = nixpkgs.lib.nixosSystem {
+          watson = nixpkgs-unstable.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
               ./hosts/watson/configuration.nix
