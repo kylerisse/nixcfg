@@ -63,6 +63,13 @@
               common
             ];
           };
+          muir = nixpkgs-unstable.lib.nixosSystem {
+            system = "x86_64-linux";
+            modules = [
+              ./hosts/muir/configuration.nix
+              common
+            ];
+          };
         };
     };
 }
