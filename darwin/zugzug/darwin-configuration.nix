@@ -3,17 +3,6 @@ let
   inherit (lib) mkIf elem;
   caskPresent = cask: lib.any (x: x.name == cask) config.homebrew.casks;
   brewEnabled = config.homebrew.enable;
-  nixcfg-repo = pkgs.fetchFromGitHub {
-    owner = "kylerisse";
-    repo = "nixcfg";
-    rev = "de3615d35dc571879baae8a587ee9db2b8cdb4ae";
-    hash = "sha256-NKJ3pAaSVmJha8SmajYBi/Xb8WveLKfLeiNb+8oohvs=";
-  };
-  nixcfg-overlay = import (nixcfg-repo + "/overlay.nix");
-  nixpkgs = import <nixpkgs> {
-    config.allowUnfree = true;
-    overlays = [ nixcfg-overlay ];
-  };
 in
 {
   # nix settings
@@ -175,7 +164,7 @@ in
   # Just install everything as systemPackages rather than futz with home-manager for now
   # use chezmoi for compatibility with non NixOS / nix-darwin systems
   # some packages such as libressl and openssh already exist in OSX, but we want the latest
-  environment.systemPackages = with nixpkgs; [
+  environment.systemPackages = with pkgs; [
     awscli2
     bitwarden-cli
     brotli
@@ -215,8 +204,9 @@ in
     shellcheck
     silver-searcher
     terminal-notifier
-    terraform_1-6-6
-    terraform_1-7-4
+    # TODO: fix overlay and re-enable these
+    #terraform_1-6-6
+    #terraform_1-7-4
     terraform_1
     terraform-docs
     terraform-lsp
