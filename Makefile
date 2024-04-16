@@ -2,25 +2,16 @@ doimage:
 	nix-build images/do.nix
 
 deploy-dev-router:
-	nix run .#apps.nixinate.dev-router
+	nixos-rebuild --flake .#dev-router --use-remote-sudo --target-host dev-router boot
+	ssh dev-router.risse.tv 'sudo reboot'
 
-deploy-area76:
-	nix run .#apps.nixinate.area76
+lint: tflint nixlint
 
-flake-update:
-	nix flake update
-
-pin-update:
-	nix registry pin github:NixOS/nixpkgs/nixos-23.05
-	nix registry pin nixpkgs
-	nix registry list
-	nix eval nixpkgs#lib.version
-
-lint:
+nixlint:
 	nix-shell -p nixpkgs-fmt --command 'for i in `find ./ -name "*.nix"`; do echo $$i; nixpkgs-fmt $$i; done;'
 
 tflint:
-	nix-shell -p terraform_1 --command 'for i in `find ./ -name "*.tf"`; do echo $$i; terraform fmt $$i; done;'
+	NIXPKGS_ALLOW_UNFREE=1 nix-shell -p terraform_1 --command 'for i in `find ./ -name "*.tf"`; do echo $$i; terraform fmt $$i; done;'
 
 mac:
 	darwin-rebuild switch --flake .#zugzug
