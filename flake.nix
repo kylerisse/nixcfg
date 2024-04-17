@@ -14,6 +14,16 @@
     , nixpkgs-2311
     , nix-darwin
     }: {
+      packages.aarch64-darwin =
+        let
+          pkgs = import nixpkgs-unstable {
+            system = "aarch64-darwin";
+            config.allowUnfree = true;
+          };
+        in
+        {
+          terraform_1-5-7 = pkgs.callPackage ./pkgs/terraform_1-5-7 { };
+        };
       darwinConfigurations = {
         "zugzug" = nix-darwin.lib.darwinSystem {
           system = "aarch64-darwin";
