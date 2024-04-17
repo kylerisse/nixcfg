@@ -23,6 +23,7 @@
         in
         {
           terraform_1-5-7 = pkgs.callPackage ./pkgs/terraform_1-5-7 { };
+          terraform_1-7-5 = pkgs.callPackage ./pkgs/terraform_1-7-5 { };
         };
       darwinConfigurations = {
         "zugzug" = nix-darwin.lib.darwinSystem {

@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 let
   inherit (lib) mkIf elem;
   caskPresent = cask: lib.any (x: x.name == cask) config.homebrew.casks;
@@ -204,10 +204,9 @@ in
     shellcheck
     silver-searcher
     terminal-notifier
-    # TODO: fix overlay and re-enable these
-    #terraform_1-6-6
-    #terraform_1-7-4
     terraform_1
+    inputs.self.packages.aarch64-darwin.terraform_1-5-7
+    inputs.self.packages.aarch64-darwin.terraform_1-7-5
     terraform-docs
     terraform-lsp
     tflint
