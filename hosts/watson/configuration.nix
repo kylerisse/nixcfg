@@ -152,6 +152,7 @@ in
       openssh
       silver-searcher
       slack
+      steam
       virt-manager
       vscode
       wget

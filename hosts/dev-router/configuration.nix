@@ -7,14 +7,6 @@ in
     ./hardware-configuration.nix
   ];
 
-  _module.args = {
-    nixinate = {
-      host = "dev-router";
-      buildOn = "remote";
-      sshUser = "kylerisse";
-    };
-  };
-
   nix.settings = {
     trusted-users = [ "@wheel" ];
     experimental-features = [
