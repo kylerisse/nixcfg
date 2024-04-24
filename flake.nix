@@ -2,16 +2,18 @@
   description = "NixOS configuration";
 
   inputs = {
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs-2311.url = "github:nixos/nixpkgs/nixos-23.11";
+    nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixos-2311.url = "github:nixos/nixpkgs/nixos-23.11";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     nix-darwin.url = "github:LnL7/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs-unstable";
   };
 
   outputs =
     inputs@{ self
+    , nixos-unstable
+    , nixos-2311
     , nixpkgs-unstable
-    , nixpkgs-2311
     , nix-darwin
     }: {
       packages.aarch64-darwin =
@@ -65,7 +67,7 @@
             });
         in
         {
-          dev-router = nixpkgs-2311.lib.nixosSystem {
+          dev-router = nixos-2311.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
               ./hosts/dev-router/configuration.nix
@@ -75,14 +77,14 @@
             ];
             specialArgs = { inherit self; };
           };
-          watson = nixpkgs-unstable.lib.nixosSystem {
+          watson = nixos-unstable.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
               ./hosts/watson/configuration.nix
               common
             ];
           };
-          muir = nixpkgs-unstable.lib.nixosSystem {
+          muir = nixos-unstable.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
               ./hosts/muir/configuration.nix

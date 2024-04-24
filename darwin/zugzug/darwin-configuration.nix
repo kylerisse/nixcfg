@@ -169,7 +169,7 @@ in
     bitwarden-cli
     brotli
     btop
-    checkov
+    #checkov
     chezmoi
     curl
     dig
