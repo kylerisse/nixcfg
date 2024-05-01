@@ -1,9 +1,9 @@
 { config, pkgs, modulesPath, ... }:
 {
   imports =
-  [
-    (modulesPath + "/virtualisation/digital-ocean-image.nix")
-  ];
+    [
+      (modulesPath + "/virtualisation/digital-ocean-image.nix")
+    ];
   boot.initrd.availableKernelModules = [ "kvm-intel" "kvm-amd" "ahci" "xhci_pci" "virtio_pci" "sr_mod" "virtio_blk" ];
   boot.loader.grub.device = "/dev/vda";
 
