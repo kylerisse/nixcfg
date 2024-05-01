@@ -67,6 +67,13 @@
             });
         in
         {
+          doImage = nixos-2311.lib.nixosSystem {
+            system = "x86_64-linux";
+            modules = [
+              common
+              ./images/do.nix
+            ];
+          };
           dev-router = nixos-2311.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [

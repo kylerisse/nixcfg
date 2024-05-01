@@ -1,5 +1,5 @@
-doimage:
-	nix-build images/do.nix
+doImage:
+	nix build -L .#nixosConfigurations.doImage.config.system.build.digitalOceanImage
 
 deploy-dev-router:
 	nixos-rebuild --flake .#dev-router --use-remote-sudo --target-host dev-router boot
