@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, ... }:
 let
   # gdm trickery
   monitorsXmlContent = builtins.readFile ./monitors.xml;
@@ -158,6 +158,7 @@ in
       wget
       yamllint
       yubikey-manager
+      inputs.self.packages.x86_64-linux.go-signs
     ];
   };
 
