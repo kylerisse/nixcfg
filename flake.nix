@@ -33,7 +33,7 @@
         };
       packages.x86_64-linux =
         let
-          pkgs = import nixpkgs-unstable {
+          pkgs = import nixos-unstable {
             system = "x86_64-linux";
           };
         in
