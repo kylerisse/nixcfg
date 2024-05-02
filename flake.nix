@@ -2,8 +2,11 @@
   description = "NixOS configuration";
 
   inputs = {
+    # linux
     nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nixos-2311.url = "github:nixos/nixpkgs/nixos-23.11";
+    nixos-hardware.url = "github:nixos/nixos-hardware";
+    # mac
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     nix-darwin.url = "github:LnL7/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs-unstable";
@@ -13,6 +16,7 @@
     inputs@{ self
     , nixos-unstable
     , nixos-2311
+    , nixos-hardware
     , nixpkgs-unstable
     , nix-darwin
     }: {
@@ -105,6 +109,7 @@
           muir = nixos-unstable.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
+              #nixos-hardware.nixosModules.lenovo-thinkpad-t490
               ./hosts/muir/configuration.nix
               common
             ];
