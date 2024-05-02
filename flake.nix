@@ -109,7 +109,7 @@
           muir = nixos-unstable.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
-              #nixos-hardware.nixosModules.lenovo-thinkpad-t490
+              nixos-hardware.nixosModules.lenovo-thinkpad-t490
               ./hosts/muir/configuration.nix
               common
             ];
