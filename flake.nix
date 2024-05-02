@@ -100,6 +100,7 @@
               ./hosts/watson/configuration.nix
               common
             ];
+            specialArgs = { inherit inputs; };
           };
           muir = nixos-unstable.lib.nixosSystem {
             system = "x86_64-linux";
