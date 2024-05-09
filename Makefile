@@ -15,3 +15,9 @@ tflint:
 
 mac:
 	darwin-rebuild switch --flake .#zugzug
+
+bump-flake-mac:
+	nix flake lock --update-input nixpkgs-unstable --update-input nix-darwin
+
+bump-flake-darwin:
+	nix flake lock --update-input nixos-unstable --update-input nixos-2311
