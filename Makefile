@@ -1,6 +1,9 @@
 doImage:
 	nix build -L .#nixosConfigurations.doImage.config.system.build.digitalOceanImage
 
+installerISO:
+	nix build -L .#nixosConfigurations.installerImage.config.system.build.isoImage
+
 deploy-dev-router:
 	nixos-rebuild --flake .#dev-router --use-remote-sudo --target-host dev-router boot
 	ssh dev-router.risse.tv 'sudo reboot'

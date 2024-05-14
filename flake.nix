@@ -88,6 +88,12 @@
               ./images/do.nix
             ];
           };
+          installerImage = nixos-2311.lib.nixosSystem {
+            system = "x86_64-linux";
+            modules = [
+              ./images/gnome-installer.nix
+            ];
+          };
           dev-router = nixos-2311.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
