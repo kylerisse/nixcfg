@@ -6,6 +6,7 @@
 ├───nixosConfigurations
 │   ├───dev-router: router/dhcp/dns development
 │   ├───doImage: Digital Ocean image
+│   ├───installerImage: Gnome Installer ISO Image
 │   ├───muir: T490 laptop
 │   └───watson: Ryzen Desktop
 ├───packages
