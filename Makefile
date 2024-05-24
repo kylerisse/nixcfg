@@ -23,4 +23,4 @@ bump-flake-darwin:
 	nix flake lock --update-input nixpkgs-unstable --update-input nix-darwin
 
 bump-flake-linux:
-	nix flake lock --update-input nixos-unstable --update-input nixos-2311 --update-input nixos-hardware
+	nix flake lock --update-input nixos-unstable --update-input nixos-2311 --update-input nixos-2405 --update-input nixos-hardware
