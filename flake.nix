@@ -5,6 +5,7 @@
     # linux
     nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nixos-2311.url = "github:nixos/nixpkgs/nixos-23.11";
+    nixos-2405.url = "github:nixos/nixpkgs/nixos-24.05";
     nixos-hardware.url = "github:nixos/nixos-hardware";
     # mac
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
@@ -16,6 +17,7 @@
     inputs@{ self
     , nixos-unstable
     , nixos-2311
+    , nixos-2405
     , nixos-hardware
     , nixpkgs-unstable
     , nix-darwin
@@ -88,13 +90,13 @@
               ./images/do.nix
             ];
           };
-          installerImage = nixos-2311.lib.nixosSystem {
+          installerImage = nixos-2405.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
               ./images/gnome-installer.nix
             ];
           };
-          dev-router = nixos-2311.lib.nixosSystem {
+          dev-router = nixos-2405.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
               ./hosts/dev-router/configuration.nix
