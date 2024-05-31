@@ -56,6 +56,13 @@ in
     };
   };
 
+  virtualisation.libvirtd.enable = true;
+  programs = {
+    dconf.enable = true;
+    virt-manager.enable = true;
+  };
+  boot.extraModprobeConfig = "options kvm_amd nested=1";
+
   # Set your time zone.
   time.timeZone = "America/Los_Angeles";
 
@@ -115,7 +122,7 @@ in
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.kylerisse = with pkgs; {
     shell = pkgs.fish;
-    extraGroups = [ "networkmanager" ];
+    extraGroups = [ "networkmanager" "libvirtd" ];
 
     packages = with pkgs; [
       awscli2
