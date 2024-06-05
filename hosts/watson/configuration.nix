@@ -141,11 +141,13 @@ in
       gopls
       go-outline
       gnumake
+      helm
       htop
       icdiff
       inetutils
       jq
       k9s
+      kompose
       kubectl
       kubectx
       libressl
@@ -215,6 +217,8 @@ in
   programs.fish.shellInit = ''
     fish_add_path --prepend /run/wrappers/bin
   '';
+
+  ssh-server.enable = true;
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
