@@ -56,6 +56,13 @@ in
     };
   };
 
+  virtualisation.libvirtd.enable = true;
+  programs = {
+    dconf.enable = true;
+    virt-manager.enable = true;
+  };
+  boot.extraModprobeConfig = "options kvm_amd nested=1";
+
   # Set your time zone.
   time.timeZone = "America/Los_Angeles";
 
@@ -115,7 +122,7 @@ in
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.kylerisse = with pkgs; {
     shell = pkgs.fish;
-    extraGroups = [ "networkmanager" ];
+    extraGroups = [ "networkmanager" "libvirtd" ];
 
     packages = with pkgs; [
       awscli2
@@ -134,11 +141,13 @@ in
       gopls
       go-outline
       gnumake
+      helm
       htop
       icdiff
       inetutils
       jq
       k9s
+      kompose
       kubectl
       kubectx
       libressl
@@ -208,6 +217,8 @@ in
   programs.fish.shellInit = ''
     fish_add_path --prepend /run/wrappers/bin
   '';
+
+  ssh-server.enable = true;
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.

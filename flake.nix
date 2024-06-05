@@ -123,6 +123,54 @@
               common
             ];
           };
+          # watson guests
+          k8s-master =
+            let
+              hostname = "k8s-master";
+            in
+            nixos-2405.lib.nixosSystem {
+              system = "x86_64-linux";
+              modules = [
+                ./hosts/watson/guests/k8s-master.nix
+                ./hosts/watson/guests/k8s-common.nix
+                common
+              ];
+              specialArgs = { inherit hostname; };
+            };
+          k8s-worker1 =
+            let
+              hostname = "k8s-worker1";
+            in
+            nixos-2405.lib.nixosSystem {
+              system = "x86_64-linux";
+              modules = [
+                ./hosts/watson/guests/k8s-worker.nix
+                ./hosts/watson/guests/k8s-common.nix
+                common
+              ];
+              specialArgs = { inherit hostname; };
+            };
+          k8s-worker2 =
+            let
+              hostname = "k8s-worker2";
+            in
+            nixos-2405.lib.nixosSystem {
+              system = "x86_64-linux";
+              modules = [
+                ./hosts/watson/guests/k8s-worker.nix
+                ./hosts/watson/guests/k8s-common.nix
+                common
+              ];
+              specialArgs = { inherit hostname; };
+            };
+          db =
+            nixos-2405.lib.nixosSystem {
+              system = "x86_64-linux";
+              modules = [
+                ./hosts/watson/guests/db.nix
+                common
+              ];
+            };
         };
     };
 }
