@@ -118,6 +118,7 @@ in
       "/System/Applications/System\ Settings.app"
       "/Applications/iTerm.app"
       "/Applications/Bitwarden.app"
+      "/Applications/DBeaver.app"
       "/Applications/Visual\ Studio Code.app"
       "/Applications/Cisco/Cisco\ Secure\ Client.app"
       "/Applications/zoom.us.app"
@@ -166,8 +167,8 @@ in
   # some packages such as libressl and openssh already exist in OSX, but we want the latest
   environment.systemPackages = with pkgs; [
     awscli2
-    bitwarden-cli
-    brotli
+    #bitwarden-cli
+    #brotli
     btop
     #checkov
     chezmoi
@@ -192,12 +193,12 @@ in
     nodePackages.jsonlint
     nodePackages_latest.markdownlint-cli
     nmap
-    rakudo
+    #rakudo
     openssh
     protobuf
     pylint
     python312
-    python312Packages.pip
+    #python312Packages.pip
     python312Packages.boto3
     python312Packages.botocore
     python312Packages.pytest
@@ -293,6 +294,7 @@ in
     "firefox"
     "flux"
     "iterm2"
+    "nikitabobko/tap/aerospace"
     "slack"
     "visual-studio-code"
   ];
