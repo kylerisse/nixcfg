@@ -6,7 +6,15 @@ installerISO:
 
 deploy-dev-router:
 	nixos-rebuild --flake .#dev-router --use-remote-sudo --target-host dev-router boot
-	ssh dev-router.risse.tv 'sudo reboot'
+	ssh dev-router 'sudo reboot'
+
+deploy-k8s-cluster:
+	nixos-rebuild --flake .#k8s-master --use-remote-sudo --target-host k8s-master boot
+	ssh k8s-master 'sudo reboot'
+	nixos-rebuild --flake .#k8s-worker1 --use-remote-sudo --target-host k8s-worker1 boot
+	ssh k8s-worker1 'sudo reboot'
+	nixos-rebuild --flake .#k8s-worker2 --use-remote-sudo --target-host k8s-worker2 boot
+	ssh k8s-worker2 'sudo reboot'
 
 lint: tflint nixlint
 
