@@ -294,7 +294,6 @@ in
     "firefox"
     "flux"
     "iterm2"
-    "nikitabobko/tap/aerospace"
     "slack"
     "visual-studio-code"
   ];
