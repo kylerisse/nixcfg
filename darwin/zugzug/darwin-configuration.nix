@@ -209,6 +209,7 @@ in
     inputs.self.packages.aarch64-darwin.terraform_1-5-7
     inputs.self.packages.aarch64-darwin.terraform_1-7-5
     inputs.self.packages.aarch64-darwin.terraform_1-8-3
+    inputs.self.packages.aarch64-darwin.terraform_1-9-1
     terraform-docs
     terraform-lsp
     tflint

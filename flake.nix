@@ -33,6 +33,7 @@
           terraform_1-5-7 = pkgs.callPackage ./pkgs/terraform_1-5-7 { };
           terraform_1-7-5 = pkgs.callPackage ./pkgs/terraform_1-7-5 { };
           terraform_1-8-3 = pkgs.callPackage ./pkgs/terraform_1-8-3 { };
+          terraform_1-9-1 = pkgs.callPackage ./pkgs/terraform_1-9-1 { };
         };
       packages.x86_64-linux =
         let
