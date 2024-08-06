@@ -158,6 +158,7 @@ in
       nodePackages.cspell
       nodePackages.jsonlint
       nodePackages_latest.markdownlint-cli
+      openrct2
       openssh
       silver-searcher
       slack
