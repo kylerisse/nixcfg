@@ -122,7 +122,7 @@ in
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.kylerisse = with pkgs; {
     shell = pkgs.fish;
-    extraGroups = [ "networkmanager" "libvirtd" ];
+    extraGroups = [ "dialout" "networkmanager" "libvirtd" ];
 
     packages = with pkgs; [
       awscli2
@@ -163,6 +163,7 @@ in
       silver-searcher
       slack
       steam
+      usbutils
       virt-manager
       vscode
       wget
