@@ -4,7 +4,6 @@
   inputs = {
     # linux
     nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixos-2311.url = "github:nixos/nixpkgs/nixos-23.11";
     nixos-2405.url = "github:nixos/nixpkgs/nixos-24.05";
     nixos-hardware.url = "github:nixos/nixos-hardware";
     # mac
@@ -16,7 +15,6 @@
   outputs =
     inputs@{ self
     , nixos-unstable
-    , nixos-2311
     , nixos-2405
     , nixos-hardware
     , nixpkgs-unstable
@@ -85,7 +83,7 @@
             });
         in
         {
-          doImage = nixos-2311.lib.nixosSystem {
+          doImage = nixos-2405.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
               common
