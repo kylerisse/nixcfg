@@ -122,6 +122,13 @@
               common
             ];
           };
+          riviera = nixos-2405.lib.nixosSystem {
+            system = "x86_64-linux";
+            modules = [
+              nixos-hardware.nixosModules.lenovo-thinkpad-t490
+              ./hosts/riviera/configuration.nix
+            ];
+          };
           # watson guests
           k8s-master =
             let
