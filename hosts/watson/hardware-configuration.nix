@@ -6,6 +6,7 @@
 {
   hardware.enableRedistributableFirmware = lib.mkDefault true;
 
+  boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.initrd.availableKernelModules = [ "kvm_amd" "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "uas" "sd_mod" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ ];
@@ -64,10 +65,9 @@
   boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
 
   # Enable OpenGL
-  hardware.opengl = {
+  hardware.graphics = {
     enable = true;
-    driSupport = true;
-    driSupport32Bit = true;
+    enable32Bit = true;
   };
 
   /*

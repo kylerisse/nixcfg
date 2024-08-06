@@ -29,6 +29,7 @@ in
 
   # Enable networking
   networking = {
+    networkmanager.enable = false;
     useNetworkd = true;
     firewall.enable = true;
   };
@@ -102,8 +103,6 @@ in
     nssmdns4 = true;
   };
 
-  # Enable sound with pipewire.
-  sound.enable = true;
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
@@ -122,7 +121,7 @@ in
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.kylerisse = with pkgs; {
     shell = pkgs.fish;
-    extraGroups = [ "networkmanager" "libvirtd" ];
+    extraGroups = [ "dialout" "networkmanager" "libvirtd" ];
 
     packages = with pkgs; [
       awscli2
@@ -158,10 +157,12 @@ in
       nodePackages.cspell
       nodePackages.jsonlint
       nodePackages_latest.markdownlint-cli
+      openrct2
       openssh
       silver-searcher
       slack
       steam
+      usbutils
       virt-manager
       vscode
       wget
@@ -172,27 +173,27 @@ in
   };
 
   # gnome exclusions
-  environment.gnome.excludePackages = (with pkgs.gnome; [
+  environment.gnome.excludePackages = (with pkgs; [
     baobab
     epiphany
-    pkgs.gnome-text-editor
+    gnome-text-editor
     # gnome-calculator
     gnome-calendar
     # gnome-characters
-    gnome-clocks
+    gnome.gnome-clocks
     # pkgs.gnome-console
-    gnome-contacts
+    gnome.gnome-contacts
     # gnome-font-viewer
-    gnome-logs
-    gnome-maps
-    gnome-music
+    gnome.gnome-logs
+    gnome.gnome-maps
+    gnome.gnome-music
     gnome-system-monitor
-    gnome-weather
-    pkgs.loupe
+    gnome.gnome-weather
+    loupe
     # nautilus
-    pkgs.gnome-connections
+    gnome-connections
     simple-scan
-    pkgs.snapshot
+    snapshot
     totem
     yelp
   ]);
