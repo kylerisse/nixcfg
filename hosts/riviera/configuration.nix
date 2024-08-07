@@ -16,9 +16,17 @@
         "enc-swap".device = "/dev/disk/by-label/CRYPT_SWAP";
       };
     };
-    kernelModules = [ ];
+    kernelModules = [ "iptables_nat" "iptables_filter" "xt_nat" ];
     extraModulePackages = [ ];
     extraModprobeConfig = "options kvm_intel nested=1";
+    kernel.sysctl = {
+      "net.ipv4.tcp_syncookies" = true;
+      "net.ipv4.conf.all.forwarding" = true;
+      "net.ipv4.conf.all.rp_filter" = true;
+      "net.ipv4.conf.default.rp_filter" = true;
+      "net.ipv4.conf.all.accept_redirects" = 0;
+      "net.ipv4.conf.all.log_martians" = true;
+    };
   };
 
   fileSystems = {
@@ -38,9 +46,27 @@
   }];
 
   networking = {
-    useDHCP = lib.mkDefault true;
     hostName = "riviera";
+    enableIPv6 = false;
+    nat = {
+      enable = true;
+      internalInterfaces = [ "enp0s31f6" ];
+      internalIPs = [ "192.168.99.0/24" ];
+    };
+    firewall.allowPing = false;
     networkmanager.enable = true;
+    interfaces = {
+      enp0s31f6.ipv4.addresses = [
+        {
+          address = "192.168.99.1";
+          prefixLength = 24;
+        }
+      ];
+    };
+    extraHosts = ''
+      127.0.0.1 riviera
+      192.168.99.11 bbs1
+    '';
   };
 
   hardware = {
