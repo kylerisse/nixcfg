@@ -78,6 +78,7 @@
       driSupport32Bit = true;
     };
     pulseaudio.enable = true;
+    bluetooth.enable = false;
   };
 
   nix.settings = {
