@@ -175,6 +175,9 @@
       wget
       yamllint
       zip
+      #
+      cyberchef
+      dive
     ];
   };
 
