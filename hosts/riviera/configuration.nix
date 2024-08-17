@@ -78,6 +78,7 @@
       driSupport32Bit = true;
     };
     pulseaudio.enable = true;
+    bluetooth.enable = false;
   };
 
   nix.settings = {
@@ -154,6 +155,7 @@
       kubectl
       kubectx
       libressl
+      mudlet
       neovim
       netcat
       nixpkgs-fmt
@@ -162,12 +164,20 @@
       nodePackages.jsonlint
       nodePackages_latest.markdownlint-cli
       openssh
+      python312
+      python312Packages.meshtastic
+      python312Packages.pypubsub
       silver-searcher
       slack
+      unzip
       virt-manager
       vscode
       wget
       yamllint
+      zip
+      #
+      cyberchef
+      dive
     ];
   };
 
