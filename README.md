@@ -21,7 +21,8 @@
 │   │   ├───terraform_1-8-3: package 'terraform_1-8-3-binary'
 │   │   └───terraform_1-9-1: package 'terraform_1-9-1-binary'
 │   └───x86_64-linux
-│       └───go-signs: package 'go-signs-2024-03-20'
+|       ├───go-signs: package 'go-signs-2024-03-20'
+|       └───parrot-htb-iso: package 'ParrotOS_HTB_ISO-6.1'
 └───examples
     └───terraform-aws-bastion: example NixOS bastion on AWS
 ```

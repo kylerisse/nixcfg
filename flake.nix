@@ -42,6 +42,7 @@
         {
           # nix build --show-trace --verbose -L .#packages.x86_64-linux.go-signs
           go-signs = pkgs.callPackage ./pkgs/go-signs { };
+          parrot-htb-iso = pkgs.callPackage ./pkgs/parrot-htb-iso { };
         };
       darwinConfigurations = {
         "zugzug" = nix-darwin.lib.darwinSystem {

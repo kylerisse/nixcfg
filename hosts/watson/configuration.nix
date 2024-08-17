@@ -26,6 +26,10 @@ in
   nixpkgs.config.allowUnfree = true;
 
   networking.hostName = "watson"; # Define your hostname.
+  networking.extraHosts =
+    ''
+      192.168.73.51 kube.api
+    '';
 
   # Enable networking
   networking = {
