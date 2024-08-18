@@ -61,7 +61,21 @@ in
     };
   };
 
-  virtualisation.libvirtd.enable = true;
+  virtualisation = {
+    libvirtd.enable = true;
+    podman = {
+      enable = true;
+      dockerCompat = true;
+    };
+
+    oci-containers = {
+      backend = "podman";
+
+      containers = {
+        open-webui = import ./containers/open-webui.nix;
+      };
+    };
+  };
   programs = {
     dconf.enable = true;
     virt-manager.enable = true;
@@ -114,12 +128,6 @@ in
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    # If you want to use JACK applications, uncomment this
-    #jack.enable = true;
-
-    # use the example session manager (no others are packaged yet so this is enabled by default,
-    # no need to redefine it in your config for now)
-    #media-session.enable = true;
   };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
@@ -206,6 +214,15 @@ in
   systemd.tmpfiles.rules = [
     "L+ /run/gdm/.config/monitors.xml - - - - ${monitorsConfig}"
   ];
+
+  # Create directories and run scripts for the containers
+  system.activationScripts = {
+    script.text = ''
+      install -d -m 755 /home/kylerisse/open-webui/data -o root -g root
+    '';
+  };
+
+  networking.firewall.allowedTCPPorts = [ 8080 ];
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
