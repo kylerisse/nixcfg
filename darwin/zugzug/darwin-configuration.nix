@@ -215,7 +215,6 @@ in
     terraform-lsp
     tflint
     tfsec
-    virt-manager
     wget
     yamllint
     yubikey-manager
