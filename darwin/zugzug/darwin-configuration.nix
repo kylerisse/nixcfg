@@ -167,13 +167,14 @@ in
   # some packages such as libressl and openssh already exist in OSX, but we want the latest
   environment.systemPackages = with pkgs; [
     awscli2
-    #bitwarden-cli
-    #brotli
+    bitwarden-cli
+    brotli
     btop
-    #checkov
+    checkov
     chezmoi
     curl
     dig
+    direnv
     git
     go
     gopls
@@ -193,7 +194,7 @@ in
     nodePackages.jsonlint
     nodePackages_latest.markdownlint-cli
     nmap
-    #rakudo
+    rakudo
     openssh
     protobuf
     pylint
@@ -214,7 +215,6 @@ in
     terraform-lsp
     tflint
     tfsec
-    virt-manager
     wget
     yamllint
     yubikey-manager

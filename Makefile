@@ -25,7 +25,7 @@ tflint:
 	NIXPKGS_ALLOW_UNFREE=1 nix-shell -p terraform_1 --command 'for i in `find ./ -name "*.tf"`; do echo $$i; terraform fmt $$i; done;'
 
 mac:
-	darwin-rebuild switch --flake .#zugzug
+	darwin-rebuild switch --show-trace -vv --flake .#zugzug
 
 bump-flake-darwin:
 	nix flake lock --update-input nixpkgs-unstable --update-input nix-darwin
