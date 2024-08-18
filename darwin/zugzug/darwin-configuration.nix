@@ -174,6 +174,7 @@ in
     chezmoi
     curl
     dig
+    direnv
     git
     go
     gopls
