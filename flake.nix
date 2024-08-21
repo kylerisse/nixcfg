@@ -115,7 +115,7 @@
             ];
             specialArgs = { inherit inputs; };
           };
-          muir = nixos-unstable.lib.nixosSystem {
+          muir = nixos-2405.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
               nixos-hardware.nixosModules.lenovo-thinkpad-t490

@@ -18,6 +18,7 @@ in
 
   nix.settings = {
     trusted-users = [ "@wheel" ];
+    auto-optimise-store = true;
     experimental-features = [
       "nix-command"
       "flakes"
@@ -236,6 +237,7 @@ in
   ];
 
   programs.fish.enable = true;
+  programs.fish.useBabelfish = true;
   programs.fish.shellInit = ''
     fish_add_path --prepend /run/wrappers/bin
   '';
