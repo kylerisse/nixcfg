@@ -132,7 +132,7 @@
     extraGroups = [ "wheel" "networkmanager" "libvirtd" "dialout" "docker" ];
     isNormalUser = true;
     uid = 9001;
-    description = "kylerisse";
+    description = "ls";
 
     packages = with pkgs; [
       brave

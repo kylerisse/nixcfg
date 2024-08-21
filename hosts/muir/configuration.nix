@@ -1,13 +1,50 @@
-{ config, lib, pkgs, modulePath, ... }:
-
+{ config, lib, pkgs, ... }:
 {
-  imports =
-    [
-      ./hardware-configuration.nix
-    ];
+  hardware = {
+    pulseaudio.enable = true;
+    enableRedistributableFirmware = lib.mkDefault true;
+    cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+    opengl = {
+      enable = true;
+      driSupport = true;
+      driSupport32Bit = true;
+    };
+  };
 
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  sound.enable = true;
+
+  boot = {
+    initrd = {
+      availableKernelModules = [ "kvm_intel" "xhci_pci" "ahci" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
+      kernelModules = [ ];
+      luks.devices = {
+        "enc-nixroot".device = "/dev/disk/by-label/CRYPT_NIXROOT";
+        "enc-swap".device = "/dev/disk/by-label/CRYPT_SWAP";
+      };
+    };
+    kernelModules = [ ];
+    extraModulePackages = [ ];
+    loader.systemd-boot.enable = true;
+    loader.efi.canTouchEfiVariables = true;
+    binfmt.emulatedSystems = [ "aarch64-linux" ];
+  };
+
+  fileSystems = {
+    "/" = {
+      device = "/dev/disk/by-label/NIXROOT";
+      fsType = "ext4";
+      options = [ "noatime" "nodiratime" "discard" ];
+    };
+    "/boot" = {
+      device = "/dev/disk/by-label/BOOT";
+      fsType = "vfat";
+      options = [ "fmask=0022" "dmask=0022" ];
+    };
+  };
+
+  swapDevices = [{
+    device = "/dev/disk/by-label/SWAP";
+  }];
 
   nix.settings = {
     trusted-users = [ "@wheel" ];
@@ -16,68 +53,68 @@
       "flakes"
     ];
   };
-  nixpkgs.config.allowUnfree = true;
+  nixpkgs = {
+    config.allowUnfree = true;
+    hostPlatform = lib.mkDefault "x86_64-linux";
+  };
 
-  networking.hostName = "muir";
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+  networking = {
+    hostName = "muir";
+    useDHCP = lib.mkDefault true;
+    networkmanager.enable = true;
+    nftables.enable = true;
+    firewall.allowPing = false;
+  };
 
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+  ssh-server.enable = false;
 
-  # Enable networking
-  networking.networkmanager.enable = true;
-
-  # Set your time zone.
   time.timeZone = "America/Los_Angeles";
 
-  # Select internationalisation properties.
-  i18n.defaultLocale = "en_US.UTF-8";
-
-  i18n.extraLocaleSettings = {
-    LC_ADDRESS = "en_US.UTF-8";
-    LC_IDENTIFICATION = "en_US.UTF-8";
-    LC_MEASUREMENT = "en_US.UTF-8";
-    LC_MONETARY = "en_US.UTF-8";
-    LC_NAME = "en_US.UTF-8";
-    LC_NUMERIC = "en_US.UTF-8";
-    LC_PAPER = "en_US.UTF-8";
-    LC_TELEPHONE = "en_US.UTF-8";
-    LC_TIME = "en_US.UTF-8";
+  i18n = {
+    defaultLocale = "en_US.UTF-8";
+    extraLocaleSettings = {
+      LC_ADDRESS = "en_US.UTF-8";
+      LC_IDENTIFICATION = "en_US.UTF-8";
+      LC_MEASUREMENT = "en_US.UTF-8";
+      LC_MONETARY = "en_US.UTF-8";
+      LC_NAME = "en_US.UTF-8";
+      LC_NUMERIC = "en_US.UTF-8";
+      LC_PAPER = "en_US.UTF-8";
+      LC_TELEPHONE = "en_US.UTF-8";
+      LC_TIME = "en_US.UTF-8";
+    };
   };
 
-  # Enable the X11 windowing system.
-  services.xserver.enable = true;
-
-  # Enable the GNOME Desktop Environment.
-  services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
-
-  # Configure keymap in X11
-  services.xserver.xkb = {
-    layout = "us";
-    variant = "";
+  services = {
+    xserver = {
+      enable = true;
+      displayManager.gdm.enable = true;
+      desktopManager.gnome.enable = true;
+      xkb = {
+        layout = "us";
+        variant = "";
+      };
+    };
+    # touchpad
+    libinput.enable = true;
   };
 
-  # Enable CUPS to print documents.
-  services.printing.enable = true;
-
-  services.avahi = {
-    enable = true;
-    nssmdns4 = true;
+  virtualisation = {
+    libvirtd.enable = true;
+    docker = {
+      enable = true;
+      rootless = {
+        enable = true;
+        setSocketVariable = true;
+      };
+    };
   };
 
-  # Enable sound with pulseaudio.
-  sound.enable = true;
-  hardware.pulseaudio.enable = true;
   security.rtkit.enable = true;
-
-  # touchpad
-  services.libinput.enable = true;
 
   users.users.kylerisse = {
     shell = pkgs.fish;
-    extraGroups = [ "networkmanager" ];
+    extraGroups = [ "wheel" "networkmanager" "libvirtd" "dialout" "docker" ];
 
     packages = with pkgs; [
       bitwarden
@@ -85,8 +122,10 @@
       btop
       chezmoi
       curl
+      cyberchef
       dig
       discord
+      dive
       element-desktop
       firefox
       gcc
@@ -103,6 +142,7 @@
       kubectl
       kubectx
       libressl
+      mudlet
       neovim
       netcat
       nixpkgs-fmt
@@ -111,54 +151,64 @@
       nodePackages.jsonlint
       nodePackages_latest.markdownlint-cli
       openssh
+      python312
+      python312Packages.meshtastic
+      python312Packages.pypubsub
       silver-searcher
       slack
+      unzip
       virt-manager
       vscode
       wget
       yamllint
+      zip
     ];
   };
 
   # gnome exclusions
-  environment.gnome.excludePackages = (with pkgs.gnome; [
-    baobab
-    epiphany
-    pkgs.gnome-text-editor
-    # gnome-calculator
-    gnome-calendar
-    # gnome-characters
-    gnome-clocks
-    # pkgs.gnome-console
-    gnome-contacts
-    # gnome-font-viewer
-    gnome-logs
-    gnome-maps
-    gnome-music
-    gnome-system-monitor
-    gnome-weather
-    pkgs.loupe
-    # nautilus
-    pkgs.gnome-connections
-    simple-scan
-    pkgs.snapshot
-    totem
-    yelp
-  ]);
+  environment = {
+    gnome.excludePackages = (with pkgs.gnome; [
+      baobab
+      epiphany
+      pkgs.gnome-text-editor
+      # gnome-calculator
+      gnome-calendar
+      # gnome-characters
+      gnome-clocks
+      # pkgs.gnome-console
+      gnome-contacts
+      # gnome-font-viewer
+      gnome-logs
+      gnome-maps
+      gnome-music
+      gnome-system-monitor
+      gnome-weather
+      pkgs.loupe
+      # nautilus
+      pkgs.gnome-connections
+      simple-scan
+      pkgs.snapshot
+      totem
+      yelp
+    ]);
+    systemPackages = with pkgs; [
+      vim
+    ];
+    shells = with pkgs; [
+      bash
+      fish
+    ];
+  };
 
-  environment.systemPackages = with pkgs; [
-    vim
-  ];
+  programs = {
+    fish = {
+      enable = true;
+      shellInit = ''
+        fish_add_path --prepend /run/wrappers/bin
+      '';
+    };
+    virt-manager.enable = true;
+  };
 
-  environment.shells = with pkgs; [
-    bash
-    fish
-  ];
-
-  programs.fish.enable = true;
-  programs.fish.shellInit = ''
-    fish_add_path --prepend /run/wrappers/bin
-  '';
-
-  system.stateVersion = "24.05";
+  system.stateVersion = config.system.nixos.version;
 }
