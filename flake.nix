@@ -88,13 +88,13 @@
             system = "x86_64-linux";
             modules = [
               common
-              ./images/do.nix
+              ./imgs/do.nix
             ];
           };
           installerImage = nixos-2405.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
-              ./images/gnome-installer.nix
+              ./imgs/gnome-installer.nix
             ];
           };
           dev-router = nixos-2405.lib.nixosSystem {
