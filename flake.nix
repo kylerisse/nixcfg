@@ -48,7 +48,7 @@
         "zugzug" = nix-darwin.lib.darwinSystem {
           system = "aarch64-darwin";
           modules = [
-            ./darwin/zugzug/darwin-configuration.nix
+            ./machines/zugzug/configuration.nix
           ];
           specialArgs = { inherit inputs; };
         };
@@ -100,7 +100,7 @@
           dev-router = nixos-2405.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
-              ./hosts/dev-router/configuration.nix
+              ./machines/dev-router/configuration.nix
               kvm-guest
               common
               soho-router
@@ -110,7 +110,7 @@
           watson = nixos-unstable.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
-              ./hosts/watson/configuration.nix
+              ./machines/watson/configuration.nix
               common
             ];
             specialArgs = { inherit inputs; };
@@ -119,7 +119,7 @@
             system = "x86_64-linux";
             modules = [
               nixos-hardware.nixosModules.lenovo-thinkpad-t490
-              ./hosts/muir/configuration.nix
+              ./machines/muir/configuration.nix
               common
             ];
           };
@@ -127,7 +127,7 @@
             system = "x86_64-linux";
             modules = [
               nixos-hardware.nixosModules.lenovo-thinkpad-t490
-              ./hosts/riviera/configuration.nix
+              ./machines/riviera/configuration.nix
             ];
           };
           # watson guests
@@ -138,8 +138,8 @@
             nixos-2405.lib.nixosSystem {
               system = "x86_64-linux";
               modules = [
-                ./hosts/watson/guests/k8s-master.nix
-                ./hosts/watson/guests/k8s-common.nix
+                ./machines/watson/guests/k8s-master.nix
+                ./machines/watson/guests/k8s-common.nix
                 common
               ];
               specialArgs = { inherit hostname; };
@@ -151,8 +151,8 @@
             nixos-2405.lib.nixosSystem {
               system = "x86_64-linux";
               modules = [
-                ./hosts/watson/guests/k8s-worker.nix
-                ./hosts/watson/guests/k8s-common.nix
+                ./machines/watson/guests/k8s-worker.nix
+                ./machines/watson/guests/k8s-common.nix
                 common
               ];
               specialArgs = { inherit hostname; };
@@ -164,8 +164,8 @@
             nixos-2405.lib.nixosSystem {
               system = "x86_64-linux";
               modules = [
-                ./hosts/watson/guests/k8s-worker.nix
-                ./hosts/watson/guests/k8s-common.nix
+                ./machines/watson/guests/k8s-worker.nix
+                ./machines/watson/guests/k8s-common.nix
                 common
               ];
               specialArgs = { inherit hostname; };
@@ -174,7 +174,7 @@
             nixos-2405.lib.nixosSystem {
               system = "x86_64-linux";
               modules = [
-                ./hosts/watson/guests/db.nix
+                ./machines/watson/guests/db.nix
                 common
               ];
             };
