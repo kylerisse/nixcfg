@@ -44,15 +44,25 @@
           go-signs = pkgs.callPackage ./pkgs/go-signs { };
           parrot-htb-iso = pkgs.callPackage ./pkgs/parrot-htb-iso { };
         };
-      darwinConfigurations = {
-        "zugzug" = nix-darwin.lib.darwinSystem {
-          system = "aarch64-darwin";
-          modules = [
-            ./machines/zugzug/configuration.nix
-          ];
-          specialArgs = { inherit inputs; };
+      darwinConfigurations =
+        let
+          all =
+            ({ modulePath, ... }: {
+              imports = [
+                ./modules/nix-common
+              ];
+            });
+        in
+        {
+          "zugzug" = nix-darwin.lib.darwinSystem {
+            system = "aarch64-darwin";
+            modules = [
+              all
+              ./machines/zugzug/configuration.nix
+            ];
+            specialArgs = { inherit inputs; };
+          };
         };
-      };
       nixosConfigurations =
         let
           common =
