@@ -65,6 +65,12 @@
         };
       nixosConfigurations =
         let
+          all =
+            ({ modulePath, ... }: {
+              imports = [
+                ./modules/nix-common
+              ];
+            });
           common =
             ({ modulePath, ... }: {
               imports = [
@@ -122,6 +128,7 @@
             modules = [
               ./machines/watson/configuration.nix
               common
+              all
             ];
             specialArgs = { inherit inputs; };
           };
