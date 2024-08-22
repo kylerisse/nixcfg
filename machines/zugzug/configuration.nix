@@ -6,21 +6,27 @@ let
 in
 {
   # nix settings
-  nix.settings = {
-    trusted-users = [ "@admin" ];
-    auto-optimise-store = false;
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-    extra-platforms = mkIf (pkgs.system == "aarch64-darwin") [ "x86_64-darwin" "aarch64-darwin" ];
-    keep-derivations = true;
-    keep-outputs = true;
-  };
-  nix.configureBuildUsers = true;
-  nixpkgs.config.allowUnfree = true;
+  #nix.settings = {
+  #  trusted-users = [ "@admin" ];
+  #  auto-optimise-store = false;
+  #  experimental-features = [
+  #    "nix-command"
+  #    "flakes"
+  #  ];
+  #  extra-platforms = mkIf (pkgs.system == "aarch64-darwin") [ "x86_64-darwin" "aarch64-darwin" ];
+  #  keep-derivations = true;
+  #  keep-outputs = true;
+  #};
+  #nix.configureBuildUsers = true;
+  #nixpkgs.config.allowUnfree = true;
 
   # mac settings
+  nix-common = {
+    enable = true;
+    isDarwin = true;
+  };
+  services.nix-daemon.enable = true;
+
   system.startup.chime = false;
 
   system.defaults.NSGlobalDomain = {
@@ -219,7 +225,7 @@ in
     yamllint
     yubikey-manager
   ];
-  programs.nix-index.enable = true;
+  #programs.nix-index.enable = true;
 
   environment.shells = with pkgs; [
     bashInteractive
@@ -246,15 +252,15 @@ in
     # End Nix
   '';
 
-  services.nix-daemon.enable = true;
-  nix.package = pkgs.nix;
+  #services.nix-daemon.enable = true;
+  #nix.package = pkgs.nix;
 
   # Create /etc/zshrc that loads the nix-darwin environment.
   programs.zsh.enable = true; # default shell on ventura
 
   # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
-  system.stateVersion = 4;
+  #system.stateVersion = 4;
 
   # homebrew (requires homebrew installed outside of nix)
   # /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"

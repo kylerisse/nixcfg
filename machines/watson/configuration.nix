@@ -7,6 +7,8 @@ let
   ssh-server.enable = true;
 in
 {
+  nix-common.enable = true;
+
   imports =
     [
       ./hardware-configuration.nix
@@ -16,15 +18,15 @@ in
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  nix.settings = {
-    trusted-users = [ "@wheel" ];
-    auto-optimise-store = true;
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-  };
-  nixpkgs.config.allowUnfree = true;
+  #nix.settings = {
+  #  trusted-users = [ "@wheel" ];
+  #  auto-optimise-store = true;
+  #  experimental-features = [
+  #    "nix-command"
+  #    "flakes"
+  #  ];
+  #};
+  #nixpkgs.config.allowUnfree = true;
 
   networking.hostName = "watson"; # Define your hostname.
   networking.extraHosts =
@@ -269,6 +271,6 @@ in
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "23.11"; # Did you read the comment?
+  #system.stateVersion = "23.11"; # Did you read the comment?
 
 }
