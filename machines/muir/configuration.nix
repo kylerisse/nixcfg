@@ -1,5 +1,7 @@
 { config, lib, pkgs, ... }:
 {
+  nix-common.enable = true;
+
   hardware = {
     pulseaudio.enable = true;
     enableRedistributableFirmware = lib.mkDefault true;
@@ -45,18 +47,6 @@
   swapDevices = [{
     device = "/dev/disk/by-label/SWAP";
   }];
-
-  nix.settings = {
-    trusted-users = [ "@wheel" ];
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-  };
-  nixpkgs = {
-    config.allowUnfree = true;
-    hostPlatform = lib.mkDefault "x86_64-linux";
-  };
 
   networking = {
     hostName = "muir";
@@ -209,6 +199,4 @@
     };
     virt-manager.enable = true;
   };
-
-  system.stateVersion = config.system.nixos.version;
 }
