@@ -138,6 +138,7 @@
               nixos-hardware.nixosModules.lenovo-thinkpad-t490
               ./machines/muir/configuration.nix
               common
+	      all
             ];
           };
           riviera = nixos-2405.lib.nixosSystem {
