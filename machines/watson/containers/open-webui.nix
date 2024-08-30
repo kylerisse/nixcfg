@@ -1,5 +1,6 @@
 {
   image = "ghcr.io/open-webui/open-webui:ollama";
+  autoStart = true;
 
   environment = {
     "TZ" = "America/Los_Angeles";
