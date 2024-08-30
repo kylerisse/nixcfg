@@ -221,7 +221,7 @@ in
   # Create directories and run scripts for the containers
   system.activationScripts = {
     script.text = ''
-      install -d -m 755 /home/kylerisse/open-webui/data -o root -g root
+      install -d -m 755 /home/open-webui/ -o root -g root
     '';
   };
 
