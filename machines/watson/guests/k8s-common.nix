@@ -1,5 +1,7 @@
 { config, pkgs, lib, modulesPath, hostname, ... }:
 {
+  nix-common.enable = true;
+
   imports =
     [
       (modulesPath + "/profiles/qemu-guest.nix")
@@ -53,15 +55,6 @@
     packages = with pkgs; [ ];
   };
   services.getty.autologinUser = "devops";
-
-  nix.settings = {
-    trusted-users = [ "@wheel" ];
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-  };
-  nixpkgs.config.allowUnfree = true;
 
   environment.systemPackages = with pkgs; [
     helm
