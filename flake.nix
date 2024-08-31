@@ -138,7 +138,14 @@
               nixos-hardware.nixosModules.lenovo-thinkpad-t490
               ./machines/muir/configuration.nix
               common
-	      all
+              all
+            ];
+          };
+          qube = nixos-2405.lib.nixosSystem {
+            system = "x86_64-linux";
+            modules = [
+              ./machines/qube/configuration.nix
+              all
             ];
           };
           riviera = nixos-2405.lib.nixosSystem {
@@ -156,6 +163,7 @@
             nixos-2405.lib.nixosSystem {
               system = "x86_64-linux";
               modules = [
+                all
                 ./machines/watson/guests/k8s-master.nix
                 ./machines/watson/guests/k8s-common.nix
                 common
@@ -169,6 +177,7 @@
             nixos-2405.lib.nixosSystem {
               system = "x86_64-linux";
               modules = [
+                all
                 ./machines/watson/guests/k8s-worker.nix
                 ./machines/watson/guests/k8s-common.nix
                 common
@@ -182,6 +191,7 @@
             nixos-2405.lib.nixosSystem {
               system = "x86_64-linux";
               modules = [
+                all
                 ./machines/watson/guests/k8s-worker.nix
                 ./machines/watson/guests/k8s-common.nix
                 common
@@ -192,6 +202,7 @@
             nixos-2405.lib.nixosSystem {
               system = "x86_64-linux";
               modules = [
+                all
                 ./machines/watson/guests/db.nix
                 common
               ];
