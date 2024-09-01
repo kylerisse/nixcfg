@@ -33,9 +33,29 @@
           terraform_1-8-3 = pkgs.callPackage ./pkgs/terraform_1-8-3 { };
           terraform_1-9-1 = pkgs.callPackage ./pkgs/terraform_1-9-1 { };
         };
+      packages.aarch64-linux =
+        let
+          pkgs = import nixos-2405 {
+            system = "aarch64-linux";
+          };
+        in
+        {
+          pi3Image = (self.nixosConfigurations.piImage.extendModules {
+            modules = [
+              "${nixos-2405}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+              nixos-hardware.nixosModules.raspberry-pi-3
+            ];
+          }).config.system.build.sdImage;
+          pi4Image = (self.nixosConfigurations.piImage.extendModules {
+            modules = [
+              "${nixos-2405}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+              nixos-hardware.nixosModules.raspberry-pi-4
+            ];
+          }).config.system.build.sdImage;
+        };
       packages.x86_64-linux =
         let
-          pkgs = import nixos-unstable {
+          pkgs = import nixos-2405 {
             system = "x86_64-linux";
           };
         in
@@ -43,6 +63,8 @@
           # nix build --show-trace --verbose -L .#packages.x86_64-linux.go-signs
           go-signs = pkgs.callPackage ./pkgs/go-signs { };
           parrot-htb-iso = pkgs.callPackage ./pkgs/parrot-htb-iso { };
+          pi4Image = self.packages.aarch64-linux.pi4Image;
+          pi3Image = self.packages.aarch64-linux.pi3Image;
         };
       darwinConfigurations =
         let
@@ -113,6 +135,15 @@
               ./imgs/gnome-installer.nix
             ];
           };
+          piImage =
+            nixos-2405.lib.nixosSystem {
+              system = "aarch64-linux";
+              modules = [
+                all
+                common
+                ./imgs/pi.nix
+              ];
+            };
           dev-router = nixos-2405.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
