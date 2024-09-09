@@ -9,11 +9,11 @@ deploy-dev-router:
 	ssh dev-router 'sudo reboot'
 
 deploy-qube-switch:
-	nixos-rebuild --flake .#qube --use-remote-sudo --target-host devops@qube switch
+	nixos-rebuild --flake .#qube --use-remote-sudo --target-host qube switch
 
 deploy-qube-boot:
-	nixos-rebuild --flake .#qube --use-remote-sudo --target-host devops@qube boot
-	ssh devops@qube 'sudo reboot'
+	nixos-rebuild --flake .#qube --use-remote-sudo --target-host qube boot
+	ssh qube 'sudo reboot'
 
 deploy-k8s-cluster:
 	nixos-rebuild --flake .#k8s-master --use-remote-sudo --target-host k8s-master boot

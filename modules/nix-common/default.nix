@@ -9,7 +9,7 @@ in
   };
   config = lib.mkIf cfg.enable {
     nix = {
-      package = pkgs.nixVersions.latest;
+      package = pkgs.nixVersions.nix_2_23;
       gc = {
         automatic = true;
       };
