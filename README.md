@@ -20,9 +20,15 @@
 │   │   ├───terraform_1-7-5: package 'terraform_1-7-5-binary'
 │   │   ├───terraform_1-8-3: package 'terraform_1-8-3-binary'
 │   │   └───terraform_1-9-1: package 'terraform_1-9-1-binary'
+│   ├───aarch64-linux
+│   │   ├───pi3Image: package 'nixos-sd-image'
+│   │   └───pi4Image: package 'nixos-sd-image'
 │   └───x86_64-linux
+|       ├───debian-netinst-iso: package 'debian-netinst-iso-12.7.0'
 |       ├───go-signs: package 'go-signs-2024-03-20'
-|       └───parrot-htb-iso: package 'ParrotOS_HTB_ISO-6.1'
+|       ├───parrot-htb-iso: package 'ParrotOS_HTB_ISO-6.1'
+|       ├───pi3Image: package 'nixos-sd-image'
+|       └───pi4Image: package 'nixos-sd-image'
 └───examples
     └───terraform-aws-bastion: example NixOS bastion on AWS
 ```

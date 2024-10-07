@@ -3,9 +3,9 @@
 
   inputs = {
     # linux
-    nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixos-2405.url = "github:nixos/nixpkgs/nixos-24.05";
-    nixos-hardware.url = "github:nixos/nixos-hardware";
+    nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable?shallow=1";
+    nixos-2405.url = "github:nixos/nixpkgs/nixos-24.05?shallow=1";
+    nixos-hardware.url = "github:nixos/nixos-hardware?shallow=1";
     # mac
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     nix-darwin.url = "github:LnL7/nix-darwin";
@@ -62,6 +62,7 @@
         {
           # nix build --show-trace --verbose -L .#packages.x86_64-linux.go-signs
           go-signs = pkgs.callPackage ./pkgs/go-signs { };
+          debian-netinst-iso = pkgs.callPackage ./pkgs/debian-netinst-iso { };
           parrot-htb-iso = pkgs.callPackage ./pkgs/parrot-htb-iso { };
           pi4Image = self.packages.aarch64-linux.pi4Image;
           pi3Image = self.packages.aarch64-linux.pi3Image;
