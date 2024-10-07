@@ -76,14 +76,18 @@
             });
         in
         {
-          "zugzug" = nix-darwin.lib.darwinSystem {
-            system = "aarch64-darwin";
-            modules = [
-              all
-              ./machines/zugzug/configuration.nix
-            ];
-            specialArgs = { inherit inputs; };
-          };
+          "zugzug" =
+            let
+              nixpkgs = nixpkgs-unstable;
+            in
+            nix-darwin.lib.darwinSystem {
+              system = "aarch64-darwin";
+              modules = [
+                all
+                ./machines/zugzug/configuration.nix
+              ];
+              specialArgs = { inherit inputs nixpkgs; };
+            };
         };
       nixosConfigurations =
         let

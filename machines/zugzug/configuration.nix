@@ -5,28 +5,13 @@ let
   brewEnabled = config.homebrew.enable;
 in
 {
-  # nix settings
-  #nix.settings = {
-  #  trusted-users = [ "@admin" ];
-  #  auto-optimise-store = false;
-  #  experimental-features = [
-  #    "nix-command"
-  #    "flakes"
-  #  ];
-  #  extra-platforms = mkIf (pkgs.system == "aarch64-darwin") [ "x86_64-darwin" "aarch64-darwin" ];
-  #  keep-derivations = true;
-  #  keep-outputs = true;
-  #};
-  #nix.configureBuildUsers = true;
-  #nixpkgs.config.allowUnfree = true;
-
-  # mac settings
   nix-common = {
     enable = true;
     isDarwin = true;
   };
   services.nix-daemon.enable = true;
 
+  # mac settings
   system.startup.chime = false;
 
   system.defaults.NSGlobalDomain = {
@@ -117,9 +102,9 @@ in
     wvous-tr-corner = 1;
     persistent-apps = [
       "/System/Applications/Mission\ Control.app"
-      "/Applications/Microsoft\ Teams\ (work\ or\ school).app"
+      "/Applications/Microsoft\ Teams.app"
       "/Applications/Microsoft\ Outlook.app"
-      "/Applications/Google\ Chrome.app"
+      "/Applications/Microsoft\ Edge.app"
       "/Applications/Firefox.app"
       "/System/Applications/System\ Settings.app"
       "/Applications/iTerm.app"
@@ -127,12 +112,10 @@ in
       "/Applications/DBeaver.app"
       "/Applications/Visual\ Studio Code.app"
       "/Applications/Cisco/Cisco\ Secure\ Client.app"
-      "/Applications/zoom.us.app"
       "/Applications/Element.app"
       "/Applications/Brave Browser.app"
       "/Applications/Slack.app"
       "/System/Applications/Calculator.app"
-      "/Applications/Docker.app"
     ];
     show-process-indicators = true;
     showhidden = true;
@@ -173,7 +156,6 @@ in
   # some packages such as libressl and openssh already exist in OSX, but we want the latest
   environment.systemPackages = with pkgs; [
     awscli2
-    bitwarden-cli
     brotli
     btop
     checkov
@@ -202,10 +184,10 @@ in
     nmap
     rakudo
     openssh
+    podman
     protobuf
     pylint
     python312
-    #python312Packages.pip
     python312Packages.boto3
     python312Packages.botocore
     python312Packages.pytest
@@ -225,7 +207,6 @@ in
     yamllint
     yubikey-manager
   ];
-  #programs.nix-index.enable = true;
 
   environment.shells = with pkgs; [
     bashInteractive
@@ -252,15 +233,8 @@ in
     # End Nix
   '';
 
-  #services.nix-daemon.enable = true;
-  #nix.package = pkgs.nix;
-
   # Create /etc/zshrc that loads the nix-darwin environment.
   programs.zsh.enable = true; # default shell on ventura
-
-  # Used for backwards compatibility, please read the changelog before changing.
-  # $ darwin-rebuild changelog
-  #system.stateVersion = 4;
 
   # homebrew (requires homebrew installed outside of nix)
   # /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -286,8 +260,6 @@ in
   homebrew.global.brewfile = true;
 
   homebrew.taps = [
-    "homebrew/cask-fonts"
-    "homebrew/cask-versions"
     "homebrew/services"
     "nrlquaker/createzap"
   ];
