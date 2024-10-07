@@ -26,16 +26,17 @@ deploy-k8s-cluster:
 lint: tflint nixlint
 
 nixlint:
-	nix-shell -p nixpkgs-fmt --command 'for i in `find ./ -name "*.nix"`; do echo $$i; nixpkgs-fmt $$i; done;'
+	nix shell nixpkgs#nixpkgs-fmt --command bash -c 'for i in `find ./ -name "*.nix"`; do echo $$i; nixpkgs-fmt $$i; done;'
 
 tflint:
-	NIXPKGS_ALLOW_UNFREE=1 nix-shell -p terraform_1 --command 'for i in `find ./ -name "*.tf"`; do echo $$i; terraform fmt $$i; done;'
+	NIXPKGS_ALLOW_UNFREE=1 nix shell --impure nixpkgs#terraform_1 --command bash -c 'for i in `find ./ -name "*.tf"`; do echo $$i; terraform fmt $$i; done;'
 
 mac:
 	darwin-rebuild switch --show-trace -vv --flake .#zugzug
 
 bump-flake-darwin:
-	nix flake lock --update-input nixpkgs-unstable --update-input nix-darwin
+	nix flake update nixpkgs-unstable
+	nix flake update nix-darwin
 
 bump-flake-linux:
 	nix flake lock --update-input nixos-unstable --update-input nixos-2405 --update-input nixos-hardware
