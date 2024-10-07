@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, inputs, nixpkgs, ... }:
 let
   cfg = config.nix-common;
 in
@@ -9,9 +9,15 @@ in
   };
   config = lib.mkIf cfg.enable {
     nix = {
-      package = pkgs.nixVersions.nix_2_23;
+      package = pkgs.nixVersions.latest;
       gc = {
         automatic = true;
+      };
+      registry = {
+        nixpkgs.to = {
+          type = "path";
+          path = nixpkgs;
+        };
       };
       settings = {
         trusted-users = if cfg.isDarwin then [ "@admin" ] else [ "@wheel" ];
