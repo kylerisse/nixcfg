@@ -3,9 +3,9 @@
 
   inputs = {
     # linux
-    nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixos-2405.url = "github:nixos/nixpkgs/nixos-24.05";
-    nixos-hardware.url = "github:nixos/nixos-hardware";
+    nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable?shallow=1";
+    nixos-2405.url = "github:nixos/nixpkgs/nixos-24.05?shallow=1";
+    nixos-hardware.url = "github:nixos/nixos-hardware?shallow=1";
     # mac
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     nix-darwin.url = "github:LnL7/nix-darwin";
@@ -62,6 +62,7 @@
         {
           # nix build --show-trace --verbose -L .#packages.x86_64-linux.go-signs
           go-signs = pkgs.callPackage ./pkgs/go-signs { };
+          debian-netinst-iso = pkgs.callPackage ./pkgs/debian-netinst-iso { };
           parrot-htb-iso = pkgs.callPackage ./pkgs/parrot-htb-iso { };
           pi4Image = self.packages.aarch64-linux.pi4Image;
           pi3Image = self.packages.aarch64-linux.pi3Image;
@@ -124,6 +125,7 @@
                 ./modules/gamer
               ];
             });
+          nixpkgs = nixos-2405;
         in
         {
           doImage = nixos-2405.lib.nixosSystem {
@@ -132,12 +134,14 @@
               common
               ./imgs/do.nix
             ];
+            specialArgs = { inherit nixpkgs; };
           };
           installerImage = nixos-2405.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
               ./imgs/gnome-installer.nix
             ];
+            specialArgs = { inherit nixpkgs; };
           };
           piImage =
             nixos-2405.lib.nixosSystem {
@@ -147,6 +151,7 @@
                 common
                 ./imgs/pi.nix
               ];
+              specialArgs = { inherit nixpkgs; };
             };
           dev-router = nixos-2405.lib.nixosSystem {
             system = "x86_64-linux";
@@ -156,17 +161,21 @@
               common
               soho-router
             ];
-            specialArgs = { inherit self; };
+            specialArgs = { inherit nixpkgs self; };
           };
-          watson = nixos-unstable.lib.nixosSystem {
-            system = "x86_64-linux";
-            modules = [
-              ./machines/watson/configuration.nix
-              common
-              all
-            ];
-            specialArgs = { inherit inputs; };
-          };
+          watson =
+            let
+              nixpkgs = nixos-unstable;
+            in
+            nixos-unstable.lib.nixosSystem {
+              system = "x86_64-linux";
+              modules = [
+                ./machines/watson/configuration.nix
+                common
+                all
+              ];
+              specialArgs = { inherit nixpkgs inputs; };
+            };
           muir = nixos-2405.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
@@ -175,6 +184,7 @@
               common
               all
             ];
+            specialArgs = { inherit nixpkgs; };
           };
           qube = nixos-2405.lib.nixosSystem {
             system = "x86_64-linux";
@@ -182,6 +192,7 @@
               ./machines/qube/configuration.nix
               all
             ];
+            specialArgs = { inherit nixpkgs; };
           };
           riviera = nixos-2405.lib.nixosSystem {
             system = "x86_64-linux";
@@ -189,6 +200,7 @@
               nixos-hardware.nixosModules.lenovo-thinkpad-t490
               ./machines/riviera/configuration.nix
             ];
+            specialArgs = { inherit nixpkgs; };
           };
           # watson guests
           k8s-master =
@@ -203,7 +215,7 @@
                 ./machines/watson/guests/k8s-common.nix
                 common
               ];
-              specialArgs = { inherit hostname; };
+              specialArgs = { inherit nixpkgs hostname; };
             };
           k8s-worker1 =
             let
@@ -217,7 +229,7 @@
                 ./machines/watson/guests/k8s-common.nix
                 common
               ];
-              specialArgs = { inherit hostname; };
+              specialArgs = { inherit nixpkgs hostname; };
             };
           k8s-worker2 =
             let
@@ -231,7 +243,7 @@
                 ./machines/watson/guests/k8s-common.nix
                 common
               ];
-              specialArgs = { inherit hostname; };
+              specialArgs = { inherit nixpkgs hostname; };
             };
           db =
             nixos-2405.lib.nixosSystem {
@@ -241,6 +253,7 @@
                 ./machines/watson/guests/db.nix
                 common
               ];
+              specialArgs = { inherit nixpkgs; };
             };
         };
     };
