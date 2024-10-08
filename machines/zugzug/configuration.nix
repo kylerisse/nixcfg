@@ -275,6 +275,7 @@ in
     "iterm2"
     "slack"
     "visual-studio-code"
+    "zoom"
   ];
 
   # the nixpkgs version of helm doesn't currently support aarch64-darwin
