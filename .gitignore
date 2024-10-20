@@ -1,1 +1,7 @@
 **/result
+
+http_cache.sqlite
+sbom.cdx.json
+sbom.csv
+sbom.spdx.json
+vulns.csv

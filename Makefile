@@ -59,3 +59,10 @@ bump-flake-linux:
 	nix flake update nixos-unstable
 	nix flake update nixos-2405
 	nix flake update nixos-hardware
+
+clean:
+	rm -f http_cache.sqlite sbom.* vulns.csv
+
+sbom: clean
+	nix run github:tiiuae/sbomnix#sbomnix result
+	nix run github:tiiuae/sbomnix#vulnxscan result
