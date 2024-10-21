@@ -18,7 +18,8 @@ test-all-images: installerISO doImage
 test-all-nixos: lint build-pkgs
 	for i in $$(echo "db dev-router k8s-master k8s-worker1 k8s-worker2 muir pi3 pi4 piImage qube riviera watson"); do echo $$i; nix build -vv --show-trace -L .#nixosConfigurations.$$i.config.system.build.toplevel; done;
 
-test-all: test-all-nixos test-all-images
+test-all-local:
+	bash scripts/test-all.sh
 
 deploy-dev-router:
 	nixos-rebuild --flake .#dev-router --use-remote-sudo --target-host dev-router boot
