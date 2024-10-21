@@ -271,6 +271,9 @@
               specialArgs = { inherit nixpkgs hostname; };
             };
           db =
+            let
+              hostname = "db";
+            in
             nixos-2405.lib.nixosSystem {
               system = "x86_64-linux";
               modules = [
@@ -278,7 +281,7 @@
                 ./machines/watson/guests/db.nix
                 users
               ];
-              specialArgs = { inherit nixpkgs; };
+              specialArgs = { inherit nixpkgs hostname; };
             };
         };
     };
