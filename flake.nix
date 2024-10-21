@@ -220,6 +220,7 @@
             system = "x86_64-linux";
             modules = [
               ./machines/qube/configuration.nix
+              common
               all
             ];
             specialArgs = { inherit nixpkgs; };
