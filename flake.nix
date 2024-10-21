@@ -97,6 +97,7 @@
               imports = [
                 ./modules/nix-common
                 ./modules/ssh-server
+                ./modules/kube-cluster
               ];
             });
           users =
@@ -236,8 +237,7 @@
               system = "x86_64-linux";
               modules = [
                 all
-                ./machines/watson/guests/k8s-master.nix
-                ./machines/watson/guests/k8s-common.nix
+                ./machines/watson/guests/kube-api-cluster.nix
                 users
               ];
               specialArgs = { inherit nixpkgs hostname; };
@@ -250,8 +250,7 @@
               system = "x86_64-linux";
               modules = [
                 all
-                ./machines/watson/guests/k8s-worker.nix
-                ./machines/watson/guests/k8s-common.nix
+                ./machines/watson/guests/kube-api-cluster.nix
                 users
               ];
               specialArgs = { inherit nixpkgs hostname; };
@@ -264,8 +263,7 @@
               system = "x86_64-linux";
               modules = [
                 all
-                ./machines/watson/guests/k8s-worker.nix
-                ./machines/watson/guests/k8s-common.nix
+                ./machines/watson/guests/kube-api-cluster.nix
                 users
               ];
               specialArgs = { inherit nixpkgs hostname; };
