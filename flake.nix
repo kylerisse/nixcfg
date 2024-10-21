@@ -96,13 +96,13 @@
             ({ modulePath, ... }: {
               imports = [
                 ./modules/nix-common
+                ./modules/ssh-server
               ];
             });
-          common =
+          users =
             ({ modulePath, ... }: {
               imports = [
                 ./modules/users
-                ./modules/ssh-server
               ];
             });
           kvm-guest =
@@ -119,12 +119,6 @@
                 ./modules/dns-server
               ];
             });
-          gamer =
-            ({ modulePath, ... }: {
-              imports = [
-                ./modules/gamer
-              ];
-            });
           nixpkgs = nixos-2405;
         in
         {
@@ -132,7 +126,7 @@
             system = "x86_64-linux";
             modules = [
               all
-              common
+              users
               ./imgs/do.nix
             ];
             specialArgs = { inherit nixpkgs; };
@@ -150,7 +144,7 @@
               system = "aarch64-linux";
               modules = [
                 all
-                common
+                users
                 ./imgs/pi.nix
               ];
               specialArgs = { inherit nixpkgs; };
@@ -163,7 +157,7 @@
               system = "aarch64-linux";
               modules = [
                 all
-                common
+                users
                 ./machines/pis/configuration.nix
                 ./machines/pis/pi3-hardware-configuration.nix
               ];
@@ -177,7 +171,7 @@
               system = "aarch64-linux";
               modules = [
                 all
-                common
+                users
                 ./machines/pis/configuration.nix
                 ./machines/pis/pi4-hardware-configuration.nix
               ];
@@ -188,7 +182,7 @@
             modules = [
               ./machines/dev-router/configuration.nix
               kvm-guest
-              common
+              users
               soho-router
             ];
             specialArgs = { inherit nixpkgs self; };
@@ -201,7 +195,7 @@
               system = "x86_64-linux";
               modules = [
                 ./machines/watson/configuration.nix
-                common
+                users
                 all
               ];
               specialArgs = { inherit nixpkgs inputs; };
@@ -211,7 +205,7 @@
             modules = [
               nixos-hardware.nixosModules.lenovo-thinkpad-t490
               ./machines/muir/configuration.nix
-              common
+              users
               all
             ];
             specialArgs = { inherit nixpkgs; };
@@ -220,7 +214,7 @@
             system = "x86_64-linux";
             modules = [
               ./machines/qube/configuration.nix
-              common
+              users
               all
             ];
             specialArgs = { inherit nixpkgs; };
@@ -244,7 +238,7 @@
                 all
                 ./machines/watson/guests/k8s-master.nix
                 ./machines/watson/guests/k8s-common.nix
-                common
+                users
               ];
               specialArgs = { inherit nixpkgs hostname; };
             };
@@ -258,7 +252,7 @@
                 all
                 ./machines/watson/guests/k8s-worker.nix
                 ./machines/watson/guests/k8s-common.nix
-                common
+                users
               ];
               specialArgs = { inherit nixpkgs hostname; };
             };
@@ -272,7 +266,7 @@
                 all
                 ./machines/watson/guests/k8s-worker.nix
                 ./machines/watson/guests/k8s-common.nix
-                common
+                users
               ];
               specialArgs = { inherit nixpkgs hostname; };
             };
@@ -282,7 +276,7 @@
               modules = [
                 all
                 ./machines/watson/guests/db.nix
-                common
+                users
               ];
               specialArgs = { inherit nixpkgs; };
             };
