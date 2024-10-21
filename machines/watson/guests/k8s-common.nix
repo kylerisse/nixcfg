@@ -1,5 +1,6 @@
 { config, pkgs, lib, modulesPath, hostname, ... }:
 {
+  boot.kernelPackages = pkgs.linuxPackages_latest;
   nix-common.enable = true;
 
   imports =

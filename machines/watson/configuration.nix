@@ -56,14 +56,6 @@ in
       enable = true;
       dockerCompat = true;
     };
-
-    oci-containers = {
-      backend = "podman";
-
-      containers = {
-        open-webui = import ./containers/open-webui.nix;
-      };
-    };
   };
   programs = {
     dconf.enable = true;
@@ -153,6 +145,7 @@ in
       nodePackages_latest.markdownlint-cli
       openrct2
       openssh
+      parallel
       silver-searcher
       slack
       steam
@@ -196,15 +189,6 @@ in
     "L+ /run/gdm/.config/monitors.xml - - - - ${monitorsConfig}"
   ];
 
-  # Create directories and run scripts for the containers
-  system.activationScripts = {
-    script.text = ''
-      install -d -m 755 /home/open-webui/ -o root -g root
-    '';
-  };
-
-  networking.firewall.allowedTCPPorts = [ 8080 ];
-
   environment.systemPackages = with pkgs; [
     vim
   ];
@@ -221,4 +205,28 @@ in
   '';
 
   ssh-server.enable = true;
+
+  services.ollama = {
+    enable = true;
+    loadModels = [
+      "llama3.2"
+      "gemma2"
+      "nemotron"
+    ];
+    acceleration = false;
+    environmentVariables = {
+      OLLAMA_LLM_LIBRARY = "cpu";
+    };
+  };
+  services.open-webui = {
+    enable = true;
+    environment = {
+      ANONYMIZED_TELEMETRY = "False";
+      DO_NOT_TRACK = "True";
+      SCARF_NO_ANALYTICS = "True";
+      OLLAMA_API_BASE_URL = "http://127.0.0.1:11434";
+    };
+    host = "0.0.0.0";
+    openFirewall = true;
+  };
 }

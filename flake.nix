@@ -131,6 +131,7 @@
           doImage = nixos-2405.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
+              all
               common
               ./imgs/do.nix
             ];
@@ -139,6 +140,7 @@
           installerImage = nixos-2405.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
+              all
               ./imgs/gnome-installer.nix
             ];
             specialArgs = { inherit nixpkgs; };
@@ -152,6 +154,34 @@
                 ./imgs/pi.nix
               ];
               specialArgs = { inherit nixpkgs; };
+            };
+          pi3 =
+            let
+              hostname = "pi3";
+            in
+            nixos-2405.lib.nixosSystem {
+              system = "aarch64-linux";
+              modules = [
+                all
+                common
+                ./machines/pis/configuration.nix
+                ./machines/pis/pi3-hardware-configuration.nix
+              ];
+              specialArgs = { inherit nixpkgs hostname; };
+            };
+          pi4 =
+            let
+              hostname = "pi4";
+            in
+            nixos-2405.lib.nixosSystem {
+              system = "aarch64-linux";
+              modules = [
+                all
+                common
+                ./machines/pis/configuration.nix
+                ./machines/pis/pi4-hardware-configuration.nix
+              ];
+              specialArgs = { inherit nixpkgs hostname; };
             };
           dev-router = nixos-2405.lib.nixosSystem {
             system = "x86_64-linux";

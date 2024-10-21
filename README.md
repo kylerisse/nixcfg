@@ -9,6 +9,8 @@
 │   ├───installerImage: Gnome Installer ISO Image
 │   ├───muir: T490 laptop
 │   ├───riviera: T490 laptop (DC32)
+|   ├───pi3: Raspberry Pi3
+|   ├───pi4: Raspberry Pi4
 │   └───watson: Ryzen Desktop
 │       ├───db: Postgres development
 │       ├───k8s-master: Kubernetes master development

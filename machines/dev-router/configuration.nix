@@ -7,6 +7,8 @@ in
     ./hardware-configuration.nix
   ];
 
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+
   nix.settings = {
     trusted-users = [ "@wheel" ];
     experimental-features = [
