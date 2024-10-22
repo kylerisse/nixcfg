@@ -32,6 +32,7 @@ in
         apiserverAddress = kubeApi;
         easyCerts = true;
         addons.dns.enable = true;
+        kubelet.extraOpts = "--fail-swap-on=false";
         apiserver = lib.mkIf cfg.isMaster {
           securePort = cfg.masterPort;
           advertiseAddress = cfg.masterIP;
