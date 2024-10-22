@@ -17,4 +17,4 @@ tasks=(
     "nix build -vv --show-trace -L .#nixosConfigurations.dev-router.config.system.build.toplevel"
 )
 
-parallel --jobs 4 ::: "${tasks[@]}"
+parallel --jobs 1 ::: "${tasks[@]}"

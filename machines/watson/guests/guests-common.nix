@@ -1,13 +1,14 @@
 { config, pkgs, lib, modulesPath, hostname, ... }:
 {
-  boot.kernelPackages = pkgs.linuxPackages_latest;
   nix-common.enable = true;
+  ssh-server.enable = true;
 
   imports =
     [
       (modulesPath + "/profiles/qemu-guest.nix")
     ];
 
+  boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.initrd.availableKernelModules = [ "ahci" "xhci_pci" "virtio_pci" "sr_mod" "virtio_blk" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-amd" ];
@@ -58,17 +59,9 @@
   services.getty.autologinUser = "devops";
 
   environment.systemPackages = with pkgs; [
-    helm
-    k9s
-    kompose
-    kubectl
-    kubectx
-    kubernetes
     git
     vim
   ];
-
-  system.stateVersion = "24.05";
 
   networking.extraHosts =
     ''
@@ -78,5 +71,4 @@
       192.168.73.53 k8s-worker2
       192.168.73.54 db
     '';
-  ssh-server.enable = true;
 }

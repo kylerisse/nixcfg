@@ -28,9 +28,9 @@ deploy-dev-router:
 deploy-qube-cluster:
 	nixos-rebuild --flake .#qube --use-remote-sudo --target-host qube boot
 	ssh qube 'sudo reboot'
-	nixos-rebuild --flake .#qube --use-remote-sudo --target-host pi3 boot
+	nixos-rebuild --flake .#pi3 --use-remote-sudo --target-host pi3 boot
 	ssh pi3 'sudo reboot'
-	nixos-rebuild --flake .#qube --use-remote-sudo --target-host pi4 boot
+	nixos-rebuild --flake .#pi4 --use-remote-sudo --target-host pi4 boot
 	ssh pi4 'sudo reboot'
 
 deploy-k8s-cluster:
