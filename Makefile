@@ -16,7 +16,7 @@ build-pkgs:
 test-all-images: installerISO doImage
 
 test-all-nixos: lint build-pkgs
-	for i in $$(echo "db dev-router k8s-master k8s-worker1 k8s-worker2 muir pi3 pi4 piImage qube riviera watson"); do echo $$i; nix build -vv --show-trace -L .#nixosConfigurations.$$i.config.system.build.toplevel; done;
+	for i in $$(echo "db dev-router k8s-master k8s-worker1 k8s-worker2 muir pi3 pi4 piImage qube riviera watson"); do echo $$i; nix build -vv --show-trace -L .#nixosConfigurations.$$i.config.system.build.toplevel || exit 1; done;
 
 test-all-local:
 	bash scripts/test-all.sh
