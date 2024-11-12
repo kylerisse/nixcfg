@@ -9,14 +9,7 @@ in
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  nix.settings = {
-    trusted-users = [ "@wheel" ];
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-  };
-
+  nix-common.enable = true;
   ssh-server.enable = true;
   #ssh-server.listenAddresses = [
   #  {
