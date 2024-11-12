@@ -181,6 +181,7 @@
           dev-router = nixos-2405.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
+              all
               ./machines/dev-router/configuration.nix
               kvm-guest
               users
