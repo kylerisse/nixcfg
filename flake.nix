@@ -64,6 +64,8 @@
           go-signs = pkgs.callPackage ./pkgs/go-signs { };
           debian-netinst-iso = pkgs.callPackage ./pkgs/debian-netinst-iso { };
           parrot-htb-iso = pkgs.callPackage ./pkgs/parrot-htb-iso { };
+          openwrt-archer-a7-v5 = pkgs.callPackage ./pkgs/openwrt-archer-a7-v5 { };
+          openwrt-archer-c7-v2 = pkgs.callPackage ./pkgs/openwrt-archer-c7-v2 { };
           pi4Image = self.packages.aarch64-linux.pi4Image;
           pi3Image = self.packages.aarch64-linux.pi3Image;
         };
