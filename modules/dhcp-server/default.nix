@@ -87,8 +87,6 @@ in
             data = cfg.domain;
           }
         ];
-        reservation-mode = "global";
-        reservations = cfg.reservations;
         subnet4 = cfg.v4subnets;
       };
     };

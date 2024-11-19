@@ -35,9 +35,6 @@ in
   dhcp-server.interfaces = [ "enp2s0" ];
   dhcp-server.dns = "192.168.70.1";
   dhcp-server.domain = "risse.tv";
-  dhcp-server.reservations = [
-    { hostname = "temp"; hw-address = "52:54:00:59:ca:fb"; ip-address = "192.168.70.92"; }
-  ];
   dhcp-server.v4subnets = [{
     subnet = "192.168.70.0/24";
     id = 19216870;
@@ -47,6 +44,11 @@ in
     ];
     option-data = [
       { name = "routers"; data = "192.168.70.1"; }
+    ];
+    reservations-global = false;
+    reservations-in-subnet = true;
+    reservations = [
+      { hostname = "temp"; hw-address = "52:54:00:54:52:fc"; ip-address = "192.168.70.92"; }
     ];
   }];
 
@@ -105,6 +107,4 @@ in
   };
 
   time.timeZone = "America/Los_Angeles";
-
-  system.stateVersion = "24.05";
 }
