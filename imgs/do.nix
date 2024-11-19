@@ -4,6 +4,8 @@
     [
       (modulesPath + "/virtualisation/digital-ocean-image.nix")
     ];
+
+  boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.initrd.availableKernelModules = [ "kvm-intel" "kvm-amd" "ahci" "xhci_pci" "virtio_pci" "sr_mod" "virtio_blk" ];
 
   time.timeZone = "America/Los_Angeles";
@@ -17,6 +19,5 @@
   nixpkgs.hostPlatform = "x86_64-linux";
 
   ssh-server.enable = true;
-
-  system.stateVersion = "24.05";
+  nix-common.enable = true;
 }

@@ -3,17 +3,13 @@
   nix-common.enable = true;
 
   hardware = {
-    pulseaudio.enable = true;
     enableRedistributableFirmware = lib.mkDefault true;
     cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
-    opengl = {
+    graphics = {
       enable = true;
-      driSupport = true;
-      driSupport32Bit = true;
+      enable32Bit = true;
     };
   };
-
-  sound.enable = true;
 
   boot = {
     kernelPackages = pkgs.linuxPackages_latest;

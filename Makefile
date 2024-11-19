@@ -13,13 +13,21 @@ pi4Image:
 build-pkgs:
 	nix build -vv --show-trace --verbose -L .#packages.x86_64-linux.go-signs
 
-test-all-images: installerISO doImage
+test-all-images: installerISO doImage pi3Image pi4Image
 
 test-all-nixos: lint build-pkgs
-	for i in $$(echo "db dev-router k8s-master k8s-worker1 k8s-worker2 muir pi3 pi4 piImage qube riviera watson"); do echo $$i; nix build -vv --show-trace -L .#nixosConfigurations.$$i.config.system.build.toplevel || exit 1; done;
+	nix build -vv --show-trace -L .#nixosConfigurations.db.config.system.build.toplevel
+	nix build -vv --show-trace -L .#nixosConfigurations.dev-router.config.system.build.toplevel
+	nix build -vv --show-trace -L .#nixosConfigurations.k8s-master.config.system.build.toplevel
+	nix build -vv --show-trace -L .#nixosConfigurations.k8s-worker1.config.system.build.toplevel
+	nix build -vv --show-trace -L .#nixosConfigurations.k8s-worker2.config.system.build.toplevel
+	nix build -vv --show-trace -L .#nixosConfigurations.muir.config.system.build.toplevel
+	nix build -vv --show-trace -L .#nixosConfigurations.pi3.config.system.build.toplevel
+	nix build -vv --show-trace -L .#nixosConfigurations.pi4.config.system.build.toplevel
+	nix build -vv --show-trace -L .#nixosConfigurations.riviera.config.system.build.toplevel
+	nix build -vv --show-trace -L .#nixosConfigurations.watson.config.system.build.toplevel
 
-test-all-local:
-	bash scripts/test-all.sh
+test-all: test-all-images test-all-nixos
 
 deploy-dev-router:
 	nixos-rebuild --flake .#dev-router --use-remote-sudo --target-host dev-router boot
@@ -41,6 +49,12 @@ deploy-k8s-cluster:
 	nixos-rebuild --flake .#k8s-worker2 --use-remote-sudo --target-host k8s-worker2 boot
 	ssh k8s-worker2 'sudo reboot'
 
+deploy-db:
+	nixos-rebuild --flake .#db --use-remote-sudo --target-host db boot
+	ssh db 'sudo reboot'
+
+deploy-all-nixos: deploy-db deploy-k8s-cluster deploy-dev-router deploy-qube-cluster
+
 lint: tflint nixlint
 
 nixlint:
@@ -57,8 +71,7 @@ bump-flake-darwin:
 	nix flake update nix-darwin
 
 bump-flake-linux:
-	nix flake update nixos-unstable
-	nix flake update nixos-2405
+	nix flake update nixos-2411
 	nix flake update nixos-hardware
 
 clean:
