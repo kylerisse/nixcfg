@@ -53,7 +53,7 @@ mac:
 	darwin-rebuild switch --show-trace -vv --flake .#zugzug
 
 bump-flake-darwin:
-	nix flake update nixpkgs-unstable
+	nix flake update nixpkgs-darwin
 	nix flake update nix-darwin
 
 bump-flake-linux:

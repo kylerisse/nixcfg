@@ -7,9 +7,11 @@
     nixos-2405.url = "github:nixos/nixpkgs/nixos-24.05?shallow=1";
     nixos-hardware.url = "github:nixos/nixos-hardware?shallow=1";
     # mac
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    nix-darwin.url = "github:LnL7/nix-darwin";
-    nix-darwin.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    nixpkgs-darwin.url = "github:nixos/nixpkgs/nixpkgs-24.11-darwin?shallow=1";
+    nix-darwin = {
+      url = "github:LnL7/nix-darwin?shallow=1";
+      inputs.nixpkgs.follows = "nixpkgs-darwin";
+    };
   };
 
   outputs =
@@ -17,12 +19,12 @@
     , nixos-unstable
     , nixos-2405
     , nixos-hardware
-    , nixpkgs-unstable
+    , nixpkgs-darwin
     , nix-darwin
     }: {
       packages.aarch64-darwin =
         let
-          pkgs = import nixpkgs-unstable {
+          pkgs = import nixpkgs-darwin {
             system = "aarch64-darwin";
             config.allowUnfree = true;
           };
@@ -79,7 +81,7 @@
         {
           "zugzug" =
             let
-              nixpkgs = nixpkgs-unstable;
+              nixpkgs = nixpkgs-darwin;
             in
             nix-darwin.lib.darwinSystem {
               system = "aarch64-darwin";
