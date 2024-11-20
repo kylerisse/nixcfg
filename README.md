@@ -21,7 +21,8 @@
 │   │   ├───terraform_1-5-7: package 'terraform_1-5-7-binary'
 │   │   ├───terraform_1-7-5: package 'terraform_1-7-5-binary'
 │   │   ├───terraform_1-8-3: package 'terraform_1-8-3-binary'
-│   │   └───terraform_1-9-1: package 'terraform_1-9-1-binary'
+│   │   ├───terraform_1-9-1: package 'terraform_1-9-1-binary'
+│   │   └───terraform_1-9-6: package 'terraform_1-9-6-binary'
 │   ├───aarch64-linux
 │   │   ├───pi3Image: package 'nixos-sd-image'
 │   │   └───pi4Image: package 'nixos-sd-image'
