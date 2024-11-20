@@ -195,10 +195,10 @@ in
     silver-searcher
     terminal-notifier
     terraform_1
-    inputs.self.packages.aarch64-darwin.terraform_1-5-7
-    inputs.self.packages.aarch64-darwin.terraform_1-7-5
+    inputs.self.packages.aarch64-darwin.terraform_1-8-2
     inputs.self.packages.aarch64-darwin.terraform_1-8-3
     inputs.self.packages.aarch64-darwin.terraform_1-9-1
+    inputs.self.packages.aarch64-darwin.terraform_1-9-6
     terraform-docs
     terraform-lsp
     tflint
