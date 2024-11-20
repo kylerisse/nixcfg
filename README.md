@@ -18,8 +18,7 @@
 │       └───k8s-worker2: Kubernetes worker development
 ├───packages
 │   ├───aarch64-darwin
-│   │   ├───terraform_1-5-7: package 'terraform_1-5-7-binary'
-│   │   ├───terraform_1-7-5: package 'terraform_1-7-5-binary'
+│   │   ├───terraform_1-8-2: package 'terraform_1-8-2-binary'
 │   │   ├───terraform_1-8-3: package 'terraform_1-8-3-binary'
 │   │   ├───terraform_1-9-1: package 'terraform_1-9-1-binary'
 │   │   └───terraform_1-9-6: package 'terraform_1-9-6-binary'
