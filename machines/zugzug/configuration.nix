@@ -191,6 +191,7 @@ in
     python312Packages.boto3
     python312Packages.botocore
     python312Packages.pytest
+    rrdtool
     shellcheck
     silver-searcher
     terminal-notifier
