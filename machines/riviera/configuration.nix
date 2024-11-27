@@ -152,7 +152,6 @@
       kubectx
       libressl
       mudlet
-      neovim
       netcat
       nixpkgs-fmt
       nmap
@@ -166,6 +165,7 @@
       silver-searcher
       slack
       unzip
+      vim
       virt-manager
       vscode
       wget

@@ -136,7 +136,6 @@ in
       kubectl
       kubectx
       libressl
-      neovim
       netcat
       nixpkgs-fmt
       nmap
@@ -150,6 +149,7 @@ in
       slack
       steam
       usbutils
+      vim
       virt-manager
       vscode
       wget
