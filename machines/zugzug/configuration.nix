@@ -175,7 +175,6 @@ in
     kubectl
     kubectx
     libressl
-    neovim
     netcat
     nixpkgs-fmt
     nodePackages.cspell
@@ -204,6 +203,7 @@ in
     terraform-lsp
     tflint
     tfsec
+    vim
     wget
     yamllint
     yubikey-manager
