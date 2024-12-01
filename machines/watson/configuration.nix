@@ -145,6 +145,8 @@ in
       openrct2
       openssh
       parallel
+      podman-compose
+      rrdtool
       silver-searcher
       slack
       steam
@@ -211,8 +213,7 @@ in
     loadModels = [
       "llama3.2:latest"
       "gemma2:latest"
-      "nemotron:latest"
-      "stable-code:3b-code-q4_0"
+      "marco-o1:latest"
     ];
     acceleration = false;
     environmentVariables = {
