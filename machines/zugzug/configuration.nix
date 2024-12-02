@@ -83,7 +83,7 @@ in
     autohide-delay = 0.24;
     autohide-time-modifier = 0.8;
     dashboard-in-overlay = true;
-    expose-group-by-app = false;
+    expose-group-apps = false;
     enable-spring-load-actions-on-all-items = true;
     expose-animation-duration = 0.8;
     launchanim = true;
