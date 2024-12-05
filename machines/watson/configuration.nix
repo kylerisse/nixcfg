@@ -149,6 +149,7 @@ in
       rrdtool
       silver-searcher
       slack
+      spotify
       steam
       usbutils
       vim
