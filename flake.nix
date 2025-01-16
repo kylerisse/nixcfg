@@ -8,7 +8,7 @@
     # mac
     nixpkgs-darwin.url = "github:nixos/nixpkgs/nixpkgs-24.11-darwin?shallow=1";
     nix-darwin = {
-      url = "github:LnL7/nix-darwin?shallow=1";
+      url = "github:LnL7/nix-darwin/nix-darwin-24.11?shallow=1";
       inputs.nixpkgs.follows = "nixpkgs-darwin";
     };
   };
