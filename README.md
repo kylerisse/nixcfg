@@ -48,6 +48,6 @@ mkfs.ext4 -L NIXROOT /dev/mapper/enc-nixroot
 Collect Garbage
 ```
 nix profile history --profile /nix/var/nix/profiles/system
-nix profile wipe-history --profile /nix/var/nix/profiles/system --older-than 90d
+sudo nix profile wipe-history --profile /nix/var/nix/profiles/system --older-than 90d
 nix-collect-garbage
 ```
