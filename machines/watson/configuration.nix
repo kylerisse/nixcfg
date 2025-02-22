@@ -3,6 +3,11 @@ let
   # gdm trickery
   monitorsXmlContent = builtins.readFile ./monitors.xml;
   monitorsConfig = pkgs.writeText "gdm_monitors.xml" monitorsXmlContent;
+
+  pkgs-unstable = import inputs.nixos-unstable {
+    system = "x86_64-linux";
+    config = { allowUnfree = true; };
+  };
 in
 {
   nix-common.enable = true;
@@ -122,9 +127,9 @@ in
       firefox
       gcc
       git
-      go
-      gopls
-      go-outline
+      pkgs-unstable.go
+      pkgs-unstable.gopls
+      pkgs-unstable.go-outline
       gnumake
       helm
       htop
@@ -142,7 +147,7 @@ in
       nodePackages.cspell
       nodePackages.jsonlint
       nodePackages_latest.markdownlint-cli
-      openrct2
+      pkgs-unstable.openrct2
       openssh
       parallel
       podman-compose
@@ -150,7 +155,7 @@ in
       silver-searcher
       slack
       spotify
-      steam
+      pkgs-unstable.steam
       usbutils
       vim
       virt-manager
