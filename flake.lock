@@ -54,16 +54,16 @@
     },
     "nixos-krct": {
       "locked": {
-        "lastModified": 1740247699,
-        "narHash": "sha256-OhwZmHW6QzxkSAuwgBFSNDaJ/rir5lWgJHLxCt+/WK4=",
+        "lastModified": 1740553065,
+        "narHash": "sha256-H/7HbesfRBQU3nPBiDq5uG59P6b22MO2ZK2QjGc0x5A=",
         "owner": "kylerisse",
         "repo": "nixpkgs",
-        "rev": "e3ed1f0e0dd8edb85c6544cf65e1c4dd204235d2",
+        "rev": "226d5df093cc5ca85c24953981035919e35a902e",
         "type": "github"
       },
       "original": {
         "owner": "kylerisse",
-        "ref": "openrct2_0.4.19.1",
+        "ref": "openrct2_0.4.20",
         "repo": "nixpkgs",
         "type": "github"
       }
