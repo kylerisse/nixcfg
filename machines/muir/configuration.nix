@@ -161,7 +161,7 @@ in
 
   # gnome exclusions
   environment = {
-    gnome.excludePackages = (with pkgs.gnome; [
+    gnome.excludePackages = (with pkgs; [
       baobab
       epiphany
       pkgs.gnome-text-editor
