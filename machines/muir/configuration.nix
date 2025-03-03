@@ -117,15 +117,15 @@ in
       curl
       cyberchef
       dig
-      discord
+      pkgs-unstable.discord
       dive
       element-desktop
       firefox
       gcc
       git
-      go
-      gopls
-      go-outline
+      pkgs-unstable.go
+      pkgs-unstable.gopls
+      pkgs-unstable.go-outline
       gnumake
       htop
       icdiff
@@ -148,6 +148,7 @@ in
       python312Packages.pypubsub
       silver-searcher
       slack
+      spotify
       unzip
       vim
       virt-manager
