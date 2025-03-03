@@ -94,12 +94,9 @@ in
 
   virtualisation = {
     libvirtd.enable = true;
-    docker = {
+    podman = {
       enable = true;
-      rootless = {
-        enable = true;
-        setSocketVariable = true;
-      };
+      dockerCompat = true;
     };
   };
 
