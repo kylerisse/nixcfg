@@ -216,7 +216,7 @@
               users
               all
             ];
-            specialArgs = { inherit nixpkgs; };
+            specialArgs = { inherit nixpkgs inputs; };
           };
           qube = nixos-2411.lib.nixosSystem {
             system = "x86_64-linux";

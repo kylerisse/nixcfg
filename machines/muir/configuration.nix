@@ -1,4 +1,10 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, inputs, ... }:
+let
+  pkgs-unstable = import inputs.nixos-unstable {
+    system = "x86_64-linux";
+    config = { allowUnfree = true; };
+  };
+in
 {
   nix-common.enable = true;
 
