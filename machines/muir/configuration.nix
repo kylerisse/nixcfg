@@ -144,6 +144,7 @@ in
       python312
       python312Packages.meshtastic
       python312Packages.pypubsub
+      signal-desktop
       silver-searcher
       slack
       spotify
