@@ -10,6 +10,7 @@ in
 
   hardware = {
     enableRedistributableFirmware = lib.mkDefault true;
+    bluetooth.enable = false;
     cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
     graphics = {
       enable = true;
