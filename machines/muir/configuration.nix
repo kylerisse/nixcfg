@@ -141,6 +141,7 @@ in
       nodePackages.jsonlint
       nodePackages_latest.markdownlint-cli
       openssh
+      podman-compose
       python312
       python312Packages.meshtastic
       python312Packages.pypubsub
