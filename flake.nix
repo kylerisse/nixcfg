@@ -70,6 +70,7 @@
           parrot-htb-iso = pkgs.callPackage ./pkgs/parrot-htb-iso { };
           openwrt-archer-a7-v5 = pkgs.callPackage ./pkgs/openwrt-archer-a7-v5 { };
           openwrt-archer-c7-v2 = pkgs.callPackage ./pkgs/openwrt-archer-c7-v2 { };
+          openwrt-one = pkgs.callPackage ./pkgs/openwrt-one { };
           pi4Image = self.packages.aarch64-linux.pi4Image;
           pi3Image = self.packages.aarch64-linux.pi3Image;
         };
