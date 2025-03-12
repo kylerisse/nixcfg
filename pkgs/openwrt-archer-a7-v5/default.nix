@@ -6,12 +6,12 @@
 let
   cfg = {
     factory = {
-      url = "https://downloads.openwrt.org/releases/23.05.5/targets/ath79/generic/openwrt-23.05.5-ath79-generic-tplink_archer-a7-v5-squashfs-factory.bin";
-      sha256 = "5312bd7be66e83209acf27540a5e3846343c8d9dff271cba5186443b2d3df38f";
+      url = "https://downloads.openwrt.org/releases/24.10.0/targets/ath79/generic/openwrt-24.10.0-ath79-generic-tplink_archer-a7-v5-squashfs-factory.bin";
+      sha256 = "sha256-whgNAVqqdMGZICoiXAwmtsFfgm73I1Ezf/mIGeeNIXY=";
     };
     sysupgrade = {
-      url = "https://downloads.openwrt.org/releases/23.05.5/targets/ath79/generic/openwrt-23.05.5-ath79-generic-tplink_archer-a7-v5-squashfs-sysupgrade.bin";
-      sha256 = "7740d3ab17ec20347dd9d9319cc307ca85e6bbcfb8ed4ca9c7fce82307555a59";
+      url = "https://downloads.openwrt.org/releases/24.10.0/targets/ath79/generic/openwrt-24.10.0-ath79-generic-tplink_archer-a7-v5-squashfs-sysupgrade.bin";
+      sha256 = "sha256-Vz4zWqIWZtpwDl2qTi9gEXE1/SqmdCyxj6r6ZCOlSFI=";
     };
   };
 in
@@ -27,7 +27,7 @@ stdenv.mkDerivation rec {
 
   src = ./.;
   pname = "openwrt-archer-a7-v5";
-  version = "23.05.5";
+  version = "24.10.0";
 
   installPhase = ''
     mkdir -p $out/images/
@@ -38,7 +38,7 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    description = "OpenWRT 23.05.5 Archer A7 v5";
+    description = "OpenWRT 24.10.0 Archer A7 v5";
     license = licenses.gpl3;
     maintainers = [ "kylerisse" ];
   };
