@@ -73,6 +73,7 @@
           openwrt-one = pkgs.callPackage ./pkgs/openwrt-one { };
           pi4Image = self.packages.aarch64-linux.pi4Image;
           pi3Image = self.packages.aarch64-linux.pi3Image;
+          wasgeht = pkgs.callPackage ./pkgs/wasgeht { };
         };
       darwinConfigurations =
         let
