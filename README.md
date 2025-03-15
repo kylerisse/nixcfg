@@ -38,7 +38,7 @@
     └───terraform-aws-bastion: example NixOS bastion on AWS
 ```
 
-Disk
+## Disk Setup
 
 ```
 cryptsetup luksFormat --label=CRYPT_NIXROOT /dev/sda2
@@ -46,7 +46,8 @@ cryptsetup luksOpen /dev/disk/by-label/CRYPT_NIXROOT enc-nixroot
 mkfs.ext4 -L NIXROOT /dev/mapper/enc-nixroot
 ```
 
-Collect Garbage
+## Collect Garbage
+
 ```
 nix profile history --profile /nix/var/nix/profiles/system
 sudo nix profile wipe-history --profile /nix/var/nix/profiles/system --older-than 90d
