@@ -74,6 +74,7 @@
           pi4Image = self.packages.aarch64-linux.pi4Image;
           pi3Image = self.packages.aarch64-linux.pi3Image;
           wasgeht = pkgs.callPackage ./pkgs/wasgeht { };
+          wasgeht-unstable = pkgs.callPackage ./pkgs/wasgeht-unstable { };
         };
       darwinConfigurations =
         let
