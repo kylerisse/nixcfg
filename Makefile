@@ -12,6 +12,7 @@ pi4Image:
 
 build-pkgs:
 	nix build -vv --show-trace --verbose -L .#packages.x86_64-linux.go-signs
+	nix build -vv --show-trace --verbose -L .#packages.x86_64-linux.wasgeht
 
 test-all-images: installerISO doImage pi3Image pi4Image
 
