@@ -105,6 +105,7 @@
                 ./modules/nix-common
                 ./modules/ssh-server
                 ./modules/kube-cluster
+                ./modules/wasgeht
               ];
             });
           users =
@@ -226,7 +227,7 @@
               users
               all
             ];
-            specialArgs = { inherit nixpkgs; };
+            specialArgs = { inherit nixpkgs inputs; };
           };
           riviera = nixos-2411.lib.nixosSystem {
             system = "x86_64-linux";
