@@ -13,8 +13,8 @@ buildGoModule rec {
   src = fetchFromGitHub {
     owner = "kylerisse";
     repo = "wasgeht";
-    rev = "19f5e11ffb1defaf002e44b9d22483c77139c316";
-    sha256 = "sha256-fwODrvzuBChuZwD+d5wXxIg6j5DeiAmnzLTWUz7AbfQ=";
+    rev = "3d05c68d2555c4c8a9978623efd0c42b6781d353";
+    sha256 = "sha256-nvyUaPRSqUCCfMhKhH33Sndo7YqG4jDlSWja4a+2emo=";
   };
 
   vendorHash = "sha256-0HDZ3llIgLMxRLNei93XrcYliBzjajU6ZPllo3/IZVY=";
