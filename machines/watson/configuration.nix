@@ -8,11 +8,6 @@ let
     system = "x86_64-linux";
     config = { allowUnfree = true; };
   };
-
-  pkgs-krct = import inputs.nixos-krct {
-    system = "x86_64-linux";
-    config = { allowUnfree = true; };
-  };
 in
 {
   nix-common.enable = true;
@@ -152,7 +147,7 @@ in
       nodePackages.cspell
       nodePackages.jsonlint
       nodePackages_latest.markdownlint-cli
-      pkgs-krct.openrct2
+      pkgs-unstable.openrct2
       openssh
       parallel
       podman-compose
