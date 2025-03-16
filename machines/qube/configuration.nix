@@ -1,7 +1,43 @@
-{ config, pkgs, lib, modulesPath, ... }:
+{ config, pkgs, lib, modulesPath, inputs, ... }:
 {
   nix-common.enable = true;
   ssh-server.enable = true;
+  networking.firewall.allowedTCPPorts = [ 80 ];
+  wasgeht = {
+    enable = true;
+    package = inputs.self.packages.x86_64-linux.wasgeht-unstable;
+    hostFile = builtins.toFile "hosts.json" ''
+      {
+        "zzmodem": {
+          "address": "192.168.254.254"
+        },
+        "zzisp": {
+          "address": "47.155.20.1"
+        },
+        "zzdns1": {
+          "address": "1.0.0.1"
+        },
+        "zzdns2": {
+          "address": "1.1.1.1"
+        },
+        "router": {},
+        "pi3": {},
+        "pi4": {},
+        "qube": {},
+        "switch1": {},
+        "ap1": {},
+        "ap2": {},
+        "solar": {},
+        "watson": {},
+        "zugzug": {}
+      }
+    '';
+    nginxEnable = true;
+    nginxVhosts = [
+      "wasgeht.risse.tv"
+      "whatsup.risse.tv"
+    ];
+  };
 
   imports =
     [
@@ -45,6 +81,7 @@
 
   networking.networkmanager.enable = false;
   networking.useNetworkd = true;
+
   systemd.network = {
     enable = true;
     netdevs.br0.netdevConfig = {
@@ -62,6 +99,7 @@
         enable = true;
         networkConfig.DHCP = "yes";
         linkConfig.RequiredForOnline = "routable";
+        domains = [ "risse.tv" ];
       };
     };
   };
