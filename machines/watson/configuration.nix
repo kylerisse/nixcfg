@@ -217,10 +217,8 @@ in
   services.ollama = {
     enable = true;
     loadModels = [
-      "llama3.2:latest"
-      "gemma2:latest"
-      "marco-o1:latest"
-    ];
+      "llama3.3:latest"
+      "gemma2:latest"    ];
     acceleration = false;
     environmentVariables = {
       OLLAMA_LLM_LIBRARY = "cpu";
