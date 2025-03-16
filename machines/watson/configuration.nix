@@ -114,57 +114,54 @@ in
     shell = pkgs.fish;
     extraGroups = [ "dialout" "networkmanager" "libvirtd" ];
 
-    packages = with pkgs; [
-      awscli2
-      bitwarden
-      brave
-      btop
-      chezmoi
-      curl
-      dig
-      discord
-      element-desktop
-      firefox
-      gcc
-      git
-      pkgs-unstable.go
-      pkgs-unstable.gopls
-      pkgs-unstable.go-outline
-      gnumake
-      helm
-      htop
-      icdiff
-      inetutils
-      jq
-      k9s
-      kompose
-      kubectl
-      kubectx
-      libressl
-      netcat
-      nixpkgs-fmt
-      nmap
-      nodePackages.cspell
-      nodePackages.jsonlint
-      nodePackages_latest.markdownlint-cli
-      pkgs-unstable.openrct2
-      openssh
-      parallel
-      podman-compose
-      rrdtool
-      silver-searcher
-      slack
-      spotify
-      pkgs-unstable.steam
-      usbutils
-      vim
-      virt-manager
-      vscode
-      wget
-      yamllint
-      yubikey-manager
-      inputs.self.packages.x86_64-linux.go-signs
-    ];
+    packages =
+      let
+        stablePackages = with pkgs; [
+          bitwarden
+          brave
+          chezmoi
+          curl
+          direnv
+          firefox
+          git
+          gnumake
+          icdiff
+          jq
+          libressl
+          nixpkgs-fmt
+          openssh
+          podman-compose
+          silver-searcher
+          vim
+          virt-manager
+          wget
+          yubikey-manager
+        ];
+
+        unstablePackages = with pkgs-unstable; [
+          discord
+          element-desktop
+          go
+          gopls
+          go-outline
+          openrct2
+          slack
+          spotify
+          steam
+          vscode
+        ];
+
+        nodePackages = with pkgs.nodePackages; [
+          cspell
+          jsonlint
+          markdownlint-cli
+        ];
+
+        selfPackages = [
+          inputs.self.packages.x86_64-linux.go-signs
+        ];
+      in
+      stablePackages ++ unstablePackages ++ nodePackages ++ selfPackages;
   };
 
   environment.gnome.excludePackages = (with pkgs; [
@@ -197,9 +194,26 @@ in
     "L+ /run/gdm/.config/monitors.xml - - - - ${monitorsConfig}"
   ];
 
-  environment.systemPackages = with pkgs; [
-    vim
-  ];
+  environment.systemPackages =
+    let
+      basePackages = with pkgs; [
+        btop
+        dig
+        htop
+        netcat
+        nmap
+        usbutils
+        vim
+      ];
+      uTools = with pkgs.unixtools; [
+        arp
+        netstat
+        nettools
+        ping
+        route
+      ];
+    in
+    basePackages ++ uTools;
 
   environment.shells = with pkgs; [
     bash
