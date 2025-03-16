@@ -179,15 +179,15 @@ in
     # gnome-calculator
     gnome-calendar
     # gnome-characters
-    gnome.gnome-clocks
+    gnome-clocks
     # pkgs.gnome-console
-    gnome.gnome-contacts
+    gnome-contacts
     # gnome-font-viewer
-    gnome.gnome-logs
-    gnome.gnome-maps
-    gnome.gnome-music
+    gnome-logs
+    gnome-maps
+    gnome-music
     gnome-system-monitor
-    gnome.gnome-weather
+    gnome-weather
     loupe
     # nautilus
     gnome-connections
