@@ -145,6 +145,7 @@ in
           gopls
           go-outline
           openrct2
+          signal-desktop
           slack
           spotify
           steam
