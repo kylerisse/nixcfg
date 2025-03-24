@@ -5,8 +5,9 @@
 }:
 let
   cfg = {
-    url = "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.7.0-amd64-netinst.iso";
-    sha256 = "j955z8ayCmliAPxcFSGc9tch6P6zZ+ng4zp50cto+oM=";
+    version = "12.10.0";
+    url = "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-${cfg.version}-amd64-netinst.iso";
+    sha256 = "sha256-7o2FeRKJd9fcOdSPQ67Fqwa38J4fQKnZjyqdFJIhcEo=";
   };
 in
 stdenv.mkDerivation rec {
@@ -17,7 +18,7 @@ stdenv.mkDerivation rec {
 
   src = ./.;
   pname = "debian-netinst-iso";
-  version = "12.7.0";
+  version = cfg.version;
 
   installPhase = ''
     mkdir -p $out/iso/
@@ -26,7 +27,7 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    description = "Debian 12.7.0 Network Installer ";
+    description = "Debian ${cfg.version} Network Installer ";
     license = licenses.gpl2;
     maintainers = [ "kylerisse" ];
   };
