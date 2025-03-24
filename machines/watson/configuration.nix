@@ -231,7 +231,6 @@ in
 
   services.ollama = {
     enable = true;
-    package = pkgs-unstable.ollama;
     loadModels = [
       "llama3.3:latest"
       "gemma2:latest"
@@ -243,7 +242,6 @@ in
   };
   services.open-webui = {
     enable = true;
-    package = pkgs-unstable.open-webui;
     environment = {
       ANONYMIZED_TELEMETRY = "False";
       DO_NOT_TRACK = "True";
