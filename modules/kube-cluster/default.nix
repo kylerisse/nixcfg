@@ -5,6 +5,7 @@ in
 {
   options.kube-cluster = {
     enable = lib.mkEnableOption (lib.mdDoc "Kubernetes Cluster");
+    package = lib.mkPackageOption pkgs "kubernetes" { };
     isMaster = lib.mkEnableOption (lib.mdDoc "Is the master node");
     masterIP = lib.mkOption {
       type = lib.types.str;
@@ -29,6 +30,7 @@ in
     lib.mkIf cfg.enable {
       services.kubernetes = {
         masterAddress = cfg.masterHostname;
+        package = cfg.package;
         apiserverAddress = kubeApi;
         easyCerts = true;
         addons.dns.enable = true;
