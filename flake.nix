@@ -249,7 +249,7 @@
                 ./machines/watson/guests/kube-api-cluster.nix
                 users
               ];
-              specialArgs = { inherit nixpkgs hostname; };
+              specialArgs = { inherit nixpkgs hostname inputs; };
             };
           k8s-worker1 =
             let
@@ -262,7 +262,7 @@
                 ./machines/watson/guests/kube-api-cluster.nix
                 users
               ];
-              specialArgs = { inherit nixpkgs hostname; };
+              specialArgs = { inherit nixpkgs hostname inputs; };
             };
           k8s-worker2 =
             let
@@ -275,7 +275,7 @@
                 ./machines/watson/guests/kube-api-cluster.nix
                 users
               ];
-              specialArgs = { inherit nixpkgs hostname; };
+              specialArgs = { inherit nixpkgs hostname inputs; };
             };
           db =
             let
