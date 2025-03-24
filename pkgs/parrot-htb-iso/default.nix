@@ -5,8 +5,9 @@
 }:
 let
   cfg = {
-    url = "https://deb.parrot.sh/parrot/iso/6.1/Parrot-htb-6.1_amd64.iso";
-    sha256 = "9ea96a8fc159682d7d03306f183db96399c79f892d7e76403d76649fd96465d7";
+    version = "6.3.2";
+    url = "https://deb.parrot.sh/parrot/iso/${cfg.version}/Parrot-htb-${cfg.version}_amd64.iso";
+    sha256 = "sha256-7oRItid4tcdAkjY20IuTQfNPc8RA8TYiYqZkafTKhUs=";
   };
 in
 stdenv.mkDerivation rec {
@@ -17,7 +18,7 @@ stdenv.mkDerivation rec {
 
   src = ./.;
   pname = "ParrotOS_HTB_ISO";
-  version = "6.1";
+  version = cfg.version;
 
   installPhase = ''
     mkdir -p $out/iso/
@@ -26,7 +27,7 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    description = "Parrot OS 6.1 Hack The Box Edition ISO";
+    description = "Parrot OS ${cfg.version} Hack The Box Edition ISO";
     license = licenses.gpl2;
     maintainers = [ "kylerisse" ];
   };
