@@ -6,15 +6,15 @@
 let
   src = fetchFromGitHub {
     owner = "kylerisse";
-    rev = "26c05190a7d80de36d1a273974176f65c7ed90e6";
+    rev = "25f045c320ac0f47db68e24a3bb990d53f343c1a";
     repo = "go-signs";
-    sha256 = "sha256-NwJAe1hJRjS+rHqEePALlxNm9OIFvPhH0OpqUyx94Og=";
+    sha256 = "sha256-DwrzyoPICAkLB0zrnyn+ox/ApWpSpP5IoB+idbXg4qI=";
   };
 in
 buildGoModule rec {
   inherit src;
   pname = "go-signs";
-  version = "2024-03-20";
+  version = "unstable";
 
   sourceRoot = "${src.name}/";
 
