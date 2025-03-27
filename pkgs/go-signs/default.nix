@@ -6,9 +6,9 @@
 let
   src = fetchFromGitHub {
     owner = "kylerisse";
-    rev = "25f045c320ac0f47db68e24a3bb990d53f343c1a";
+    rev = "13aa95058f53b576c0e59186ab99f9555259d0af";
     repo = "go-signs";
-    sha256 = "sha256-DwrzyoPICAkLB0zrnyn+ox/ApWpSpP5IoB+idbXg4qI=";
+    sha256 = "sha256-659R6d+QGbnIHuJLR4T8Tr/JBqaEDbxMnCjXI115R50=";
   };
 in
 buildGoModule rec {
@@ -18,7 +18,7 @@ buildGoModule rec {
 
   sourceRoot = "${src.name}/";
 
-  vendorHash = "sha256-v+30UyKGa4BYOO3y77gOTyvQljz0W24v1+2zpPxstR4=";
+  vendorHash = "sha256-8wYERVt3PIsKkarkwPu8Zy/Sdx43P6g2lz2xRfvTZ2E=";
 
   meta = with lib; {
     description = "go-signs API server for SoCal Linux Expo schedule info";
