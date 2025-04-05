@@ -56,6 +56,22 @@
         "type": "github"
       }
     },
+    "nixos-devfork": {
+      "locked": {
+        "lastModified": 1746388862,
+        "narHash": "sha256-3gtu5LzX+V3ZN25r6bVlXB9BA/YsClJwyy/FpVr7hko=",
+        "owner": "kylerisse",
+        "repo": "nixpkgs",
+        "rev": "e0a0dcb8596890f54f34513d095f184355dd06ad",
+        "type": "github"
+      },
+      "original": {
+        "owner": "kylerisse",
+        "ref": "openrct2_0.4.22",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixos-hardware": {
       "locked": {
         "lastModified": 1745503349,
@@ -124,6 +140,7 @@
         "go-signs": "go-signs",
         "nix-darwin": "nix-darwin",
         "nixos-2411": "nixos-2411",
+        "nixos-devfork": "nixos-devfork",
         "nixos-hardware": "nixos-hardware",
         "nixos-unstable": "nixos-unstable",
         "nixpkgs-darwin": "nixpkgs-darwin"

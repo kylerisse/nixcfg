@@ -8,6 +8,10 @@ let
     system = "x86_64-linux";
     config = { allowUnfree = true; };
   };
+  pkgs-devfork = import inputs.nixos-devfork {
+    system = "x86_64-linux";
+    config = { allowUnfree = true; };
+  };
 in
 {
   nix-common = {
@@ -146,7 +150,7 @@ in
           go
           gopls
           go-outline
-          openrct2
+          #openrct2
           signal-desktop
           slack
           spotify
@@ -163,8 +167,12 @@ in
 
         selfPackages = [
         ];
+
+        devForkPackages = with pkgs-devfork; [
+          openrct2
+        ];
       in
-      stablePackages ++ unstablePackages ++ nodePackages ++ selfPackages;
+      stablePackages ++ unstablePackages ++ nodePackages ++ selfPackages ++ devForkPackages;
   };
 
   environment.gnome.excludePackages = (with pkgs; [
