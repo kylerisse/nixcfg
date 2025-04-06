@@ -3,6 +3,12 @@
   nix-common.enable = true;
   ssh-server.enable = true;
   networking.firewall.allowedTCPPorts = [ 80 ];
+  mrtg = {
+    enable = true;
+    hostList = [ "switch1.risse.tv" ];
+    nginxEnable = true;
+    nginxVhosts = [ "mrtg.risse.tv" ];
+  };
   wasgeht = {
     enable = true;
     package = inputs.self.packages.x86_64-linux.wasgeht-unstable;
