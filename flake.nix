@@ -105,6 +105,7 @@
                 ./modules/nix-common
                 ./modules/ssh-server
                 ./modules/kube-cluster
+                ./modules/mrtg
                 ./modules/wasgeht
               ];
             });
