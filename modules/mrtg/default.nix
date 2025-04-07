@@ -55,7 +55,6 @@ in
           config_path="${cfg.statePath}/configs/''${hostname}.cfg"
           mkdir -p ${cfg.statePath}/html/''${hostname}
           ${pkgs.mrtg}/bin/cfgmaker \
-          --no-down \
           --show-op-down \
           --output="''${config_path}" \
           --global="HtmlDir: ${cfg.statePath}/html/''${hostname}" \
