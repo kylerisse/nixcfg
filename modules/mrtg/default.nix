@@ -62,12 +62,16 @@ in
           --global="LogDir: ${cfg.statePath}/logs/''${hostname}" \
           --global="options[_]: growright,bits" \
           --global="Refresh: 300" \
-          ''${snmp_community}@''${hostname}
+          ''${snmp_community}@''${hostname} 1> /dev/null
           echo "configuration created at ''${config_path}"
-          index_path="${cfg.statePath}/html/''${hostname}/index.html"
+          html_path="${cfg.statePath}/html/''${hostname}"
+          index_path="''${html_path}/index.html"
           echo "Generating index html at ''${index_path}"
           ${pkgs.mrtg}/bin/indexmaker --output="''${index_path}" ''${config_path}
-          sed -E -i 's/(mrtg-(l|m|r))\.gif/\1.png/g' ''${index_path}
+          echo "Creating icon image symlinks"
+          for i in l m r; do
+            ln -sf ''${html_path}/mrtg-$i.png ''${html_path}/mrtg-$i.gif
+          done
         done
       '';
     in
