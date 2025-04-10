@@ -11,7 +11,6 @@ in
     hostList = mkOption {
       type = types.listOf types.str;
     };
-    # must be in /var/lib/ for systemd dynamic user to function
     statePath = mkOption {
       type = types.str;
       default = "/var/lib/mrtg";
@@ -40,38 +39,56 @@ in
     let
       script = pkgs.writeShellScript "mrtg-generator" ''
         set -eo pipefail
+
+        # make global directories
         mkdir -p ${cfg.statePath}/configs/
         mkdir -p ${cfg.statePath}/html/
+
         for hostname in ${concatStringsSep " " cfg.hostList}; do
           echo "''${hostname}"
-          mkdir -p ${cfg.statePath}/logs/''${hostname}
+          config_path="${cfg.statePath}/configs/''${hostname}.cfg"
+          html_path="${cfg.statePath}/html/''${hostname}"
+          log_path="${cfg.statePath}/logs/''${hostname}"
+          index_path="''${html_path}/index.html"
+
+          mkdir -p ''${html_path}
+          mkdir -p ''${log_path}
+
           snmp_file="${cfg.secretsPath}/''${hostname}.snmp"
           while [ ! -f ''${snmp_file} ]; do
             echo waiting for ''${snmp_file}
             sleep 10
           done
-          echo "''${snmp_file} found! creating config..."
-          snmp_community=''$(cat ''${snmp_file} | tr -d '\n')
-          config_path="${cfg.statePath}/configs/''${hostname}.cfg"
-          mkdir -p ${cfg.statePath}/html/''${hostname}
-          ${pkgs.mrtg}/bin/cfgmaker \
-          --show-op-down \
-          --output="''${config_path}" \
-          --global="HtmlDir: ${cfg.statePath}/html/''${hostname}" \
-          --global="ImageDir: ${cfg.statePath}/html/''${hostname}" \
-          --global="LogDir: ${cfg.statePath}/logs/''${hostname}" \
-          --global="options[_]: growright,bits" \
-          --global="Refresh: 300" \
-          ''${snmp_community}@''${hostname} 1> /dev/null
-          echo "configuration created at ''${config_path}"
-          html_path="${cfg.statePath}/html/''${hostname}"
-          index_path="''${html_path}/index.html"
-          echo "Generating index html at ''${index_path}"
-          ${pkgs.mrtg}/bin/indexmaker --output="''${index_path}" ''${config_path}
-          echo "Creating icon image symlinks"
-          for i in l m r; do
-            ln -sf ''${html_path}/mrtg-$i.png ''${html_path}/mrtg-$i.gif
-          done
+          echo "''${snmp_file} found!"
+
+          if [ -f ''${config_path} ]; then
+            echo "''${config_path} already exists. skipping...."
+          else
+            echo "creating config ''${config_path}..."
+            snmp_community=''$(cat ''${snmp_file} | tr -d '\n')
+
+            ${pkgs.mrtg}/bin/cfgmaker \
+            --no-down \
+            --show-op-down \
+            --output="''${config_path}" \
+            --global="HtmlDir: ''${html_path}" \
+            --global="ImageDir: ''${html_path}" \
+            --global="LogDir: ''${log_path}" \
+            --global="options[_]: growright,bits" \
+            --global="Refresh: 300" \
+            ''${snmp_community}@''${hostname}
+            echo "configuration created at ''${config_path}"
+          fi
+          index_path="''${index_path}"
+          if [ -f ''${index_path} ]; then
+            echo "''${index_path} already exists, skipping..."
+          else
+            echo "Generating index html at ''${index_path}"
+            ${pkgs.mrtg}/bin/indexmaker --output="''${index_path}" ''${config_path}
+            for i in l m r; do
+              ln -sf ''${html_path}/mrtg-$i.png ''${html_path}/mrtg-$i.gif
+            done
+          fi
         done
       '';
     in
