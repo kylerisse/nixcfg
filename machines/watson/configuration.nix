@@ -156,6 +156,7 @@ in
           cspell
           jsonlint
           markdownlint-cli
+          prettier
         ];
 
         selfPackages = [
