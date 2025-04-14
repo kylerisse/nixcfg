@@ -267,6 +267,7 @@ in
 
   # these gui apps tend to run better through homebrew
   homebrew.casks = [
+    "1password"
     "bitwarden"
     "brave-browser"
     "dbeaver-community"
