@@ -110,6 +110,7 @@
                 ./modules/ssh-server
                 ./modules/kube-cluster
                 ./modules/mrtg
+                ./modules/scale-simulator
                 ./modules/wasgeht
               ];
             });
