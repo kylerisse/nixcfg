@@ -1,4 +1,4 @@
-{ config, pkgs, modulesPath, ... }:
+{ config, pkgs, modulesPath, inputs, ... }:
 {
   imports =
     [
@@ -22,4 +22,6 @@
   nix-common.enable = true;
 
   services.fail2ban.enable = true;
+
+  scale-simulator.enable = true;
 }
