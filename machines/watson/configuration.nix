@@ -160,7 +160,6 @@ in
         ];
 
         selfPackages = [
-          inputs.self.packages.x86_64-linux.go-signs
         ];
       in
       stablePackages ++ unstablePackages ++ nodePackages ++ selfPackages;

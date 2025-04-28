@@ -27,7 +27,6 @@
 │   │   └───pi4Image: package 'nixos-sd-image'
 │   └───x86_64-linux
 |       ├───debian-netinst-iso: package 'debian-netinst-iso-12.7.0'
-|       ├───go-signs: package 'go-signs-2024-03-20'
 |       ├───openwrt-archer-a7-v5: package 'OpenWRT 24.10.0 Archer A7 v5'
 |       ├───openwrt-archer-c7-v2: package 'OpenWRT 23.05.5 Archer C7 v2'
 |       ├───openwrt-one: package 'OpenWRT 24.10.0 OpenWRT One'
