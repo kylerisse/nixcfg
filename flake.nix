@@ -12,6 +12,10 @@
       url = "github:LnL7/nix-darwin/nix-darwin-24.11?shallow=1";
       inputs.nixpkgs.follows = "nixpkgs-darwin";
     };
+    # app specific
+    go-signs = {
+      url = "github:kylerisse/go-signs?ref=e87803d";
+    };
   };
 
   outputs =
@@ -21,6 +25,7 @@
     , nixos-hardware
     , nixpkgs-darwin
     , nix-darwin
+    , go-signs
     }: {
       packages.aarch64-darwin =
         let
