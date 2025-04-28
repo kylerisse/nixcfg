@@ -62,8 +62,7 @@
           };
         in
         {
-          # nix build --show-trace --verbose -L .#packages.x86_64-linux.go-signs
-          go-signs = pkgs.callPackage ./pkgs/go-signs { };
+          # nix build --show-trace --verbose -L .#packages.x86_64-linux.wasgeht
           debian-netinst-iso = pkgs.callPackage ./pkgs/debian-netinst-iso { };
           parrot-htb-iso = pkgs.callPackage ./pkgs/parrot-htb-iso { };
           openwrt-archer-a7-v5 = pkgs.callPackage ./pkgs/openwrt-archer-a7-v5 { };

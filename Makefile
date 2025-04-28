@@ -11,7 +11,6 @@ pi4Image:
 	nix build -vv --show-trace --verbose -L .#packages.aarch64-linux.pi4Image
 
 build-pkgs:
-	nix build -vv --show-trace --verbose -L .#packages.x86_64-linux.go-signs
 	nix build -vv --show-trace --verbose -L .#packages.x86_64-linux.wasgeht
 	nix build -vv --show-trace --verbose -L .#packages.x86_64-linux.wasgeht-unstable
 
