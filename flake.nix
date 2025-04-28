@@ -211,7 +211,7 @@
                 ./machines/gibson/configuration.nix
                 users
               ];
-              specialArgs = { inherit nixpkgs; };
+              specialArgs = { inherit nixpkgs inputs; };
             };
           watson =
             let
