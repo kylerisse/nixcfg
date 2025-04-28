@@ -1,5 +1,24 @@
 {
   "nodes": {
+    "go-signs": {
+      "inputs": {
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1745817487,
+        "narHash": "sha256-OrDjL28P4HkshUibNuz+oxDW/XC2eqSiUZU/w4Nyx78=",
+        "owner": "kylerisse",
+        "repo": "go-signs",
+        "rev": "e87803dfbe7f90c12552e9b26139cde35d8b9840",
+        "type": "github"
+      },
+      "original": {
+        "owner": "kylerisse",
+        "ref": "e87803d",
+        "repo": "go-signs",
+        "type": "github"
+      }
+    },
     "nix-darwin": {
       "inputs": {
         "nixpkgs": [
@@ -68,6 +87,22 @@
         "type": "github"
       }
     },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1743315132,
+        "narHash": "sha256-6hl6L/tRnwubHcA4pfUUtk542wn2Om+D4UnDhlDW9BE=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "52faf482a3889b7619003c0daec593a1912fddc1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixpkgs-darwin": {
       "locked": {
         "lastModified": 1744492897,
@@ -86,6 +121,7 @@
     },
     "root": {
       "inputs": {
+        "go-signs": "go-signs",
         "nix-darwin": "nix-darwin",
         "nixos-2411": "nixos-2411",
         "nixos-hardware": "nixos-hardware",
