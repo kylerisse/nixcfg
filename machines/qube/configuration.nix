@@ -2,7 +2,7 @@
 {
   nix-common.enable = true;
   ssh-server.enable = true;
-  networking.firewall.allowedTCPPorts = [ 80 ];
+  networking.firewall.allowedTCPPorts = [ 80 2018 ];
   mrtg = {
     enable = true;
     hostList = [ "switch1.risse.tv" ];
@@ -44,6 +44,7 @@
       "whatsup.risse.tv"
     ];
   };
+  scale-simulator.enable = true;
 
   imports =
     [
