@@ -20,6 +20,7 @@ test-all-images: installerISO doImage pi3Image pi4Image
 test-all-nixos: lint build-pkgs
 	nix build -vv --show-trace -L .#nixosConfigurations.db.config.system.build.toplevel
 	nix build -vv --show-trace -L .#nixosConfigurations.dev-router.config.system.build.toplevel
+	nix build -vv --show-trace -L .#nixosConfigurations.gibson.config.system.build.toplevel
 	nix build -vv --show-trace -L .#nixosConfigurations.k8s-master.config.system.build.toplevel
 	nix build -vv --show-trace -L .#nixosConfigurations.k8s-worker1.config.system.build.toplevel
 	nix build -vv --show-trace -L .#nixosConfigurations.k8s-worker2.config.system.build.toplevel
@@ -55,7 +56,11 @@ deploy-db:
 	nixos-rebuild --flake .#db --use-remote-sudo --target-host db boot
 	ssh db 'sudo reboot'
 
-deploy-all-nixos: deploy-db deploy-k8s-cluster deploy-dev-router deploy-qube-cluster
+deploy-gibson:
+	nixos-rebuild --flake .#gibson --use-remote-sudo --target-host gibson boot
+	ssh gibson 'sudo reboot'
+
+deploy-all-nixos: deploy-db deploy-k8s-cluster deploy-dev-router deploy-qube-cluster deploy-gibson
 
 lint: tflint nixlint
 

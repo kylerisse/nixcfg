@@ -198,6 +198,16 @@
             ];
             specialArgs = { inherit nixpkgs self; };
           };
+          gibson =
+            nixos-2411.lib.nixosSystem {
+              system = "x86_64-linux";
+              modules = [
+                all
+                ./machines/gibson/configuration.nix
+                users
+              ];
+              specialArgs = { inherit nixpkgs; };
+            };
           watson =
             let
               nixpkgs = nixos-2411;
