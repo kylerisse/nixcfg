@@ -108,6 +108,7 @@
               imports = [
                 ./modules/nix-common
                 ./modules/ssh-server
+                ./modules/go-signs
                 ./modules/kube-cluster
                 ./modules/mrtg
                 ./modules/scale-simulator
