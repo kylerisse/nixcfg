@@ -24,4 +24,9 @@
   services.fail2ban.enable = true;
 
   scale-simulator.enable = true;
+  go-signs = {
+    enable = true;
+    xmlEndpoint = "http://localhost:2018/sign.xml";
+    refreshInterval = 1;
+  };
 }
