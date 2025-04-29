@@ -1,4 +1,4 @@
-{ config, lib, pkgs, nixpkgs, hostname, ... }:
+{ config, lib, pkgs, nixpkgs, hostname, inputs, ... }:
 
 {
   nix-common.enable = true;
@@ -14,5 +14,12 @@
   environment.systemPackages = with pkgs; [
     vim
   ];
+
+  networking.firewall.allowedTCPPorts = [ 2017 ];
+  go-signs = {
+    enable = true;
+    xmlEndpoint = "http://qube.risse.tv:2018/sign.xml";
+    refreshInterval = 1;
+  };
 }
 
