@@ -2,7 +2,7 @@
 {
   nix-common.enable = true;
   ssh-server.enable = true;
-  networking.firewall.allowedTCPPorts = [ 80 2018 ];
+  networking.firewall.allowedTCPPorts = [ 80 2017 2018 ];
   mrtg = {
     enable = true;
     hostList = [ "switch1.risse.tv" ];
@@ -45,6 +45,11 @@
     ];
   };
   scale-simulator.enable = true;
+  go-signs = {
+    enable = true;
+    xmlEndpoint = "http://localhost:2018/sign.xml";
+    refreshInterval = 1;
+  };
 
   imports =
     [
