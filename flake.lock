@@ -5,16 +5,16 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1745817487,
-        "narHash": "sha256-OrDjL28P4HkshUibNuz+oxDW/XC2eqSiUZU/w4Nyx78=",
+        "lastModified": 1745886068,
+        "narHash": "sha256-76EwTdyQeAhl96nE5pnmeP/ANFqCjZgZfHZ/vqHYwe8=",
         "owner": "kylerisse",
         "repo": "go-signs",
-        "rev": "e87803dfbe7f90c12552e9b26139cde35d8b9840",
+        "rev": "d8e84dc9a347992519c3611c0421b84c3bbbdde3",
         "type": "github"
       },
       "original": {
         "owner": "kylerisse",
-        "ref": "e87803d",
+        "ref": "d8e84dc",
         "repo": "go-signs",
         "type": "github"
       }
