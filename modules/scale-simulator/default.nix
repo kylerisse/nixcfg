@@ -28,7 +28,7 @@ in
     systemd = {
       services.scale-simulator = {
         description = "SCaLE simulator service";
-        after = [ "network-online.target" ];
+        requires = [ "network-online.target" ];
         wantedBy = [ "multi-user.target" ];
         serviceConfig = {
           DynamicUser = true;
