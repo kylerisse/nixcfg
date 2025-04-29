@@ -14,7 +14,7 @@
     };
     # app specific
     go-signs = {
-      url = "github:kylerisse/go-signs?ref=e87803d";
+      url = "github:kylerisse/go-signs?ref=d8e84dc";
     };
   };
 
@@ -176,7 +176,7 @@
                 ./machines/pis/configuration.nix
                 ./machines/pis/pi3-hardware-configuration.nix
               ];
-              specialArgs = { inherit nixpkgs hostname; };
+              specialArgs = { inherit nixpkgs hostname inputs; };
             };
           pi4 =
             let
@@ -190,7 +190,7 @@
                 ./machines/pis/configuration.nix
                 ./machines/pis/pi4-hardware-configuration.nix
               ];
-              specialArgs = { inherit nixpkgs hostname; };
+              specialArgs = { inherit nixpkgs hostname inputs; };
             };
           dev-router = nixos-2411.lib.nixosSystem {
             system = "x86_64-linux";
