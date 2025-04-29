@@ -29,4 +29,46 @@
     xmlEndpoint = "http://localhost:2018/sign.xml";
     refreshInterval = 1;
   };
+
+  security.acme = {
+    acceptTerms = true;
+    defaults.email = "kylerisse@users.noreply.github.com";
+    certs."go-signs.org".extraDomainNames = [
+      "demo.go-signs.org"
+      "simulator.go-signs.org"
+    ];
+  };
+  networking.firewall.allowedTCPPorts = [ 80 443 ];
+  services.nginx = {
+    enable = true;
+    virtualHosts = {
+      "go-signs.org" = {
+        default = true;
+        enableACME = true;
+        forceSSL = true;
+        serverAliases = [
+          "www.go-signs.org"
+        ];
+        locations."/" = {
+          extraConfig = ''
+            return 301 https://github.com/kylerisse/go-signs;
+          '';
+        };
+      };
+      "demo.go-signs.org" = {
+        useACMEHost = "go-signs.org";
+        forceSSL = true;
+        locations."/" = {
+          proxyPass = "http://localhost:2017";
+        };
+      };
+      "simulator.go-signs.org" = {
+        useACMEHost = "go-signs.org";
+        forceSSL = true;
+        locations."/" = {
+          proxyPass = "http://localhost:2018";
+        };
+      };
+    };
+  };
 }
