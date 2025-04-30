@@ -21,7 +21,16 @@
   ssh-server.enable = true;
   nix-common.enable = true;
 
-  services.fail2ban.enable = true;
+  services.fail2ban = {
+    enable = true;
+    maxretry = 2;
+    bantime = "1h";
+    bantime-increment = {
+      enable = true;
+      multipliers = "1 2 4 8 16 32 64";
+      overalljails = true;
+    };
+  };
 
   scale-simulator.enable = true;
   go-signs = {
