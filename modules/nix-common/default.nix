@@ -18,6 +18,7 @@ in
       checkConfig = true;
       gc = {
         automatic = cfg.autoGC;
+        options = "-d";
       };
       registry = {
         nixpkgs.to = {
