@@ -8,6 +8,7 @@ in
   nix-common = {
     enable = true;
     isDarwin = true;
+    autoGC = false;
   };
   services.nix-daemon.enable = true;
 
