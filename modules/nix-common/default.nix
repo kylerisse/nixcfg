@@ -19,7 +19,11 @@ in
       gc = {
         automatic = cfg.autoGC;
         options = "-d";
-      };
+      } //
+      (if cfg.isDarwin then { } else {
+        persistent = true;
+        randomizedDelaySec = "90min";
+      });
       registry = {
         nixpkgs.to = {
           type = "path";
