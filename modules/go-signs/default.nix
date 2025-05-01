@@ -11,7 +11,7 @@ let
 in
 {
   options.go-signs = {
-    enable = lib.mkEnableOption "SCaLE simulator service";
+    enable = lib.mkEnableOption "go-signs service";
 
     package = lib.mkOption {
       type = lib.types.package;
@@ -38,7 +38,7 @@ in
   config = lib.mkIf cfg.enable {
     systemd = {
       services.go-signs = {
-        description = "SCaLE simulator service";
+        description = "go-signs service";
         requires = [ "network-online.target" ];
         wantedBy = [ "multi-user.target" ];
         serviceConfig = {
