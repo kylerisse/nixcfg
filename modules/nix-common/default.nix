@@ -6,12 +6,18 @@ in
   options.nix-common = {
     enable = lib.mkEnableOption (lib.mdDoc "Baseline Nix and Nixpkgs settings");
     isDarwin = lib.mkEnableOption (lib.mdDoc "Darwin specific nix/nixpkg settings");
+    autoGC = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Enable auto Garbage Collection";
+    };
   };
   config = lib.mkIf cfg.enable {
     nix = {
       package = pkgs.nixVersions.latest;
+      checkConfig = true;
       gc = {
-        automatic = true;
+        automatic = cfg.autoGC;
       };
       registry = {
         nixpkgs.to = {
