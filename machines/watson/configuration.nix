@@ -10,8 +10,10 @@ let
   };
 in
 {
-  nix-common.enable = true;
-
+  nix-common = {
+    enable = true;
+    autoGC = false;
+  };
   imports =
     [
       ./hardware-configuration.nix
