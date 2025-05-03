@@ -21,11 +21,6 @@ in
       default = "/etc/mrtg";
       description = "path where per host SNMP community files reside (ex: ''$''{secretsPath}/host.snmp)";
     };
-    nginxEnable = mkEnableOption "enable nginx";
-    nginxVhosts = mkOption {
-      type = types.listOf types.str;
-      default = [ "mrtg.example.com" ];
-    };
     user = mkOption {
       type = types.str;
       default = "mrtg";
@@ -153,28 +148,6 @@ in
               group = "${cfg.group}";
             };
             groups.${cfg.group} = { };
-          };
-        }
-        {
-          services.nginx = mkIf cfg.nginxEnable {
-            enable = true;
-            virtualHosts = lib.foldl'
-              (acc: fqdn: acc // {
-                "${fqdn}" = {
-                  root = "${cfg.statePath}/html";
-                  default = false;
-                  enableACME = false;
-                  locations."/" = {
-                    extraConfig = ''
-                      autoindex on;
-                      autoindex_exact_size off;
-                      autoindex_localtime on;
-                    '';
-                  };
-                };
-              })
-              { }
-              cfg.nginxVhosts;
           };
         }
       ]
