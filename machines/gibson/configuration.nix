@@ -60,8 +60,7 @@
     acceptTerms = true;
     defaults.email = "kylerisse@users.noreply.github.com";
     certs."go-signs.org".extraDomainNames = [
-      "demo.go-signs.org"
-      "simulator.go-signs.org"
+      "www.go-signs.org"
     ];
   };
   networking.firewall.allowedTCPPorts = [ 80 443 ];
@@ -82,14 +81,14 @@
         };
       };
       "demo.go-signs.org" = {
-        useACMEHost = "go-signs.org";
+        enableACME = true;
         forceSSL = true;
         locations."/" = {
           proxyPass = "http://localhost:2017";
         };
       };
       "simulator.go-signs.org" = {
-        useACMEHost = "go-signs.org";
+        enableACME = true;
         forceSSL = true;
         locations."/" = {
           proxyPass = "http://localhost:2018";
