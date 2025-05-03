@@ -2,12 +2,10 @@
 {
   nix-common.enable = true;
   ssh-server.enable = true;
-  networking.firewall.allowedTCPPorts = [ 80 2017 2018 ];
+  networking.firewall.allowedTCPPorts = [ 443 2017 2018 ];
   mrtg = {
     enable = true;
     hostList = [ "switch1.risse.tv" ];
-    nginxEnable = true;
-    nginxVhosts = [ "mrtg.risse.tv" ];
   };
   wasgeht = {
     enable = true;
@@ -38,11 +36,6 @@
         "zugzug": {}
       }
     '';
-    nginxEnable = true;
-    nginxVhosts = [
-      "wasgeht.risse.tv"
-      "whatsup.risse.tv"
-    ];
   };
   scale-simulator.enable = true;
   go-signs = {
@@ -58,6 +51,40 @@
       environmentFile = "/etc/acme/aws.key";
       dnsPropagationCheck = true;
       dnsResolver = "1.1.1.1:53";
+    };
+  };
+  services.nginx = {
+    enable = true;
+    virtualHosts = {
+      "mrtg.risse.tv" = {
+        root = "/var/lib/mrtg/html";
+        forceSSL = true;
+        enableACME = true;
+        acmeRoot = null;
+        locations."/" = {
+          extraConfig = ''
+            autoindex on;
+            autoindex_exact_size off;
+            autoindex_localtime on;
+          '';
+        };
+      };
+      "wasgeht.risse.tv" = {
+        forceSSL = true;
+        enableACME = true;
+        acmeRoot = null;
+        locations."/" = {
+          proxyPass = "http://localhost:1982/";
+        };
+      };
+      "whatsup.risse.tv" = {
+        forceSSL = true;
+        enableACME = true;
+        acmeRoot = null;
+        locations."/" = {
+          proxyPass = "http://localhost:1982/";
+        };
+      };
     };
   };
 
