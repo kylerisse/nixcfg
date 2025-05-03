@@ -132,13 +132,6 @@
     LC_TIME = "en_US.UTF-8";
   };
 
-  users.users.devops = {
-    isNormalUser = true;
-    description = "devops";
-    extraGroups = [ "networkmanager" "wheel" ];
-    packages = with pkgs; [ ];
-  };
-
   environment.systemPackages = with pkgs; [
   ];
 }
