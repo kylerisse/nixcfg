@@ -33,13 +33,6 @@ in
       default = "info";
     };
 
-    nginxEnable = lib.mkEnableOption "enable Nginx";
-
-    nginxVhosts = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [ "wasgeht.example.com" ];
-    };
-
     port = lib.mkOption {
       type = lib.types.int;
       default = 1982;
@@ -79,21 +72,6 @@ in
         group = "${cfg.group}";
       };
       groups."${cfg.group}" = { };
-    };
-    services.nginx = lib.mkIf cfg.nginxEnable {
-      enable = true;
-      virtualHosts = lib.foldl'
-        (acc: fqdn: acc // {
-          "${fqdn}" = {
-            default = false;
-            enableACME = false;
-            locations."/" = {
-              proxyPass = "http://localhost:${builtins.toString cfg.port}/";
-            };
-          };
-        })
-        { }
-        cfg.nginxVhosts;
     };
   };
 }
