@@ -50,6 +50,16 @@
     xmlEndpoint = "http://localhost:2018/sign.xml";
     refreshInterval = 1;
   };
+  security.acme = {
+    acceptTerms = true;
+    defaults = {
+      email = "kylerisse@users.noreply.github.com";
+      dnsProvider = "route53";
+      environmentFile = "/etc/acme/aws.key";
+      dnsPropagationCheck = true;
+      dnsResolver = "1.1.1.1:53";
+    };
+  };
 
   imports =
     [
