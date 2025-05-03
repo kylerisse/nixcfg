@@ -24,6 +24,7 @@ test-all-nixos: lint build-pkgs
 	nix build -vv --show-trace -L .#nixosConfigurations.k8s-worker1.config.system.build.toplevel
 	nix build -vv --show-trace -L .#nixosConfigurations.k8s-worker2.config.system.build.toplevel
 	nix build -vv --show-trace -L .#nixosConfigurations.muir.config.system.build.toplevel
+	nix build -vv --show-trace -L .#nixosConfigurations.qube.config.system.build.toplevel
 	nix build -vv --show-trace -L .#nixosConfigurations.pi3.config.system.build.toplevel
 	nix build -vv --show-trace -L .#nixosConfigurations.pi4.config.system.build.toplevel
 	nix build -vv --show-trace -L .#nixosConfigurations.riviera.config.system.build.toplevel
