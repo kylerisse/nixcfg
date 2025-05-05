@@ -6,6 +6,7 @@
     nixos-2411.url = "github:nixos/nixpkgs/nixos-24.11?shallow=1";
     nixos-2511.url = "github:nixos/nixpkgs/nixos-25.11?shallow=1";
     nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable?shallow=1";
+    nixos-devfork.url = "github:kylerisse/nixpkgs/openrct2_0.4.22?shallow=1";
     nixos-hardware.url = "github:nixos/nixos-hardware?shallow=1";
     # mac
     nixpkgs-darwin.url = "github:nixos/nixpkgs/nixpkgs-25.11-darwin?shallow=1";
@@ -22,6 +23,7 @@
     , nixos-2411
     , nixos-2511
     , nixos-unstable
+    , nixos-devfork
     , nixos-hardware
     , nixpkgs-darwin
     , nix-darwin
