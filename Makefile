@@ -68,7 +68,7 @@ nixlint:
 	nix shell nixpkgs#nixpkgs-fmt --command bash -c 'for i in `find ./ -name "*.nix"`; do echo $$i; nixpkgs-fmt $$i; done;'
 
 tflint:
-	NIXPKGS_ALLOW_UNFREE=1 nix shell --impure nixpkgs#terraform_1 --command bash -c 'for i in `find ./ -name "*.tf"`; do echo $$i; terraform fmt $$i; done;'
+	nix shell nixpkgs#opentofu --command bash -c 'for i in `find ./ -name "*.tf"`; do echo $$i; tofu fmt $$i; done;'
 
 mac:
 	darwin-rebuild switch --show-trace -vv --flake .#zugzug
