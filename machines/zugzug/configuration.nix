@@ -10,7 +10,7 @@ in
     isDarwin = true;
     autoGC = false;
   };
-  services.nix-daemon.enable = true;
+  ids.gids.nixbld = 350;
 
   # mac settings
   system.startup.chime = false;
@@ -150,7 +150,7 @@ in
   };
 
   # why is this not the default in MacOS?
-  security.pam.enableSudoTouchIdAuth = true;
+  security.pam.services.sudo_local.touchIdAuth = true;
 
   # Just install everything as systemPackages rather than futz with home-manager for now
   # use chezmoi for compatibility with non NixOS / nix-darwin systems
@@ -219,6 +219,7 @@ in
     alt_hostname = "zugzug";
   };
 
+  system.primaryUser = "kyle.risse";
   # fish
   # also need to run chsh -s /run/current-system/sw/bin/fish
   environment.variables.SHELL = "${pkgs.fish}/bin/fish";
