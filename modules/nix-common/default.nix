@@ -14,6 +14,7 @@ in
   };
   config = lib.mkIf cfg.enable {
     nix = {
+      enable = true;
       package = pkgs.nixVersions.latest;
       checkConfig = true;
       gc = {
