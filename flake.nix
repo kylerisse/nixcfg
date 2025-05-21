@@ -8,9 +8,9 @@
     nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable?shallow=1";
     nixos-hardware.url = "github:nixos/nixos-hardware?shallow=1";
     # mac
-    nixpkgs-darwin.url = "github:nixos/nixpkgs/nixpkgs-24.11-darwin?shallow=1";
+    nixpkgs-darwin.url = "github:nixos/nixpkgs/nixpkgs-25.05-darwin?shallow=1";
     nix-darwin = {
-      url = "github:LnL7/nix-darwin/nix-darwin-24.11?shallow=1";
+      url = "github:LnL7/nix-darwin/nix-darwin-25.05?shallow=1";
       inputs.nixpkgs.follows = "nixpkgs-darwin";
     };
     # app specific
