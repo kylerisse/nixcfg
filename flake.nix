@@ -216,9 +216,9 @@
             };
           watson =
             let
-              nixpkgs = nixos-2411;
+              nixpkgs = nixos-2505;
             in
-            nixos-2411.lib.nixosSystem {
+            nixos-2505.lib.nixosSystem {
               system = "x86_64-linux";
               modules = [
                 ./machines/watson/configuration.nix
