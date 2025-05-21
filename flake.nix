@@ -42,7 +42,7 @@
         };
       packages.aarch64-linux =
         let
-          pkgs = import nixos-2411 {
+          pkgs = import nixos-unstable {
             system = "aarch64-linux";
           };
         in
@@ -62,7 +62,7 @@
         };
       packages.x86_64-linux =
         let
-          pkgs = import nixos-2411 {
+          pkgs = import nixos-unstable {
             system = "x86_64-linux";
           };
         in
