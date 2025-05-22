@@ -49,13 +49,13 @@
         {
           pi3Image = (self.nixosConfigurations.piImage.extendModules {
             modules = [
-              "${nixos-2411}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+              "${nixos-2505}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
               nixos-hardware.nixosModules.raspberry-pi-3
             ];
           }).config.system.build.sdImage;
           pi4Image = (self.nixosConfigurations.piImage.extendModules {
             modules = [
-              "${nixos-2411}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+              "${nixos-2505}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
               nixos-hardware.nixosModules.raspberry-pi-4
             ];
           }).config.system.build.sdImage;
@@ -135,10 +135,10 @@
                 ./modules/dns-server
               ];
             });
-          nixpkgs = nixos-2411;
+          nixpkgs = nixos-2505;
         in
         {
-          doImage = nixos-2411.lib.nixosSystem {
+          doImage = nixos-2505.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
               all
@@ -147,7 +147,7 @@
             ];
             specialArgs = { inherit nixpkgs; };
           };
-          installerImage = nixos-2411.lib.nixosSystem {
+          installerImage = nixos-2505.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
               all
@@ -156,7 +156,7 @@
             specialArgs = { inherit nixpkgs; };
           };
           piImage =
-            nixos-2411.lib.nixosSystem {
+            nixos-2505.lib.nixosSystem {
               system = "aarch64-linux";
               modules = [
                 all
@@ -169,7 +169,7 @@
             let
               hostname = "pi3";
             in
-            nixos-2411.lib.nixosSystem {
+            nixos-2505.lib.nixosSystem {
               system = "aarch64-linux";
               modules = [
                 all
@@ -183,7 +183,7 @@
             let
               hostname = "pi4";
             in
-            nixos-2411.lib.nixosSystem {
+            nixos-2505.lib.nixosSystem {
               system = "aarch64-linux";
               modules = [
                 all
@@ -193,7 +193,7 @@
               ];
               specialArgs = { inherit nixpkgs hostname inputs; };
             };
-          dev-router = nixos-2411.lib.nixosSystem {
+          dev-router = nixos-2505.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
               all
@@ -205,7 +205,7 @@
             specialArgs = { inherit nixpkgs self; };
           };
           gibson =
-            nixos-2411.lib.nixosSystem {
+            nixos-2505.lib.nixosSystem {
               system = "x86_64-linux";
               modules = [
                 all
@@ -215,9 +215,6 @@
               specialArgs = { inherit nixpkgs inputs; };
             };
           watson =
-            let
-              nixpkgs = nixos-2505;
-            in
             nixos-2505.lib.nixosSystem {
               system = "x86_64-linux";
               modules = [
@@ -227,7 +224,7 @@
               ];
               specialArgs = { inherit nixpkgs inputs; };
             };
-          muir = nixos-2411.lib.nixosSystem {
+          muir = nixos-2505.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
               nixos-hardware.nixosModules.lenovo-thinkpad-t490
@@ -237,16 +234,19 @@
             ];
             specialArgs = { inherit nixpkgs inputs; };
           };
-          qube = nixos-2411.lib.nixosSystem {
-            system = "x86_64-linux";
-            modules = [
-              ./machines/qube/configuration.nix
-              users
-              all
-            ];
-            specialArgs = { inherit nixpkgs inputs; };
-          };
-          riviera = nixos-2411.lib.nixosSystem {
+          qube =
+            let nixpkgs = nixos-2411;
+            in
+            nixos-2411.lib.nixosSystem {
+              system = "x86_64-linux";
+              modules = [
+                ./machines/qube/configuration.nix
+                users
+                all
+              ];
+              specialArgs = { inherit nixpkgs inputs; };
+            };
+          riviera = nixos-2505.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
               nixos-hardware.nixosModules.lenovo-thinkpad-t490
@@ -259,7 +259,7 @@
             let
               hostname = "k8s-master";
             in
-            nixos-2411.lib.nixosSystem {
+            nixos-2505.lib.nixosSystem {
               system = "x86_64-linux";
               modules = [
                 all
@@ -272,7 +272,7 @@
             let
               hostname = "k8s-worker1";
             in
-            nixos-2411.lib.nixosSystem {
+            nixos-2505.lib.nixosSystem {
               system = "x86_64-linux";
               modules = [
                 all
@@ -285,7 +285,7 @@
             let
               hostname = "k8s-worker2";
             in
-            nixos-2411.lib.nixosSystem {
+            nixos-2505.lib.nixosSystem {
               system = "x86_64-linux";
               modules = [
                 all
@@ -298,7 +298,7 @@
             let
               hostname = "db";
             in
-            nixos-2411.lib.nixosSystem {
+            nixos-2505.lib.nixosSystem {
               system = "x86_64-linux";
               modules = [
                 all
