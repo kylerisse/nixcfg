@@ -186,10 +186,10 @@
       bash
       fish
     ];
-    gnome.excludePackages = (with pkgs.gnome; [
+    gnome.excludePackages = (with pkgs; [
       baobab
       epiphany
-      pkgs.gnome-text-editor
+      gnome-text-editor
       # gnome-calculator
       gnome-calendar
       # gnome-characters
@@ -202,11 +202,11 @@
       gnome-music
       gnome-system-monitor
       gnome-weather
-      pkgs.loupe
+      loupe
       # nautilus
-      pkgs.gnome-connections
+      gnome-connections
       simple-scan
-      pkgs.snapshot
+      snapshot
       totem
       yelp
     ]);
