@@ -24,6 +24,7 @@ test-all-nixos: lint build-pkgs
 	nix build -vv --show-trace -L .#nixosConfigurations.k8s-worker1.config.system.build.toplevel
 	nix build -vv --show-trace -L .#nixosConfigurations.k8s-worker2.config.system.build.toplevel
 	nix build -vv --show-trace -L .#nixosConfigurations.muir.config.system.build.toplevel
+	nix build -vv --show-trace -L .#nixosConfigurations.corner.config.system.build.toplevel
 	nix build -vv --show-trace -L .#nixosConfigurations.qube.config.system.build.toplevel
 	nix build -vv --show-trace -L .#nixosConfigurations.pi3.config.system.build.toplevel
 	nix build -vv --show-trace -L .#nixosConfigurations.pi4.config.system.build.toplevel
@@ -52,15 +53,17 @@ deploy-k8s-cluster:
 	nixos-rebuild --flake .#k8s-worker2 --use-remote-sudo --target-host k8s-worker2 boot
 	ssh k8s-worker2 'sudo reboot'
 
-deploy-db:
+deploy-guests:
 	nixos-rebuild --flake .#db --use-remote-sudo --target-host db boot
 	ssh db 'sudo reboot'
+	nixos-rebuild --flake .#corner --use-remote-sudo --target-host corner boot
+	ssh corner 'sudo reboot'
 
 deploy-gibson:
 	nixos-rebuild --flake .#gibson --use-remote-sudo --target-host gibson boot
 	ssh gibson 'sudo reboot'
 
-deploy-all-nixos: deploy-db deploy-k8s-cluster deploy-dev-router deploy-qube-cluster deploy-gibson
+deploy-all-nixos: deploy-guests deploy-k8s-cluster deploy-dev-router deploy-qube-cluster deploy-gibson
 
 lint: tflint nixlint
 

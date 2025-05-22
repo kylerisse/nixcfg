@@ -307,6 +307,19 @@
               ];
               specialArgs = { inherit nixpkgs hostname; };
             };
+          corner =
+            let
+              hostname = "corner";
+            in
+            nixos-2505.lib.nixosSystem {
+              system = "x86_64-linux";
+              modules = [
+                ./machines/watson/guests/corner.nix
+                users
+                all
+              ];
+              specialArgs = { inherit nixpkgs inputs hostname; };
+            };
         };
     };
 }
