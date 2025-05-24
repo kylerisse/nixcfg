@@ -6,7 +6,10 @@ let
   };
 in
 {
-  nix-common.enable = true;
+  nix-common = {
+    enable = true;
+    autoGC = false;
+  };
 
   hardware = {
     enableRedistributableFirmware = lib.mkDefault true;
