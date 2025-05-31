@@ -4,7 +4,6 @@
   imports =
     [
       (modulesPath + "/installer/scan/not-detected.nix")
-      ./pi4-nixpkgs.nix
     ];
 
   boot.initrd.availableKernelModules = [ "xhci_pci" ];
