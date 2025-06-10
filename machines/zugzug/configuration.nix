@@ -12,6 +12,25 @@ in
   };
   ids.gids.nixbld = 350;
 
+  # local builder
+  nix = {
+    linux-builder = {
+      enable = true;
+      ephemeral = true;
+      maxJobs = 4;
+      config = {
+        virtualisation = {
+          darwin-builder = {
+            diskSize = 80 * 1024;
+            memorySize = 12 * 1024;
+          };
+          cores = 6;
+        };
+      };
+    };
+    settings.trusted-users = [ "@admin" ];
+  };
+
   # mac settings
   system.startup.chime = false;
 
