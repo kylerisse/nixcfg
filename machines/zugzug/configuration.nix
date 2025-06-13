@@ -180,6 +180,7 @@ in
     btop
     checkov
     chezmoi
+    cloudlens
     curl
     dig
     direnv
