@@ -118,6 +118,7 @@ in
       curl
       cyberchef
       dig
+      direnv
       pkgs-unstable.discord
       dive
       element-desktop
