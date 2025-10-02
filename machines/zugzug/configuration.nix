@@ -296,6 +296,7 @@ in
     "element"
     "flux"
     "iterm2"
+    "rectangle"
     "slack"
     "visual-studio-code"
     "zoom"
