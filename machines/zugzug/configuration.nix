@@ -294,7 +294,7 @@ in
     "brave-browser"
     "dbeaver-community"
     "element"
-    "flux"
+    "flux-app"
     "iterm2"
     "rectangle"
     "slack"
