@@ -79,11 +79,10 @@ in
     "com.apple.springing.delay" = 1.0;
   };
 
-  # firewall set to block and stealth mode with logging
-  system.defaults.alf = {
-    globalstate = 2;
-    loggingenabled = 1;
-    stealthenabled = 1;
+  # firewall set to block and stealth mode
+  networking.applicationFirewall = {
+    enableStealthMode = true;
+    blockAllIncoming = true;
   };
 
   system.defaults.menuExtraClock = {
