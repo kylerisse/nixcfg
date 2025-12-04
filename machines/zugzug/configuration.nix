@@ -198,7 +198,6 @@ in
     netcat
     nixpkgs-fmt
     nodePackages.cspell
-    nodePackages.jsonlint
     nodePackages_latest.markdownlint-cli
     nmap
     rakudo
