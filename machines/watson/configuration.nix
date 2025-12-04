@@ -119,7 +119,7 @@ in
     packages =
       let
         stablePackages = with pkgs; [
-          bitwarden
+          bitwarden-desktop
           brave
           chezmoi
           curl
@@ -156,7 +156,6 @@ in
 
         nodePackages = with pkgs.nodePackages; [
           cspell
-          jsonlint
           markdownlint-cli
           prettier
         ];
@@ -211,7 +210,6 @@ in
       uTools = with pkgs.unixtools; [
         arp
         netstat
-        nettools
         ping
         route
       ];

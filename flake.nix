@@ -217,7 +217,10 @@
               specialArgs = { inherit nixpkgs inputs; };
             };
           watson =
-            nixos-2505.lib.nixosSystem {
+            let
+              nixpkgs = nixos-2511;
+            in
+            nixos-2511.lib.nixosSystem {
               system = "x86_64-linux";
               modules = [
                 ./machines/watson/configuration.nix
