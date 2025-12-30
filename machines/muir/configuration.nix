@@ -111,7 +111,7 @@ in
     extraGroups = [ "wheel" "networkmanager" "libvirtd" "dialout" "docker" ];
 
     packages = with pkgs; [
-      bitwarden
+      bitwarden-desktop
       brave
       btop
       chezmoi
@@ -142,7 +142,6 @@ in
       nixpkgs-fmt
       nmap
       nodePackages.cspell
-      nodePackages.jsonlint
       nodePackages_latest.markdownlint-cli
       openssh
       podman-compose
