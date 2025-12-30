@@ -114,6 +114,7 @@ in
           curl
           direnv
           firefox
+          ghostty
           git
           gnumake
           icdiff
@@ -126,6 +127,7 @@ in
           vim
           virt-manager
           wget
+          xterm
           yubikey-manager
         ];
 
@@ -163,7 +165,7 @@ in
     gnome-calendar
     # gnome-characters
     gnome-clocks
-    # pkgs.gnome-console
+    gnome-console
     gnome-contacts
     # gnome-font-viewer
     gnome-logs
