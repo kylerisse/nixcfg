@@ -156,7 +156,6 @@
       nixpkgs-fmt
       nmap
       nodePackages.cspell
-      nodePackages.jsonlint
       nodePackages_latest.markdownlint-cli
       openssh
       python312
