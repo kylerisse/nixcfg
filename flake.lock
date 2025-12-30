@@ -56,22 +56,6 @@
         "type": "github"
       }
     },
-    "nixos-2505": {
-      "locked": {
-        "lastModified": 1759143472,
-        "narHash": "sha256-TvODmeR2W7yX/JmOCmP+lAFNkTT7hAxYcF3Kz8SZV3w=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "5ed4e25ab58fd4c028b59d5611e14ea64de51d23",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "ref": "nixos-25.05",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixos-2511": {
       "locked": {
         "lastModified": 1766885793,
@@ -156,7 +140,6 @@
         "go-signs": "go-signs",
         "nix-darwin": "nix-darwin",
         "nixos-2411": "nixos-2411",
-        "nixos-2505": "nixos-2505",
         "nixos-2511": "nixos-2511",
         "nixos-hardware": "nixos-hardware",
         "nixos-unstable": "nixos-unstable",
