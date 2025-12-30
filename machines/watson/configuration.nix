@@ -1,9 +1,5 @@
 { config, pkgs, inputs, ... }:
 let
-  # gdm trickery
-  monitorsXmlContent = builtins.readFile ./monitors.xml;
-  monitorsConfig = pkgs.writeText "gdm_monitors.xml" monitorsXmlContent;
-
   pkgs-unstable = import inputs.nixos-unstable {
     system = "x86_64-linux";
     config = { allowUnfree = true; };
@@ -86,15 +82,8 @@ in
     LC_TIME = "en_US.UTF-8";
   };
 
-  services.xserver.enable = true;
-
-  services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
-
-  services.xserver.xkb = {
-    layout = "us";
-    variant = "";
-  };
+  services.desktopManager.gnome.enable = true;
+  services.displayManager.gdm.enable = true;
 
   services.printing.enable = true;
 
@@ -190,11 +179,6 @@ in
     totem
     yelp
   ]);
-
-  # GDM should have same monitor config as the user
-  systemd.tmpfiles.rules = [
-    "L+ /run/gdm/.config/monitors.xml - - - - ${monitorsConfig}"
-  ];
 
   environment.systemPackages =
     let
