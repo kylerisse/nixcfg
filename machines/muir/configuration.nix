@@ -145,9 +145,9 @@ in
       nodePackages_latest.markdownlint-cli
       openssh
       podman-compose
-      python312
-      python312Packages.meshtastic
-      python312Packages.pypubsub
+      python3
+      python3Packages.meshtastic
+      python3Packages.pypubsub
       signal-desktop
       silver-searcher
       slack
