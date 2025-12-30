@@ -158,9 +158,9 @@
       nodePackages.cspell
       nodePackages_latest.markdownlint-cli
       openssh
-      python312
-      python312Packages.meshtastic
-      python312Packages.pypubsub
+      python3
+      python3Packages.meshtastic
+      python3Packages.pypubsub
       silver-searcher
       slack
       unzip
