@@ -205,10 +205,10 @@ in
     podman
     protobuf
     pylint
-    python312
-    python312Packages.boto3
-    python312Packages.botocore
-    python312Packages.pytest
+    python3
+    python3Packages.boto3
+    python3Packages.botocore
+    python3Packages.pytest
     rrdtool
     shellcheck
     silver-searcher
