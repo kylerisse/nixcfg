@@ -33,31 +33,31 @@ test-all-nixos: lint build-pkgs
 test-all: test-all-images test-all-nixos
 
 deploy-dev-router:
-	nixos-rebuild --flake .#dev-router --use-remote-sudo --target-host dev-router boot
+	nixos-rebuild --flake .#dev-router --sudo --target-host dev-router boot
 	ssh dev-router 'sudo reboot'
 
 deploy-qube-cluster:
 	nixos-rebuild --flake .#qube --use-remote-sudo --target-host qube boot
 	ssh qube 'sudo reboot'
-	nixos-rebuild --flake .#pi3 --use-remote-sudo --target-host pi3 boot
+	nixos-rebuild --flake .#pi3 --sudo --target-host pi3 boot
 	ssh pi3 'sudo reboot'
-	nixos-rebuild --flake .#pi4 --use-remote-sudo --target-host pi4 boot
+	nixos-rebuild --flake .#pi4 --sudo --target-host pi4 boot
 	ssh pi4 'sudo reboot'
 
 deploy-k8s-cluster:
-	nixos-rebuild --flake .#k8s-master --use-remote-sudo --target-host k8s-master boot
+	nixos-rebuild --flake .#k8s-master --sudo --target-host k8s-master boot
 	ssh k8s-master 'sudo reboot'
-	nixos-rebuild --flake .#k8s-worker1 --use-remote-sudo --target-host k8s-worker1 boot
+	nixos-rebuild --flake .#k8s-worker1 --sudo --target-host k8s-worker1 boot
 	ssh k8s-worker1 'sudo reboot'
-	nixos-rebuild --flake .#k8s-worker2 --use-remote-sudo --target-host k8s-worker2 boot
+	nixos-rebuild --flake .#k8s-worker2 --sudo --target-host k8s-worker2 boot
 	ssh k8s-worker2 'sudo reboot'
 
 deploy-db:
-	nixos-rebuild --flake .#db --use-remote-sudo --target-host db boot
+	nixos-rebuild --flake .#db --sudo --target-host db boot
 	ssh db 'sudo reboot'
 
 deploy-gibson:
-	nixos-rebuild --flake .#gibson --use-remote-sudo --target-host gibson boot
+	nixos-rebuild --flake .#gibson --sudo --target-host gibson boot
 	ssh gibson 'sudo reboot'
 
 deploy-all-nixos: deploy-db deploy-k8s-cluster deploy-dev-router deploy-qube-cluster deploy-gibson
