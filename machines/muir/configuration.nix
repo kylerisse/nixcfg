@@ -83,15 +83,8 @@ in
   };
 
   services = {
-    desktopManager.cosmic.enable = true;
-    xserver = {
-      enable = true;
-      displayManager.gdm.enable = true;
-      xkb = {
-        layout = "us";
-        variant = "";
-      };
-    };
+    desktopManager.gnome.enable = true;
+    displayManager.gdm.enable = true;
     # touchpad
     libinput.enable = true;
   };
@@ -124,6 +117,7 @@ in
       element-desktop
       firefox
       gcc
+      ghostty
       git
       pkgs-unstable.go
       pkgs-unstable.gopls
@@ -167,12 +161,12 @@ in
     gnome.excludePackages = (with pkgs; [
       baobab
       epiphany
-      pkgs.gnome-text-editor
+      gnome-text-editor
       # gnome-calculator
       gnome-calendar
       # gnome-characters
       gnome-clocks
-      # pkgs.gnome-console
+      gnome-console
       gnome-contacts
       # gnome-font-viewer
       gnome-logs
@@ -182,9 +176,9 @@ in
       gnome-weather
       pkgs.loupe
       # nautilus
-      pkgs.gnome-connections
+      gnome-connections
       simple-scan
-      pkgs.snapshot
+      snapshot
       totem
       yelp
     ]);
