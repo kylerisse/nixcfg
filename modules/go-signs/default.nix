@@ -29,9 +29,9 @@ in
       description = "schedule refresh interval in minutes";
     };
 
-    xmlEndpoint = lib.mkOption {
+    jsonEndpoint = lib.mkOption {
       type = lib.types.str;
-      default = "http://www.socallinuxexpo.org/scale/22x/sign.xml";
+      default = "http://www.socallinuxexpo.org/scale/23/signs";
     };
   };
 
@@ -43,7 +43,7 @@ in
         wantedBy = [ "multi-user.target" ];
         serviceConfig = {
           DynamicUser = true;
-          ExecStart = "${lib.getExe cfg.package} --xml=${cfg.xmlEndpoint} --refresh=${builtins.toString cfg.refreshInterval} --port=${builtins.toString cfg.port}";
+          ExecStart = "${lib.getExe cfg.package} --json=${cfg.jsonEndpoint} --refresh=${builtins.toString cfg.refreshInterval} --port=${builtins.toString cfg.port}";
           ExecReload = "${pkgs.coreutils}/bin/kill -SIGUSR1 $MAINPID";
         };
       };
