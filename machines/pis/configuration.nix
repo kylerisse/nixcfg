@@ -18,7 +18,7 @@
   networking.firewall.allowedTCPPorts = [ 2017 ];
   go-signs = {
     enable = true;
-    xmlEndpoint = "http://qube.risse.tv:2018/sign.xml";
+    jsonEndpoint = "http://qube.risse.tv:2018/sign.json";
     refreshInterval = 1;
   };
 }
