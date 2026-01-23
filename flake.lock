@@ -5,16 +5,16 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1746062915,
-        "narHash": "sha256-+XShFcSelRBxJO7pactnWSS30PtNhNJhphHL5VNIjHo=",
+        "lastModified": 1769138824,
+        "narHash": "sha256-QP0bq+e58Zv/7gUc8N5rrItKgacb8mrijNwCZHdZR6Y=",
         "owner": "kylerisse",
         "repo": "go-signs",
-        "rev": "7415c17d05c03e9fb128b65b9bd0ad10197fcd22",
+        "rev": "e361962c7e8bda3ba30e76b73344e8f99109fdcd",
         "type": "github"
       },
       "original": {
         "owner": "kylerisse",
-        "ref": "0.1.0",
+        "ref": "e361962c7e8bda3ba30e76b73344e8f99109fdcd",
         "repo": "go-signs",
         "type": "github"
       }
@@ -105,11 +105,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1745930157,
-        "narHash": "sha256-y3h3NLnzRSiUkYpnfvnS669zWZLoqqI6NprtLQ+5dck=",
+        "lastModified": 1767767207,
+        "narHash": "sha256-Mj3d3PfwltLmukFal5i3fFt27L6NiKXdBezC1EBuZs4=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "46e634be05ce9dc6d4db8e664515ba10b78151ae",
+        "rev": "5912c1772a44e31bf1c63c0390b90501e5026886",
         "type": "github"
       },
       "original": {
