@@ -14,7 +14,7 @@
       inputs.nixpkgs.follows = "nixpkgs-darwin";
     };
     # app specific
-    go-signs.url = "github:kylerisse/go-signs?ref=0.1.0";
+    go-signs.url = "github:kylerisse/go-signs?ref=e361962c7e8bda3ba30e76b73344e8f99109fdcd";
   };
 
   outputs =
