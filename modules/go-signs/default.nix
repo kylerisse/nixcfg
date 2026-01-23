@@ -31,7 +31,7 @@ in
 
     jsonEndpoint = lib.mkOption {
       type = lib.types.str;
-      default = "http://www.socallinuxexpo.org/scale/23/signs";
+      default = "http://www.socallinuxexpo.org/scale/23x/signs";
     };
   };
 
