@@ -189,7 +189,6 @@ in
     go-outline
     gotools
     icdiff
-    inetutils
     jq
     k9s
     kubectl
