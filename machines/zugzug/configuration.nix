@@ -293,6 +293,7 @@ in
     "dbeaver-community"
     "element"
     "flux-app"
+    "ghostty"
     "iterm2"
     "rectangle"
     "slack"
