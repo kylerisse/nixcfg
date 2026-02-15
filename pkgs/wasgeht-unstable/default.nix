@@ -13,11 +13,11 @@ buildGoModule rec {
   src = fetchFromGitHub {
     owner = "kylerisse";
     repo = "wasgeht";
-    rev = "3d05c68d2555c4c8a9978623efd0c42b6781d353";
-    sha256 = "sha256-nvyUaPRSqUCCfMhKhH33Sndo7YqG4jDlSWja4a+2emo=";
+    rev = "master";
+    sha256 = "sha256-cNm0GabApJGHPfwVRZrGdUPpWb/rTTV8b4TF918TcCU=";
   };
 
-  vendorHash = "sha256-0HDZ3llIgLMxRLNei93XrcYliBzjajU6ZPllo3/IZVY=";
+  vendorHash = "sha256-u9uLLtVeb9Ldvqu+ww/3pSjGF14RKX9qgLjULKYibjE=";
 
   ldflags = [
     "-s"
@@ -29,6 +29,10 @@ buildGoModule rec {
     makeWrapper
     rrdtool
   ];
+
+  checkPhase = ''
+    go test --short --race -v ./...
+  '';
 
   postFixup = ''
     wrapProgram $out/bin/wasgehtd --set PATH ${
