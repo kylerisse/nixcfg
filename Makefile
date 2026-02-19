@@ -71,6 +71,7 @@ tflint:
 	nix shell nixpkgs#opentofu --command bash -c 'for i in `find ./ -name "*.tf"`; do echo $$i; tofu fmt $$i; done;'
 
 mac:
+	nix build -vv -L .#darwinConfigurations.zugzug.config.system.build.toplevel
 	sudo darwin-rebuild switch --show-trace -vv --flake .#zugzug
 
 bump-flake-darwin:
