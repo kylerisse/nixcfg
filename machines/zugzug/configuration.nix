@@ -3,6 +3,10 @@ let
   inherit (lib) mkIf elem;
   caskPresent = cask: lib.any (x: x.name == cask) config.homebrew.casks;
   brewEnabled = config.homebrew.enable;
+  pkgs-master = import inputs.nixos-master {
+    "system" = "aarch64-darwin";
+    config = { allowUnfree = true; };
+  };
 in
 {
   nix-common = {
@@ -225,6 +229,7 @@ in
     wget
     yamllint
     yubikey-manager
+    pkgs-master.claude-code
   ];
 
   environment.shells = with pkgs; [
