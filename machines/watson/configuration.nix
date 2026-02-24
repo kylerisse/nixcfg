@@ -4,6 +4,10 @@ let
     system = "x86_64-linux";
     config = { allowUnfree = true; };
   };
+  pkgs-master = import inputs.nixos-master {
+    system = "x86_64-linux";
+    config = { allowUnfree = true; };
+  };
 in
 {
   nix-common = {
@@ -145,6 +149,10 @@ in
           vscode
         ];
 
+        masterPackages = with pkgs-master; [
+          claude-code
+        ];
+
         nodePackages = with pkgs.nodePackages; [
           cspell
           markdownlint-cli
@@ -154,7 +162,7 @@ in
         selfPackages = [
         ];
       in
-      stablePackages ++ unstablePackages ++ nodePackages ++ selfPackages;
+      stablePackages ++ unstablePackages ++ masterPackages ++ nodePackages ++ selfPackages;
   };
 
   environment.gnome.excludePackages = (with pkgs; [
