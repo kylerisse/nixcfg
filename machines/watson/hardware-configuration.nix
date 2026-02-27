@@ -3,7 +3,7 @@
 {
   hardware.enableRedistributableFirmware = lib.mkDefault true;
 
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelPackages = pkgs.linuxPackages_6_18;
   boot.initrd.availableKernelModules = [ "kvm_amd" "nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "uas" "sd_mod" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "amd-pstate" ];
