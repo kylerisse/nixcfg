@@ -9,7 +9,7 @@
   };
   wasgeht = {
     enable = true;
-    package = inputs.self.packages.x86_64-linux.wasgeht-unstable;
+    package = inputs.self.packages.x86_64-linux.wasgeht;
     hostFile = "${./wasgeht-hosts.json}";
   };
   scale-simulator.enable = true;
