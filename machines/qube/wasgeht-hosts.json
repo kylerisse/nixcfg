@@ -1,0 +1,149 @@
+{
+  "inet": {
+    "checks": {
+      "ping": {
+        "addresses": [
+          "192.168.254.254",
+          "4.2.2.2",
+          "8.8.4.4",
+          "1.0.0.1",
+          "162.254.206.227"
+        ]
+      },
+      "http": {
+        "urls": [
+          "https://192.168.254.254",
+          "https://www.google.com"
+        ],
+        "skip_verify": true
+      },
+      "dns": {
+        "server": "8.8.8.8:53",
+        "queries": [
+            { "name": "k.root-servers.net",   "type": "A",    "expect": "193.0.14.129" },
+            { "name": "8.8.8.8.in-addr.arpa", "type": "PTR",  "expect": "dns.google" },
+            { "name": "h.root-servers.net",   "type": "AAAA", "expect": "2001:500:1::53" }
+        ]
+      }
+    }
+  },
+  "router": {
+    "tags": { "os": "nixos" },
+    "checks": {
+      "ping": {
+        "addresses": ["192.168.73.1"]
+      },
+      "dns": {
+        "server": "192.168.73.1:53",
+        "queries": [
+          { "name": "1.73.168.192.in-addr.arpa", "type": "PTR",  "expect": "router.risse.tv"},
+          { "name": "router.risse.tv",           "type": "A",    "expect": "192.168.73.1"},
+          { "name": "b.root-servers.net",        "type": "AAAA", "expect": "2801:1b8:10::b"}
+
+        ]
+      }
+    }
+  },
+  "switch1": {
+    "checks": {
+      "ping": {
+        "addresses": ["switch1.risse.tv"]
+      },
+      "http": {
+        "urls": ["http://switch1.risse.tv"]
+      }
+    }
+  },
+  "solar": {
+    "checks": {
+      "ping": {
+        "addresses": ["solar.risse.tv"]
+      }
+    }
+  },
+  "ap1": {
+    "tags": { "os": "openwrt"},
+    "checks": {
+      "ping": {
+        "addresses": ["ap1.risse.tv"]
+      },
+      "wifi_stations": {
+        "address": "ap1.risse.tv",
+        "radios": ["phy0-ap0", "phy1-ap0"]
+      },
+      "http": {
+        "urls": ["https://ap1.risse.tv"],
+        "skip_verify": true
+      }
+    }
+  },
+  "ap2": {
+    "tags": { "os": "openwrt" },
+    "checks": {
+      "ping": {
+        "addresses": ["ap2.risse.tv"]
+      },
+      "wifi_stations": {
+        "address": "ap2.risse.tv",
+        "radios": ["phy0-ap0", "phy1-ap0"]
+      },
+      "http": {
+        "urls": ["https://ap2.risse.tv"],
+        "skip_verify": true
+      }
+    }
+  },
+  "qube": {
+    "tags": { "os": "nixos" },
+    "checks": {
+      "ping": {
+        "addresses": ["qube.risse.tv"]
+      },
+      "http": {
+        "urls": [
+          "http://qube.risse.tv:2018/sign.json",
+          "http://qube.risse.tv:2017/schedule",
+          "https://whatsup.risse.tv",
+          "https://wasgeht.risse.tv",
+          "https://mrtg.risse.tv"
+        ]
+      }
+    }
+  },
+  "pi3": {
+    "tags": { "os": "nixos" },
+    "checks": {
+      "ping": {
+        "addresses": ["pi3.risse.tv"]
+      },
+      "http": {
+        "urls": ["http://pi3.risse.tv:2017"]
+      }
+    }
+  },
+  "pi4": {
+    "tags": { "os": "nixos" },
+    "checks": {
+      "ping": {
+        "addresses": ["pi4.risse.tv"]
+      },
+      "http": {
+        "urls": ["http://pi4.risse.tv:2017"]
+      }
+    }
+  },
+  "gibson": {
+    "tags": { "os": "nixos" },
+    "checks": {
+      "ping": {
+        "addresses": ["162.243.69.6"]
+      },
+      "http": {
+        "urls": [
+          "https://demo.go-signs.org",
+          "https://simulator.go-signs.org"
+        ]
+      }
+    }
+  }
+}

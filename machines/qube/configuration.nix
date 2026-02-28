@@ -9,33 +9,8 @@
   };
   wasgeht = {
     enable = true;
-    package = inputs.self.packages.x86_64-linux.wasgeht-unstable;
-    hostFile = builtins.toFile "hosts.json" ''
-      {
-        "zzmodem": {
-          "address": "192.168.254.254"
-        },
-        "zzisp": {
-          "address": "47.155.20.1"
-        },
-        "zzdns1": {
-          "address": "1.0.0.1"
-        },
-        "zzdns2": {
-          "address": "1.1.1.1"
-        },
-        "router": {},
-        "pi3": {},
-        "pi4": {},
-        "qube": {},
-        "switch1": {},
-        "ap1": {},
-        "ap2": {},
-        "solar": {},
-        "watson": {},
-        "zugzug": {}
-      }
-    '';
+    package = inputs.self.packages.x86_64-linux.wasgeht;
+    hostFile = "${./wasgeht-hosts.json}";
   };
   scale-simulator.enable = true;
   go-signs = {
