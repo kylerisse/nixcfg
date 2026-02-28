@@ -14,10 +14,10 @@ buildGoModule rec {
     owner = "kylerisse";
     repo = "wasgeht";
     rev = "master";
-    sha256 = "sha256-cNm0GabApJGHPfwVRZrGdUPpWb/rTTV8b4TF918TcCU=";
+    sha256 = "sha256-Yi+35tCe8mnZqs87rBGu8eGhMEPGdvieq0j/6DIh9Ho=";
   };
 
-  vendorHash = "sha256-u9uLLtVeb9Ldvqu+ww/3pSjGF14RKX9qgLjULKYibjE=";
+  vendorHash = "sha256-EGGsQUqGzbQvyO6nymkG/FR/9IZXAUcmGriRFuwNPMc=";
 
   ldflags = [
     "-s"
