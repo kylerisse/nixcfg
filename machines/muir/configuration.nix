@@ -4,6 +4,10 @@ let
     system = "x86_64-linux";
     config = { allowUnfree = true; };
   };
+  pkgs-master = import inputs.nixos-master {
+    system = "x86_64-linux";
+    config = { allowUnfree = true; };
+  };
 in
 {
   nix-common = {
@@ -108,6 +112,7 @@ in
       brave
       btop
       chezmoi
+      pkgs-master.claude-code
       curl
       cyberchef
       dig
