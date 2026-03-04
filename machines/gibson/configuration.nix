@@ -52,8 +52,6 @@
   scale-simulator.enable = true;
   go-signs = {
     enable = true;
-    jsonEndpoint = "http://localhost:2018/sign.json";
-    refreshInterval = 1;
   };
 
   security.acme = {
