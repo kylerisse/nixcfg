@@ -205,4 +205,6 @@ in
     };
     virt-manager.enable = true;
   };
+
+  go-signs.enable = true;
 }
