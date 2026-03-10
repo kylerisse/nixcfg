@@ -37,6 +37,7 @@
           };
         in
         {
+          docket-unstable = pkgs.callPackage ./pkgs/docket-unstable { };
           terraform_1-8-2 = pkgs.callPackage ./pkgs/terraform_1-8-2 { };
           terraform_1-8-3 = pkgs.callPackage ./pkgs/terraform_1-8-3 { };
           terraform_1-9-1 = pkgs.callPackage ./pkgs/terraform_1-9-1 { };

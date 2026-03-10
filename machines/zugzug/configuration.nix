@@ -187,6 +187,7 @@ in
     curl
     dig
     direnv
+    inputs.self.packages.aarch64-darwin.docket-unstable
     git
     go
     gopls
