@@ -6,12 +6,12 @@
 let
   cfg = {
     factory = {
-      url = "https://downloads.openwrt.org/releases/24.10.0/targets/mediatek/filogic/openwrt-24.10.0-mediatek-filogic-openwrt_one-factory.ubi";
-      sha256 = "sha256-hymZbQU4A+CFoU3+N8LWJj2ZH43jESZPp1C86gYi9CQ=";
+      url = "https://downloads.openwrt.org/releases/25.12.0/targets/mediatek/filogic/openwrt-25.12.0-mediatek-filogic-openwrt_one-factory.ubi";
+      sha256 = "sha256-AEjLp3dPHj2SjMh7JxtYxuRI9xPk5jZZ/Bq62n9Gock=";
     };
     sysupgrade = {
-      url = "https://downloads.openwrt.org/releases/24.10.0/targets/mediatek/filogic/openwrt-24.10.0-mediatek-filogic-openwrt_one-squashfs-sysupgrade.itb";
-      sha256 = "sha256-GM9q1jk82nGEpSTloIIbrOeHt1gILvtMYkibL6LkpsU=";
+      url = "https://downloads.openwrt.org/releases/25.12.0/targets/mediatek/filogic/openwrt-25.12.0-mediatek-filogic-openwrt_one-squashfs-sysupgrade.itb";
+      sha256 = "sha256-+VXpZ7OdZOhGwaTbrThkCXPmP08IqFk7PzPD8b8GVqs=";
     };
   };
 in
@@ -27,7 +27,7 @@ stdenv.mkDerivation rec {
 
   src = ./.;
   pname = "openwrt-one";
-  version = "24.10.0";
+  version = "25.12.0";
 
   installPhase = ''
     mkdir -p $out/images/
@@ -38,7 +38,7 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    description = "OpenWRT 24.10.0 OpenWRT One";
+    description = "OpenWRT 25.12.0 OpenWRT One";
     license = licenses.gpl3;
     maintainers = [ "kylerisse" ];
   };
