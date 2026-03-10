@@ -160,6 +160,7 @@ in
         ];
 
         selfPackages = [
+          inputs.self.packages.x86_64-linux.docket-unstable
         ];
       in
       stablePackages ++ unstablePackages ++ masterPackages ++ nodePackages ++ selfPackages;

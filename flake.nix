@@ -77,6 +77,7 @@
           openwrt-one = pkgs.callPackage ./pkgs/openwrt-one { };
           pi4Image = self.packages.aarch64-linux.pi4Image;
           pi3Image = self.packages.aarch64-linux.pi3Image;
+          docket-unstable = pkgs.callPackage ./pkgs/docket-unstable { };
           wasgeht = pkgs.callPackage ./pkgs/wasgeht { };
           wasgeht-unstable = pkgs.callPackage ./pkgs/wasgeht-unstable { };
         };
