@@ -59,16 +59,20 @@
   security.acme = {
     acceptTerms = true;
     defaults.email = "kylerisse@users.noreply.github.com";
-    certs."go-signs.org".extraDomainNames = [
-      "www.go-signs.org"
-    ];
+    certs = {
+      "scalenoc.org".extraDomainNames = [
+        "www.scalenoc.org"
+      ];
+      "go-signs.org".extraDomainNames = [
+        "www.go-signs.org"
+      ];
+    };
   };
   networking.firewall.allowedTCPPorts = [ 80 443 ];
   services.nginx = {
     enable = true;
     virtualHosts = {
       "go-signs.org" = {
-        default = true;
         enableACME = true;
         forceSSL = true;
         serverAliases = [
@@ -76,7 +80,7 @@
         ];
         locations."/" = {
           extraConfig = ''
-            return 301 https://github.com/kylerisse/go-signs;
+            return 301 https://github.com/socallinuxexpo/scale-signs;
           '';
         };
       };
@@ -88,6 +92,33 @@
         };
       };
       "simulator.go-signs.org" = {
+        enableACME = true;
+        forceSSL = true;
+        locations."/" = {
+          proxyPass = "http://localhost:2018";
+        };
+      };
+      "scalenoc.org" = {
+        default = true;
+        enableACME = true;
+        forceSSL = true;
+        serverAliases = [
+          "www.scalenoc.org"
+        ];
+        locations."/" = {
+          extraConfig = ''
+            return 301 https://github.com/socallinuxexpo/scale-network;
+          '';
+        };
+      };
+      "signs.scalenoc.org" = {
+        enableACME = true;
+        forceSSL = true;
+        locations."/" = {
+          proxyPass = "http://localhost:2017";
+        };
+      };
+      "simulator.scalenoc.org" = {
         enableACME = true;
         forceSSL = true;
         locations."/" = {
