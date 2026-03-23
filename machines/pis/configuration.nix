@@ -16,7 +16,7 @@
   ];
 
   networking.firewall.allowedTCPPorts = [ 2017 ];
-  go-signs = {
+  scale-signs = {
     enable = true;
     jsonEndpoint = "http://qube.risse.tv:2018/sign.json";
     refreshInterval = 1;

@@ -5,17 +5,17 @@
 , ...
 }:
 let
-  cfg = config.go-signs;
+  cfg = config.scale-signs;
 
-  externalPkgs = inputs.go-signs.packages.${pkgs.system};
+  externalPkgs = inputs.scale-signs.packages.${pkgs.system};
 in
 {
-  options.go-signs = {
-    enable = lib.mkEnableOption "go-signs service";
+  options.scale-signs = {
+    enable = lib.mkEnableOption "scale-signs service";
 
     package = lib.mkOption {
       type = lib.types.package;
-      default = externalPkgs.go-signs;
+      default = externalPkgs.scale-signs;
     };
 
     port = lib.mkOption {
@@ -37,8 +37,8 @@ in
 
   config = lib.mkIf cfg.enable {
     systemd = {
-      services.go-signs = {
-        description = "go-signs service";
+      services.scale-signs = {
+        description = "scale-signs service";
         requires = [ "network-online.target" ];
         wantedBy = [ "multi-user.target" ];
         serviceConfig = {
