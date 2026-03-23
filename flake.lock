@@ -1,24 +1,5 @@
 {
   "nodes": {
-    "go-signs": {
-      "inputs": {
-        "nixpkgs": "nixpkgs"
-      },
-      "locked": {
-        "lastModified": 1772512390,
-        "narHash": "sha256-GOW7q/+UcusPoQ+o5n5JrOyxC7yuYZMbNn7u+ve0Azo=",
-        "owner": "kylerisse",
-        "repo": "go-signs",
-        "rev": "16fdc68ec6ca74d40c0c5ecb51aa5c18e95bc4dd",
-        "type": "github"
-      },
-      "original": {
-        "owner": "kylerisse",
-        "ref": "0.2.0",
-        "repo": "go-signs",
-        "type": "github"
-      }
-    },
     "nix-darwin": {
       "inputs": {
         "nixpkgs": [
@@ -153,14 +134,33 @@
     },
     "root": {
       "inputs": {
-        "go-signs": "go-signs",
         "nix-darwin": "nix-darwin",
         "nixos-2411": "nixos-2411",
         "nixos-2511": "nixos-2511",
         "nixos-hardware": "nixos-hardware",
         "nixos-master": "nixos-master",
         "nixos-unstable": "nixos-unstable",
-        "nixpkgs-darwin": "nixpkgs-darwin"
+        "nixpkgs-darwin": "nixpkgs-darwin",
+        "scale-signs": "scale-signs"
+      }
+    },
+    "scale-signs": {
+      "inputs": {
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1774202316,
+        "narHash": "sha256-Oc1hRhCLTsA6X4AmCJlLgtDVpFK/D7V3/0qNwgd92pw=",
+        "owner": "socallinuxexpo",
+        "repo": "scale-signs",
+        "rev": "4e72db4d3a080f97e417308cdd18160f1ec85fc6",
+        "type": "github"
+      },
+      "original": {
+        "owner": "socallinuxexpo",
+        "ref": "master",
+        "repo": "scale-signs",
+        "type": "github"
       }
     }
   },

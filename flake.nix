@@ -15,7 +15,7 @@
       inputs.nixpkgs.follows = "nixpkgs-darwin";
     };
     # app specific
-    go-signs.url = "github:kylerisse/go-signs?ref=0.2.0";
+    scale-signs.url = "github:socallinuxexpo/scale-signs?ref=master";
   };
 
   outputs =
@@ -27,7 +27,7 @@
     , nixos-hardware
     , nixpkgs-darwin
     , nix-darwin
-    , go-signs
+    , scale-signs
     }: {
       packages.aarch64-darwin =
         let
@@ -112,7 +112,7 @@
               imports = [
                 ./modules/nix-common
                 ./modules/ssh-server
-                ./modules/go-signs
+                ./modules/scale-signs
                 ./modules/kube-cluster
                 ./modules/mrtg
                 ./modules/scale-simulator

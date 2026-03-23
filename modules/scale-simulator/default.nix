@@ -7,7 +7,7 @@
 let
   cfg = config.scale-simulator;
 
-  externalPkgs = inputs.go-signs.packages.${pkgs.system};
+  externalPkgs = inputs.scale-signs.packages.${pkgs.system};
 in
 {
   options.scale-simulator = {
