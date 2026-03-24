@@ -140,8 +140,8 @@
       },
       "http": {
         "urls": [
-          "https://demo.go-signs.org",
-          "https://simulator.go-signs.org"
+          "https://signs.scalenoc.org",
+          "https://simulator.scalenoc.org"
         ]
       }
     }
