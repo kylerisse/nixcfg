@@ -78,12 +78,13 @@ in
     };
   };
 
-  dns-server.enable = true;
-  dns-server.listenOn = [ "192.168.70.1" "127.0.0.1" ];
-  dns-server.allowedCIDRs = [ "192.168.70.0/24" "127.0.0.1/32" "::1/128" ];
-  dns-server.forwarders = [ "192.168.73.1" ];
-  dns-server.zones =
-    {
+  services.bind = {
+    enable = true;
+    cacheNetworks = [ "192.168.70.0/24" "127.0.0.1/32" "::1/128" ];
+    forwarders = [ "192.168.73.1" ];
+    forward = "first";
+    listenOn = [ "192.168.70.1" "127.0.0.1" ];
+    zones = {
       "lab.risse.tv" = {
         master = true;
         masters = [ "192.168.70.1" ];
@@ -120,6 +121,9 @@ in
         '';
       };
     };
+  };
+  networking.firewall.allowedTCPPorts = [ 53 ];
+  networking.firewall.allowedUDPPorts = [ 53 ];
 
   networking = {
     hostName = "dev-router";

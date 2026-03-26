@@ -64,7 +64,6 @@
             ./modules/wasgeht
             ./modules/users
             ./modules/dualhome-nat
-            ./modules/dns-server
           ];
         });
       images = {
