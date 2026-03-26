@@ -1,0 +1,28 @@
+name: Images
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+env:
+  NIX_LOG_FORMAT: raw
+
+jobs:
+  x86_64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v21
+      - uses: DeterminateSystems/magic-nix-cache-action@v13
+      - name: build x86_64-linux images
+        run: make test-x86-images
+
+  aarch64:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v21
+      - uses: DeterminateSystems/magic-nix-cache-action@v13
+      - name: build aarch64-linux images
+        run: make test-arm-images

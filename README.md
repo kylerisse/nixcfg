@@ -1,5 +1,8 @@
 # nixcfg
 
+[![CI](https://github.com/kylerisse/nixcfg/actions/workflows/ci.yml/badge.svg)](https://github.com/kylerisse/nixcfg/actions/workflows/ci.yml)
+[![Images](https://github.com/kylerisse/nixcfg/actions/workflows/images.yml/badge.svg)](https://github.com/kylerisse/nixcfg/actions/workflows/images.yml)
+
 ```
 ├───darwinConfigurations
 │   └───zugzug: m2 MBP

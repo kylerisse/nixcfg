@@ -1,4 +1,5 @@
 **/result
+*.qcow2
 
 http_cache.sqlite
 sbom.cdx.json

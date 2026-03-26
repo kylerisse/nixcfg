@@ -92,7 +92,9 @@
           default = pkgs.mkShell {
             packages = with pkgs; [
               gnumake
+              jq
               nil
+              python3
             ];
           };
         });
