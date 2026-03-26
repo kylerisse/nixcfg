@@ -51,7 +51,7 @@
   };
 
   mynixcfg.scale-simulator.enable = true;
-  scale-signs = {
+  mynixcfg.scale-signs = {
     enable = true;
     jsonEndpoint = "http://localhost:2018/sign.json";
     refreshInterval = 1;
