@@ -8,6 +8,11 @@ in
 {
   options.mrtg = {
     enable = mkEnableOption "MRTG";
+    package = mkOption {
+      type = types.package;
+      default = pkgs.mrtg;
+      description = "The MRTG package to use";
+    };
     hostList = mkOption {
       type = types.listOf types.str;
     };
@@ -62,7 +67,7 @@ in
             echo "creating config ''${config_path}..."
             snmp_community=''$(cat ''${snmp_file} | tr -d '\n')
 
-            ${pkgs.mrtg}/bin/cfgmaker \
+            ${cfg.package}/bin/cfgmaker \
             --no-down \
             --show-op-down \
             --output="''${config_path}" \
@@ -79,7 +84,7 @@ in
             echo "''${index_path} already exists, skipping..."
           else
             echo "Generating index html at ''${index_path}"
-            ${pkgs.mrtg}/bin/indexmaker --output="''${index_path}" ''${config_path}
+            ${cfg.package}/bin/indexmaker --output="''${index_path}" ''${config_path}
             for i in l m r; do
               ln -sf ''${html_path}/mrtg-$i.png ''${html_path}/mrtg-$i.gif
             done
@@ -98,7 +103,7 @@ in
                   after = [ "mrtg-generator.service" ];
                   environment.LANG = "C";
                   serviceConfig = {
-                    ExecStart = "${pkgs.mrtg}/bin/mrtg ${cfg.statePath}/configs/${name}.cfg";
+                    ExecStart = "${cfg.package}/bin/mrtg ${cfg.statePath}/configs/${name}.cfg";
                     Type = "simple";
                     User = "${cfg.user}";
                     Group = "${cfg.group}";
