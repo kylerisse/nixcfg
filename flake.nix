@@ -35,6 +35,18 @@
     , scale-signs
     , treefmt-nix
     }: {
+      devShells.x86_64-linux.default =
+        let
+          pkgs = import nixos-unstable {
+            system = "x86_64-linux";
+          };
+        in
+        pkgs.mkShell {
+          packages = with pkgs; [
+            gnumake
+            nil
+          ];
+        };
       formatter.x86_64-linux =
         let
           pkgs = import nixos-unstable {
