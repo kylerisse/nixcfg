@@ -42,26 +42,41 @@ in
     internalCIDR = "192.168.70.0/24";
   };
 
-  dhcp-server.enable = true;
-  dhcp-server.interfaces = [ "enp2s0" ];
-  dhcp-server.dns = "192.168.70.1";
-  dhcp-server.domain = "risse.tv";
-  dhcp-server.v4subnets = [{
-    subnet = "192.168.70.0/24";
-    id = 19216870;
-    user-context.vlan = "kvm-unrouted";
-    pools = [
-      { pool = "192.168.70.100 - 192.168.70.199"; }
-    ];
-    option-data = [
-      { name = "routers"; data = "192.168.70.1"; }
-    ];
-    reservations-global = false;
-    reservations-in-subnet = true;
-    reservations = [
-      { hostname = "temp"; hw-address = "52:54:00:54:52:fc"; ip-address = "192.168.70.92"; }
-    ];
-  }];
+  services.kea.dhcp4 = {
+    enable = true;
+    settings = {
+      loggers = [{ name = "*"; severity = "DEBUG"; }];
+      valid-lifetime = 86400;
+      renew-timer = 21600;
+      rebind-timer = 43200;
+      interfaces-config.interfaces = [ "enp2s0" ];
+      lease-database = {
+        type = "memfile";
+        persist = true;
+        name = "/var/lib/kea/dhcp4.leases";
+      };
+      option-data = [
+        { name = "domain-name-servers"; data = "192.168.70.1"; }
+        { name = "domain-name"; data = "risse.tv"; }
+      ];
+      subnet4 = [{
+        subnet = "192.168.70.0/24";
+        id = 19216870;
+        user-context.vlan = "kvm-unrouted";
+        pools = [
+          { pool = "192.168.70.100 - 192.168.70.199"; }
+        ];
+        option-data = [
+          { name = "routers"; data = "192.168.70.1"; }
+        ];
+        reservations-global = false;
+        reservations-in-subnet = true;
+        reservations = [
+          { hostname = "temp"; hw-address = "52:54:00:54:52:fc"; ip-address = "192.168.70.92"; }
+        ];
+      }];
+    };
+  };
 
   dns-server.enable = true;
   dns-server.listenOn = [ "192.168.70.1" "127.0.0.1" ];
