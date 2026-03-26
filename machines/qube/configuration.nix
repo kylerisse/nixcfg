@@ -1,10 +1,16 @@
 { config, pkgs, lib, modulesPath, inputs, ... }:
+let
+  pkgs-2411 = import inputs.nixos-2411 {
+    system = "x86_64-linux";
+  };
+in
 {
   nix-common.enable = true;
   ssh-server.enable = true;
   networking.firewall.allowedTCPPorts = [ 443 2017 2018 ];
   mrtg = {
     enable = true;
+    package = pkgs-2411.mrtg;
     hostList = [ "switch1.risse.tv" ];
   };
   wasgeht = {

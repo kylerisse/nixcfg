@@ -238,9 +238,7 @@
             specialArgs = { inherit nixpkgs inputs; };
           };
           qube =
-            let nixpkgs = nixos-2411;
-            in
-            nixos-2411.lib.nixosSystem {
+            nixos-2511.lib.nixosSystem {
               system = "x86_64-linux";
               modules = [
                 ./machines/qube/configuration.nix
