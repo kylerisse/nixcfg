@@ -65,12 +65,6 @@
             ./modules/users
           ];
         });
-      kvm-guest =
-        ({ modulePath, ... }: {
-          imports = [
-            ./modules/kvm-guest
-          ];
-        });
       soho-router =
         ({ modulePath, ... }: {
           imports = [
@@ -202,7 +196,6 @@
         dev-router = mkSystem {
           modules = [
             all
-            kvm-guest
             soho-router
             ./machines/dev-router/configuration.nix
           ];

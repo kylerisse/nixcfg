@@ -8,6 +8,14 @@ in
   ];
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.loader.grub.enable = true;
+  boot.loader.grub.device = "/dev/vda";
+
+  services.getty.autologinUser = "root";
+  services.qemuGuest.enable = true;
+  services.timesyncd.enable = false;
+
+  networking.dhcpcd.extraConfig = "noarp";
 
   mynixcfg.users.kylerisse.enable = true;
   nix-common.enable = true;
