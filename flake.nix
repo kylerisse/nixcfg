@@ -66,6 +66,12 @@
             ./modules/dualhome-nat
           ];
         });
+      darwinAll =
+        ({ modulePath, ... }: {
+          imports = [
+            ./modules/nix-common
+          ];
+        });
       images = {
         doImage = mkSystem {
           modules = [ all ./imgs/do.nix ];
@@ -164,7 +170,7 @@
           nix-darwin.lib.darwinSystem {
             system = "aarch64-darwin";
             modules = [
-              all
+              darwinAll
               ./machines/zugzug/configuration.nix
             ];
             specialArgs = { inherit inputs nixpkgs; };
