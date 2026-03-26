@@ -9,7 +9,7 @@ in
   nix-common.enable = true;
   ssh-server.enable = true;
   networking.firewall.allowedTCPPorts = [ 443 2017 2018 ];
-  mrtg = {
+  mynixcfg.mrtg = {
     enable = true;
     package = pkgs-2411.mrtg;
     hostList = [ "switch1.risse.tv" ];

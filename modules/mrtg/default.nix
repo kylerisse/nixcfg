@@ -1,12 +1,12 @@
 { config, pkgs, lib, ... }:
 let
-  cfg = config.mrtg;
+  cfg = config.mynixcfg.mrtg;
   inherit (lib) concatStringsSep types;
   inherit (lib.modules) mkIf mkDefault;
   inherit (lib.options) mkEnableOption mkOption;
 in
 {
-  options.mrtg = {
+  options.mynixcfg.mrtg = {
     enable = mkEnableOption "MRTG";
     package = mkOption {
       type = types.package;
