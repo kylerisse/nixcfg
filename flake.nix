@@ -171,16 +171,7 @@
           wasgeht = pkgs.callPackage ./pkgs/wasgeht { };
           wasgeht-unstable = pkgs.callPackage ./pkgs/wasgeht-unstable { };
         };
-      darwinConfigurations =
-        let
-          all =
-            ({ modulePath, ... }: {
-              imports = [
-                ./modules/nix-common
-              ];
-            });
-        in
-        {
+      darwinConfigurations = {
           "zugzug" =
             let
               nixpkgs = nixpkgs-darwin;
