@@ -1,9 +1,9 @@
 { config, lib, pkgs, inputs, nixpkgs, ... }:
 let
-  cfg = config.nix-common;
+  cfg = config.mynixcfg.nix-common;
 in
 {
-  options.nix-common = {
+  options.mynixcfg.nix-common = {
     enable = lib.mkEnableOption (lib.mdDoc "Baseline Nix and Nixpkgs settings");
     isDarwin = lib.mkEnableOption (lib.mdDoc "Darwin specific nix/nixpkg settings");
     autoGC = lib.mkOption {

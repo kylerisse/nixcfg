@@ -11,7 +11,7 @@ let
 in
 {
   mynixcfg.users.kylerisse.enable = true;
-  nix-common = {
+  mynixcfg.nix-common = {
     enable = true;
     autoGC = false;
   };

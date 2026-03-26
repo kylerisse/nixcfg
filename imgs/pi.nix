@@ -12,7 +12,7 @@
   ];
 
   mynixcfg.users.kylerisse.enable = true;
-  nix-common.enable = true;
+  mynixcfg.nix-common.enable = true;
 
   mynixcfg.ssh-server.enable = true;
 
