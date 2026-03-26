@@ -4,10 +4,10 @@
 , ...
 }:
 let
-  cfg = config.wasgeht;
+  cfg = config.mynixcfg.wasgeht;
 in
 {
-  options.wasgeht = {
+  options.mynixcfg.wasgeht = {
     enable = lib.mkEnableOption "wasgeht monitoring service";
     package = lib.mkPackageOption pkgs "wasgeht" { };
 

@@ -14,7 +14,7 @@ in
     package = pkgs-2411.mrtg;
     hostList = [ "switch1.risse.tv" ];
   };
-  wasgeht = {
+  mynixcfg.wasgeht = {
     enable = true;
     package = inputs.self.packages.x86_64-linux.wasgeht;
     hostFile = "${./wasgeht-hosts.json}";
