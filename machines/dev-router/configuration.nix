@@ -1,7 +1,4 @@
-{ config, pkgs, self, ... }:
-let
-  zoneSerial = "${toString self.lastModified}";
-in
+{ config, pkgs, ... }:
 {
   imports = [
     ./hardware-configuration.nix
@@ -91,7 +88,7 @@ in
         file = pkgs.writeText "named.lab.risse.tv" ''
           $TTL 86400
           @ IN SOA dev-router.lab.risse.tv. admin.lab.risse.tv. (
-            ${zoneSerial}
+            6007
             1D
             1H
             1W
@@ -109,7 +106,7 @@ in
         file = pkgs.writeText "named.192.168.70" ''
           $TTL 86400
           @ IN SOA dev-router.lab.risse.tv. admin.lab.risse.tv (
-            ${zoneSerial}
+            6007
             1D
             1H
             1W

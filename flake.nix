@@ -191,7 +191,6 @@
             all
             ./machines/dev-router/configuration.nix
           ];
-          extraSpecialArgs = { inherit self; };
         };
         gibson = mkSystem {
           modules = [
