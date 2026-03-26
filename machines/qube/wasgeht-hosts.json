@@ -11,18 +11,27 @@
         ]
       },
       "http": {
-        "urls": [
-          "https://192.168.254.254",
-          "https://www.google.com"
-        ],
+        "urls": ["https://192.168.254.254", "https://www.google.com"],
         "skip_verify": true
       },
       "dns": {
         "server": "8.8.8.8:53",
         "queries": [
-            { "name": "k.root-servers.net",   "type": "A",    "expect": "193.0.14.129" },
-            { "name": "8.8.8.8.in-addr.arpa", "type": "PTR",  "expect": "dns.google" },
-            { "name": "h.root-servers.net",   "type": "AAAA", "expect": "2001:500:1::53" }
+          {
+            "name": "k.root-servers.net",
+            "type": "A",
+            "expect": "193.0.14.129"
+          },
+          {
+            "name": "8.8.8.8.in-addr.arpa",
+            "type": "PTR",
+            "expect": "dns.google"
+          },
+          {
+            "name": "h.root-servers.net",
+            "type": "AAAA",
+            "expect": "2001:500:1::53"
+          }
         ]
       }
     }
@@ -36,10 +45,17 @@
       "dns": {
         "server": "192.168.73.1:53",
         "queries": [
-          { "name": "1.73.168.192.in-addr.arpa", "type": "PTR",  "expect": "router.risse.tv"},
-          { "name": "router.risse.tv",           "type": "A",    "expect": "192.168.73.1"},
-          { "name": "b.root-servers.net",        "type": "AAAA", "expect": "2801:1b8:10::b"}
-
+          {
+            "name": "1.73.168.192.in-addr.arpa",
+            "type": "PTR",
+            "expect": "router.risse.tv"
+          },
+          { "name": "router.risse.tv", "type": "A", "expect": "192.168.73.1" },
+          {
+            "name": "b.root-servers.net",
+            "type": "AAAA",
+            "expect": "2801:1b8:10::b"
+          }
         ]
       }
     }
@@ -62,7 +78,7 @@
     }
   },
   "ap1": {
-    "tags": { "os": "openwrt"},
+    "tags": { "os": "openwrt" },
     "checks": {
       "ping": {
         "addresses": ["ap1.risse.tv"]
@@ -139,10 +155,7 @@
         "addresses": ["162.243.69.6"]
       },
       "http": {
-        "urls": [
-          "https://signs.scalenoc.org",
-          "https://simulator.scalenoc.org"
-        ]
+        "urls": ["https://signs.scalenoc.org", "https://simulator.scalenoc.org"]
       }
     }
   }

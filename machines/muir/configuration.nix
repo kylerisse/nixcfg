@@ -10,7 +10,8 @@ let
   };
 in
 {
-  nix-common = {
+  mynixcfg.users.kylerisse.enable = true;
+  mynixcfg.nix-common = {
     enable = true;
     autoGC = false;
   };
@@ -67,7 +68,7 @@ in
     firewall.allowPing = false;
   };
 
-  ssh-server.enable = false;
+  mynixcfg.ssh-server.enable = false;
 
   time.timeZone = "America/Los_Angeles";
 

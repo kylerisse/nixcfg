@@ -1,19 +1,26 @@
 { config, pkgs, lib, modulesPath, inputs, ... }:
+let
+  pkgs-2411 = import inputs.nixos-2411 {
+    system = "x86_64-linux";
+  };
+in
 {
-  nix-common.enable = true;
-  ssh-server.enable = true;
+  mynixcfg.users.kylerisse.enable = true;
+  mynixcfg.nix-common.enable = true;
+  mynixcfg.ssh-server.enable = true;
   networking.firewall.allowedTCPPorts = [ 443 2017 2018 ];
-  mrtg = {
+  mynixcfg.mrtg = {
     enable = true;
+    package = pkgs-2411.mrtg;
     hostList = [ "switch1.risse.tv" ];
   };
-  wasgeht = {
+  mynixcfg.wasgeht = {
     enable = true;
     package = inputs.self.packages.x86_64-linux.wasgeht;
     hostFile = "${./wasgeht-hosts.json}";
   };
-  scale-simulator.enable = true;
-  scale-signs = {
+  mynixcfg.scale-simulator.enable = true;
+  mynixcfg.scale-signs = {
     enable = true;
     jsonEndpoint = "http://localhost:2018/sign.json";
     refreshInterval = 1;

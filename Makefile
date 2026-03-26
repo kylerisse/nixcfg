@@ -1,34 +1,43 @@
 doImage:
-	nix build -vv --show-trace -L .#nixosConfigurations.doImage.config.system.build.digitalOceanImage
+	nix build -L .#packages.x86_64-linux.doImage
 
 installerISO:
-	nix build -vv --show-trace -L .#nixosConfigurations.installerImage.config.system.build.isoImage
+	nix build -L .#packages.x86_64-linux.installerISO
 
 pi3Image:
-	nix build -vv --show-trace --verbose -L .#packages.aarch64-linux.pi3Image
+	nix build -L .#packages.aarch64-linux.pi3Image
 
 pi4Image:
-	nix build -vv --show-trace --verbose -L .#packages.aarch64-linux.pi4Image
+	nix build -L .#packages.aarch64-linux.pi4Image
 
-build-pkgs:
-	nix build -vv --show-trace --verbose -L .#packages.x86_64-linux.wasgeht
-	nix build -vv --show-trace --verbose -L .#packages.x86_64-linux.wasgeht-unstable
+build-x86-pkgs:
+	nix build -L .#packages.x86_64-linux.wasgeht
+	nix build -L .#packages.x86_64-linux.wasgeht-unstable
+	nix build -L .#packages.x86_64-linux.docket-unstable
 
-test-all-images: installerISO doImage pi3Image pi4Image
+test-x86-images: doImage installerISO
 
-test-all-nixos: lint build-pkgs
-	nix build -vv --show-trace -L .#nixosConfigurations.db.config.system.build.toplevel
-	nix build -vv --show-trace -L .#nixosConfigurations.dev-router.config.system.build.toplevel
-	nix build -vv --show-trace -L .#nixosConfigurations.gibson.config.system.build.toplevel
-	nix build -vv --show-trace -L .#nixosConfigurations.k8s-master.config.system.build.toplevel
-	nix build -vv --show-trace -L .#nixosConfigurations.k8s-worker1.config.system.build.toplevel
-	nix build -vv --show-trace -L .#nixosConfigurations.k8s-worker2.config.system.build.toplevel
-	nix build -vv --show-trace -L .#nixosConfigurations.muir.config.system.build.toplevel
-	nix build -vv --show-trace -L .#nixosConfigurations.qube.config.system.build.toplevel
-	nix build -vv --show-trace -L .#nixosConfigurations.pi3.config.system.build.toplevel
-	nix build -vv --show-trace -L .#nixosConfigurations.pi4.config.system.build.toplevel
-	nix build -vv --show-trace -L .#nixosConfigurations.riviera.config.system.build.toplevel
-	nix build -vv --show-trace -L .#nixosConfigurations.watson.config.system.build.toplevel
+test-arm-images: pi3Image pi4Image
+
+test-all-images: test-x86-images test-arm-images
+
+test-all-arm-nixos:
+	nix build -L .#nixosConfigurations.pi3.config.system.build.toplevel
+	nix build -L .#nixosConfigurations.pi4.config.system.build.toplevel
+
+test-all-x86-nixos:
+	nix build -L .#nixosConfigurations.db.config.system.build.toplevel
+	nix build -L .#nixosConfigurations.dev-router.config.system.build.toplevel
+	nix build -L .#nixosConfigurations.gibson.config.system.build.toplevel
+	nix build -L .#nixosConfigurations.k8s-master.config.system.build.toplevel
+	nix build -L .#nixosConfigurations.k8s-worker1.config.system.build.toplevel
+	nix build -L .#nixosConfigurations.k8s-worker2.config.system.build.toplevel
+	nix build -L .#nixosConfigurations.muir.config.system.build.toplevel
+	nix build -L .#nixosConfigurations.qube.config.system.build.toplevel
+	nix build -L .#nixosConfigurations.riviera.config.system.build.toplevel
+	nix build -L .#nixosConfigurations.watson.config.system.build.toplevel
+
+test-all-nixos: lint check test-all-arm-nixos build-x86-pkgs test-all-x86-nixos
 
 test-all: test-all-images test-all-nixos
 
@@ -62,17 +71,20 @@ deploy-gibson:
 
 deploy-all-nixos: deploy-db deploy-k8s-cluster deploy-dev-router deploy-qube-cluster deploy-gibson
 
-lint: tflint nixlint
+check:
+	nix flake check
 
-nixlint:
-	nix shell nixpkgs#nixpkgs-fmt --command bash -c 'for i in `find ./ -name "*.nix"`; do echo $$i; nixpkgs-fmt $$i; done;'
+lint:
+	nix fmt -- --ci
 
-tflint:
-	nix shell nixpkgs#opentofu --command bash -c 'for i in `find ./ -name "*.tf"`; do echo $$i; tofu fmt $$i; done;'
+test-darwin-pkgs:
+	nix build -L .#packages.aarch64-darwin.docket-unstable
 
-mac:
-	nix build -vv -L .#darwinConfigurations.zugzug.config.system.build.toplevel
-	sudo darwin-rebuild switch --show-trace -vv --flake .#zugzug
+mac-check:
+	nix build -L .#darwinConfigurations.zugzug.config.system.build.toplevel
+
+mac: lint check mac-check test-darwin-pkgs
+	sudo darwin-rebuild switch --flake .#zugzug
 
 bump-flake-darwin:
 	nix flake update nixpkgs-darwin
@@ -84,9 +96,10 @@ bump-flake-linux:
 	nix flake update nixos-master
 	nix flake update nixos-unstable
 	nix flake update nixos-hardware
+	nix flake update treefmt-nix
 
 clean:
-	rm -f http_cache.sqlite sbom.* vulns.csv
+	rm -i http_cache.sqlite sbom.* vulns.csv *.qcow2
 
 sbom: clean
 	nix run github:tiiuae/sbomnix#sbomnix result

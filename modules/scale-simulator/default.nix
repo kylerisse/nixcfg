@@ -5,12 +5,12 @@
 , ...
 }:
 let
-  cfg = config.scale-simulator;
+  cfg = config.mynixcfg.scale-simulator;
 
   externalPkgs = inputs.scale-signs.packages.${pkgs.system};
 in
 {
-  options.scale-simulator = {
+  options.mynixcfg.scale-simulator = {
     enable = lib.mkEnableOption "SCaLE simulator service";
 
     package = lib.mkOption {

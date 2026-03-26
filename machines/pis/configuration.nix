@@ -1,8 +1,9 @@
 { config, lib, pkgs, nixpkgs, hostname, inputs, ... }:
 
 {
-  nix-common.enable = true;
-  ssh-server.enable = true;
+  mynixcfg.users.kylerisse.enable = true;
+  mynixcfg.nix-common.enable = true;
+  mynixcfg.ssh-server.enable = true;
 
   boot.loader.grub.enable = false;
   boot.loader.generic-extlinux-compatible.enable = true;
@@ -16,7 +17,7 @@
   ];
 
   networking.firewall.allowedTCPPorts = [ 2017 ];
-  scale-signs = {
+  mynixcfg.scale-signs = {
     enable = true;
     jsonEndpoint = "http://qube.risse.tv:2018/sign.json";
     refreshInterval = 1;

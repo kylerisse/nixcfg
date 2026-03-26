@@ -9,7 +9,7 @@ let
   };
 in
 {
-  nix-common = {
+  mynixcfg.nix-common = {
     enable = true;
     isDarwin = true;
     autoGC = false;

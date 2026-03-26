@@ -18,8 +18,9 @@
 
   nixpkgs.hostPlatform = "x86_64-linux";
 
-  ssh-server.enable = true;
-  nix-common.enable = true;
+  mynixcfg.users.kylerisse.enable = true;
+  mynixcfg.ssh-server.enable = true;
+  mynixcfg.nix-common.enable = true;
 
   environment.etc = {
     # taken from https://nixos.wiki/wiki/Fail2ban
@@ -49,8 +50,8 @@
     };
   };
 
-  scale-simulator.enable = true;
-  scale-signs = {
+  mynixcfg.scale-simulator.enable = true;
+  mynixcfg.scale-signs = {
     enable = true;
     jsonEndpoint = "http://localhost:2018/sign.json";
     refreshInterval = 1;

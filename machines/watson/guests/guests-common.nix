@@ -1,7 +1,8 @@
 { config, pkgs, lib, modulesPath, hostname, ... }:
 {
-  nix-common.enable = true;
-  ssh-server.enable = true;
+  mynixcfg.users.kylerisse.enable = true;
+  mynixcfg.nix-common.enable = true;
+  mynixcfg.ssh-server.enable = true;
 
   imports =
     [

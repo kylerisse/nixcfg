@@ -1,10 +1,10 @@
 { config, pkgs, lib, ... }:
 let
   format = pkgs.formats.json { };
-  cfg = config.ssh-server;
+  cfg = config.mynixcfg.ssh-server;
 in
 {
-  options.ssh-server = {
+  options.mynixcfg.ssh-server = {
     enable = lib.mkEnableOption (lib.mdDoc "SSH Server");
     listenAddresses = lib.mkOption {
       type = format.type;

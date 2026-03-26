@@ -1,17 +1,23 @@
-{ config, pkgs, self, ... }:
-let
-  zoneSerial = "${toString self.lastModified}";
-in
+{ config, pkgs, ... }:
 {
   imports = [
     ./hardware-configuration.nix
   ];
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.loader.grub.enable = true;
+  boot.loader.grub.device = "/dev/vda";
 
-  nix-common.enable = true;
-  ssh-server.enable = true;
-  #ssh-server.listenAddresses = [
+  services.getty.autologinUser = "root";
+  services.qemuGuest.enable = true;
+  services.timesyncd.enable = false;
+
+  networking.dhcpcd.extraConfig = "noarp";
+
+  mynixcfg.users.kylerisse.enable = true;
+  mynixcfg.nix-common.enable = true;
+  mynixcfg.ssh-server.enable = true;
+  #mynixcfg.ssh-server.listenAddresses = [
   #  {
   #    addr = "192.168.70.1";
   #    port = 2222;
@@ -26,45 +32,63 @@ in
   #  }
   #];
 
-  dualhome-nat.enable = true;
-  dualhome-nat.internalInterface = "enp2s0";
-  dualhome-nat.externalInterface = "enp1s0";
-  dualhome-nat.internalCIDR = "192.168.70.0/24";
+  mynixcfg.dualhome-nat = {
+    enable = true;
+    internalInterface = "enp2s0";
+    externalInterface = "enp1s0";
+    internalCIDR = "192.168.70.0/24";
+  };
 
-  dhcp-server.enable = true;
-  dhcp-server.interfaces = [ "enp2s0" ];
-  dhcp-server.dns = "192.168.70.1";
-  dhcp-server.domain = "risse.tv";
-  dhcp-server.v4subnets = [{
-    subnet = "192.168.70.0/24";
-    id = 19216870;
-    user-context.vlan = "kvm-unrouted";
-    pools = [
-      { pool = "192.168.70.100 - 192.168.70.199"; }
-    ];
-    option-data = [
-      { name = "routers"; data = "192.168.70.1"; }
-    ];
-    reservations-global = false;
-    reservations-in-subnet = true;
-    reservations = [
-      { hostname = "temp"; hw-address = "52:54:00:54:52:fc"; ip-address = "192.168.70.92"; }
-    ];
-  }];
+  services.kea.dhcp4 = {
+    enable = true;
+    settings = {
+      loggers = [{ name = "*"; severity = "DEBUG"; }];
+      valid-lifetime = 86400;
+      renew-timer = 21600;
+      rebind-timer = 43200;
+      interfaces-config.interfaces = [ "enp2s0" ];
+      lease-database = {
+        type = "memfile";
+        persist = true;
+        name = "/var/lib/kea/dhcp4.leases";
+      };
+      option-data = [
+        { name = "domain-name-servers"; data = "192.168.70.1"; }
+        { name = "domain-name"; data = "risse.tv"; }
+      ];
+      subnet4 = [{
+        subnet = "192.168.70.0/24";
+        id = 19216870;
+        user-context.vlan = "kvm-unrouted";
+        pools = [
+          { pool = "192.168.70.100 - 192.168.70.199"; }
+        ];
+        option-data = [
+          { name = "routers"; data = "192.168.70.1"; }
+        ];
+        reservations-global = false;
+        reservations-in-subnet = true;
+        reservations = [
+          { hostname = "temp"; hw-address = "52:54:00:54:52:fc"; ip-address = "192.168.70.92"; }
+        ];
+      }];
+    };
+  };
 
-  dns-server.enable = true;
-  dns-server.listenOn = [ "192.168.70.1" "127.0.0.1" ];
-  dns-server.allowedCIDRs = [ "192.168.70.0/24" "127.0.0.1/32" "::1/128" ];
-  dns-server.forwarders = [ "192.168.73.1" ];
-  dns-server.zones =
-    {
+  services.bind = {
+    enable = true;
+    cacheNetworks = [ "192.168.70.0/24" "127.0.0.1/32" "::1/128" ];
+    forwarders = [ "192.168.73.1" ];
+    forward = "first";
+    listenOn = [ "192.168.70.1" "127.0.0.1" ];
+    zones = {
       "lab.risse.tv" = {
         master = true;
         masters = [ "192.168.70.1" ];
         file = pkgs.writeText "named.lab.risse.tv" ''
           $TTL 86400
           @ IN SOA dev-router.lab.risse.tv. admin.lab.risse.tv. (
-            ${zoneSerial}
+            6007
             1D
             1H
             1W
@@ -82,7 +106,7 @@ in
         file = pkgs.writeText "named.192.168.70" ''
           $TTL 86400
           @ IN SOA dev-router.lab.risse.tv. admin.lab.risse.tv (
-            ${zoneSerial}
+            6007
             1D
             1H
             1W
@@ -94,6 +118,9 @@ in
         '';
       };
     };
+  };
+  networking.firewall.allowedTCPPorts = [ 53 ];
+  networking.firewall.allowedUDPPorts = [ 53 ];
 
   networking = {
     hostName = "dev-router";

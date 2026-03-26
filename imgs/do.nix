@@ -18,6 +18,7 @@
 
   nixpkgs.hostPlatform = "x86_64-linux";
 
-  ssh-server.enable = true;
-  nix-common.enable = true;
+  mynixcfg.users.kylerisse.enable = true;
+  mynixcfg.ssh-server.enable = true;
+  mynixcfg.nix-common.enable = true;
 }

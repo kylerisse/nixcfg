@@ -5,12 +5,12 @@
 , ...
 }:
 let
-  cfg = config.scale-signs;
+  cfg = config.mynixcfg.scale-signs;
 
   externalPkgs = inputs.scale-signs.packages.${pkgs.system};
 in
 {
-  options.scale-signs = {
+  options.mynixcfg.scale-signs = {
     enable = lib.mkEnableOption "scale-signs service";
 
     package = lib.mkOption {
