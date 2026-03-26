@@ -34,43 +34,35 @@
     , nix-darwin
     , scale-signs
     , treefmt-nix
-    }: {
-      devShells.x86_64-linux.default =
-        let
-          pkgs = import nixos-unstable {
-            system = "x86_64-linux";
+    }:
+    let
+      supportedSystems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
+      forAllSystems = nixos-unstable.lib.genAttrs supportedSystems;
+      pkgsFor = system: import (if system == "aarch64-darwin" then nixpkgs-darwin else nixos-unstable) {
+        inherit system;
+      };
+    in
+    {
+      devShells = forAllSystems (system:
+        let pkgs = pkgsFor system;
+        in {
+          default = pkgs.mkShell {
+            packages = with pkgs; [
+              gnumake
+              nil
+            ];
           };
-        in
-        pkgs.mkShell {
-          packages = with pkgs; [
-            gnumake
-            nil
-          ];
-        };
-      formatter.x86_64-linux =
+        });
+      formatter = forAllSystems (system:
         let
-          pkgs = import nixos-unstable {
-            system = "x86_64-linux";
-          };
+          pkgs = pkgsFor system;
           treefmtEval = treefmt-nix.lib.evalModule pkgs {
             projectRootFile = "flake.nix";
             programs.nixpkgs-fmt.enable = true;
             programs.prettier.enable = true;
           };
         in
-        treefmtEval.config.build.wrapper;
-      formatter.aarch64-darwin =
-        let
-          pkgs = import nixpkgs-darwin {
-            system = "aarch64-darwin";
-          };
-          treefmtEval = treefmt-nix.lib.evalModule pkgs {
-            projectRootFile = "flake.nix";
-            programs.nixpkgs-fmt.enable = true;
-            programs.prettier.enable = true;
-          };
-        in
-        treefmtEval.config.build.wrapper;
+        treefmtEval.config.build.wrapper);
       packages.aarch64-darwin =
         let
           pkgs = import nixpkgs-darwin {
