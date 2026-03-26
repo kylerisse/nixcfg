@@ -11,7 +11,7 @@ in
       ./guests-common.nix
     ];
 
-  kube-cluster = {
+  mynixcfg.kube-cluster = {
     enable = true;
     package = pkgs-unstable.kubernetes;
     isMaster = if hostname == "k8s-master" then true else false;

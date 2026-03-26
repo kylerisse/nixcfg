@@ -1,9 +1,9 @@
 { config, pkgs, lib, ... }:
 let
-  cfg = config.kube-cluster;
+  cfg = config.mynixcfg.kube-cluster;
 in
 {
-  options.kube-cluster = {
+  options.mynixcfg.kube-cluster = {
     enable = lib.mkEnableOption (lib.mdDoc "Kubernetes Cluster");
     package = lib.mkPackageOption pkgs "kubernetes" { };
     isMaster = lib.mkEnableOption (lib.mdDoc "Is the master node");
