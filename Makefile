@@ -62,13 +62,10 @@ deploy-gibson:
 
 deploy-all-nixos: deploy-db deploy-k8s-cluster deploy-dev-router deploy-qube-cluster deploy-gibson
 
-lint: tflint nixlint
+lint: nixlint
 
 nixlint:
 	nix shell nixpkgs#nixpkgs-fmt --command bash -c 'for i in `find ./ -name "*.nix"`; do echo $$i; nixpkgs-fmt $$i; done;'
-
-tflint:
-	nix shell nixpkgs#opentofu --command bash -c 'for i in `find ./ -name "*.tf"`; do echo $$i; tofu fmt $$i; done;'
 
 mac:
 	nix build -vv -L .#darwinConfigurations.zugzug.config.system.build.toplevel
