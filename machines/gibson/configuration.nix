@@ -50,7 +50,7 @@
     };
   };
 
-  scale-simulator.enable = true;
+  mynixcfg.scale-simulator.enable = true;
   scale-signs = {
     enable = true;
     jsonEndpoint = "http://localhost:2018/sign.json";

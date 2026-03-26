@@ -19,7 +19,7 @@ in
     package = inputs.self.packages.x86_64-linux.wasgeht;
     hostFile = "${./wasgeht-hosts.json}";
   };
-  scale-simulator.enable = true;
+  mynixcfg.scale-simulator.enable = true;
   scale-signs = {
     enable = true;
     jsonEndpoint = "http://localhost:2018/sign.json";
