@@ -84,13 +84,13 @@
           };
         in
         {
-          pi3Image = (self.nixosConfigurations.piImage.extendModules {
+          pi3Image = (self._images.piImage.extendModules {
             modules = [
               "${nixos-2511}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
               nixos-hardware.nixosModules.raspberry-pi-3
             ];
           }).config.system.build.sdImage;
-          pi4Image = (self.nixosConfigurations.piImage.extendModules {
+          pi4Image = (self._images.piImage.extendModules {
             modules = [
               "${nixos-2511}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
               nixos-hardware.nixosModules.raspberry-pi-4
@@ -110,8 +110,8 @@
           openwrt-archer-a7-v5 = pkgs.callPackage ./pkgs/openwrt-archer-a7-v5 { };
           openwrt-archer-c7-v2 = pkgs.callPackage ./pkgs/openwrt-archer-c7-v2 { };
           openwrt-one = pkgs.callPackage ./pkgs/openwrt-one { };
-          pi4Image = self.packages.aarch64-linux.pi4Image;
-          pi3Image = self.packages.aarch64-linux.pi3Image;
+          doImage = self._images.doImage.config.system.build.digitalOceanImage;
+          installerISO = self._images.installerImage.config.system.build.isoImage;
           docket-unstable = pkgs.callPackage ./pkgs/docket-unstable { };
           wasgeht = pkgs.callPackage ./pkgs/wasgeht { };
           wasgeht-unstable = pkgs.callPackage ./pkgs/wasgeht-unstable { };
@@ -137,6 +137,57 @@
                 ./machines/zugzug/configuration.nix
               ];
               specialArgs = { inherit inputs nixpkgs; };
+            };
+        };
+      _images =
+        let
+          all =
+            ({ modulePath, ... }: {
+              imports = [
+                ./modules/nix-common
+                ./modules/ssh-server
+                ./modules/scale-signs
+                ./modules/kube-cluster
+                ./modules/mrtg
+                ./modules/scale-simulator
+                ./modules/wasgeht
+              ];
+            });
+          users =
+            ({ modulePath, ... }: {
+              imports = [
+                ./modules/users
+              ];
+            });
+          nixpkgs = nixos-2511;
+        in
+        {
+          doImage = nixos-2511.lib.nixosSystem {
+            system = "x86_64-linux";
+            modules = [
+              all
+              users
+              ./imgs/do.nix
+            ];
+            specialArgs = { inherit nixpkgs; };
+          };
+          installerImage = nixos-2511.lib.nixosSystem {
+            system = "x86_64-linux";
+            modules = [
+              all
+              ./imgs/gnome-installer.nix
+            ];
+            specialArgs = { inherit nixpkgs; };
+          };
+          piImage =
+            nixos-2511.lib.nixosSystem {
+              system = "aarch64-linux";
+              modules = [
+                all
+                users
+                ./imgs/pi.nix
+              ];
+              specialArgs = { inherit nixpkgs; };
             };
         };
       nixosConfigurations =
@@ -176,33 +227,6 @@
           nixpkgs = nixos-2511;
         in
         {
-          doImage = nixos-2511.lib.nixosSystem {
-            system = "x86_64-linux";
-            modules = [
-              all
-              users
-              ./imgs/do.nix
-            ];
-            specialArgs = { inherit nixpkgs; };
-          };
-          installerImage = nixos-2511.lib.nixosSystem {
-            system = "x86_64-linux";
-            modules = [
-              all
-              ./imgs/gnome-installer.nix
-            ];
-            specialArgs = { inherit nixpkgs; };
-          };
-          piImage =
-            nixos-2511.lib.nixosSystem {
-              system = "aarch64-linux";
-              modules = [
-                all
-                users
-                ./imgs/pi.nix
-              ];
-              specialArgs = { inherit nixpkgs; };
-            };
           pi3 =
             let
               hostname = "pi3";

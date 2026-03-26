@@ -1,8 +1,8 @@
 doImage:
-	nix build -vv --show-trace -L .#nixosConfigurations.doImage.config.system.build.digitalOceanImage
+	nix build -vv --show-trace -L .#packages.x86_64-linux.doImage
 
 installerISO:
-	nix build -vv --show-trace -L .#nixosConfigurations.installerImage.config.system.build.isoImage
+	nix build -vv --show-trace -L .#packages.x86_64-linux.installerISO
 
 pi3Image:
 	nix build -vv --show-trace --verbose -L .#packages.aarch64-linux.pi3Image
