@@ -5,6 +5,7 @@ let
   };
 in
 {
+  mynixcfg.users.kylerisse.enable = true;
   nix-common.enable = true;
   ssh-server.enable = true;
   networking.firewall.allowedTCPPorts = [ 443 2017 2018 ];

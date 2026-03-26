@@ -1,6 +1,7 @@
 { config, lib, pkgs, nixpkgs, hostname, inputs, ... }:
 
 {
+  mynixcfg.users.kylerisse.enable = true;
   nix-common.enable = true;
   ssh-server.enable = true;
 

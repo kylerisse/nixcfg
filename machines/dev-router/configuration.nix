@@ -9,6 +9,7 @@ in
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
+  mynixcfg.users.kylerisse.enable = true;
   nix-common.enable = true;
   ssh-server.enable = true;
   #ssh-server.listenAddresses = [

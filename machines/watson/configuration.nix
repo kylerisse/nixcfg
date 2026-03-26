@@ -10,6 +10,7 @@ let
   };
 in
 {
+  mynixcfg.users.kylerisse.enable = true;
   nix-common = {
     enable = true;
     autoGC = false;

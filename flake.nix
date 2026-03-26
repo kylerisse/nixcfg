@@ -62,11 +62,6 @@
             ./modules/mrtg
             ./modules/scale-simulator
             ./modules/wasgeht
-          ];
-        });
-      users =
-        ({ modulePath, ... }: {
-          imports = [
             ./modules/users
           ];
         });
@@ -86,14 +81,14 @@
         });
       images = {
         doImage = mkSystem {
-          modules = [ all users ./imgs/do.nix ];
+          modules = [ all ./imgs/do.nix ];
         };
         installerImage = mkSystem {
           modules = [ all ./imgs/gnome-installer.nix ];
         };
         piImage = mkSystem {
           system = "aarch64-linux";
-          modules = [ all users ./imgs/pi.nix ];
+          modules = [ all ./imgs/pi.nix ];
         };
       };
     in
@@ -172,25 +167,24 @@
           wasgeht-unstable = pkgs.callPackage ./pkgs/wasgeht-unstable { };
         };
       darwinConfigurations = {
-          "zugzug" =
-            let
-              nixpkgs = nixpkgs-darwin;
-            in
-            nix-darwin.lib.darwinSystem {
-              system = "aarch64-darwin";
-              modules = [
-                all
-                ./machines/zugzug/configuration.nix
-              ];
-              specialArgs = { inherit inputs nixpkgs; };
-            };
-        };
+        "zugzug" =
+          let
+            nixpkgs = nixpkgs-darwin;
+          in
+          nix-darwin.lib.darwinSystem {
+            system = "aarch64-darwin";
+            modules = [
+              all
+              ./machines/zugzug/configuration.nix
+            ];
+            specialArgs = { inherit inputs nixpkgs; };
+          };
+      };
       nixosConfigurations = {
         pi3 = mkSystem {
           system = "aarch64-linux";
           modules = [
             all
-            users
             ./machines/pis/configuration.nix
             ./machines/pis/pi3-hardware-configuration.nix
           ];
@@ -200,7 +194,6 @@
           system = "aarch64-linux";
           modules = [
             all
-            users
             ./machines/pis/configuration.nix
             ./machines/pis/pi4-hardware-configuration.nix
           ];
@@ -209,7 +202,6 @@
         dev-router = mkSystem {
           modules = [
             all
-            users
             kvm-guest
             soho-router
             ./machines/dev-router/configuration.nix
@@ -219,21 +211,18 @@
         gibson = mkSystem {
           modules = [
             all
-            users
             ./machines/gibson/configuration.nix
           ];
         };
         watson = mkSystem {
           modules = [
             all
-            users
             ./machines/watson/configuration.nix
           ];
         };
         muir = mkSystem {
           modules = [
             all
-            users
             nixos-hardware.nixosModules.lenovo-thinkpad-t490
             ./machines/muir/configuration.nix
           ];
@@ -241,7 +230,6 @@
         qube = mkSystem {
           modules = [
             all
-            users
             ./machines/qube/configuration.nix
           ];
         };
@@ -253,19 +241,19 @@
         };
         # watson guests
         k8s-master = mkSystem {
-          modules = [ all users ./machines/watson/guests/kube-api-cluster.nix ];
+          modules = [ all ./machines/watson/guests/kube-api-cluster.nix ];
           extraSpecialArgs = { hostname = "k8s-master"; };
         };
         k8s-worker1 = mkSystem {
-          modules = [ all users ./machines/watson/guests/kube-api-cluster.nix ];
+          modules = [ all ./machines/watson/guests/kube-api-cluster.nix ];
           extraSpecialArgs = { hostname = "k8s-worker1"; };
         };
         k8s-worker2 = mkSystem {
-          modules = [ all users ./machines/watson/guests/kube-api-cluster.nix ];
+          modules = [ all ./machines/watson/guests/kube-api-cluster.nix ];
           extraSpecialArgs = { hostname = "k8s-worker2"; };
         };
         db = mkSystem {
-          modules = [ all users ./machines/watson/guests/db.nix ];
+          modules = [ all ./machines/watson/guests/db.nix ];
           extraSpecialArgs = { hostname = "db"; };
         };
       };
