@@ -107,12 +107,15 @@
             config.allowUnfree = true;
           };
         in
+        let
+          terraformPkgs = pkgs.callPackage ./pkgs/terraform { };
+        in
         {
           docket-unstable = pkgs.callPackage ./pkgs/docket-unstable { };
-          terraform_1-8-2 = pkgs.callPackage ./pkgs/terraform_1-8-2 { };
-          terraform_1-8-3 = pkgs.callPackage ./pkgs/terraform_1-8-3 { };
-          terraform_1-9-1 = pkgs.callPackage ./pkgs/terraform_1-9-1 { };
-          terraform_1-9-6 = pkgs.callPackage ./pkgs/terraform_1-9-6 { };
+          terraform_1-8-2 = terraformPkgs."1.8.2";
+          terraform_1-8-3 = terraformPkgs."1.8.3";
+          terraform_1-9-1 = terraformPkgs."1.9.1";
+          terraform_1-9-6 = terraformPkgs."1.9.6";
         };
       packages.aarch64-linux =
         let
