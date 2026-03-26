@@ -63,11 +63,6 @@
             ./modules/scale-simulator
             ./modules/wasgeht
             ./modules/users
-          ];
-        });
-      soho-router =
-        ({ modulePath, ... }: {
-          imports = [
             ./modules/dualhome-nat
             ./modules/dhcp-server
             ./modules/dns-server
@@ -196,7 +191,6 @@
         dev-router = mkSystem {
           modules = [
             all
-            soho-router
             ./machines/dev-router/configuration.nix
           ];
           extraSpecialArgs = { inherit self; };

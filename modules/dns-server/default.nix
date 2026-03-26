@@ -47,13 +47,15 @@ in
       };
     };
   };
-  config = {
-    services.bind.enable = cfg.enable;
-    services.bind.cacheNetworks = cfg.allowedCIDRs;
-    services.bind.forwarders = cfg.forwarders;
-    services.bind.forward = "first";
-    services.bind.listenOn = cfg.listenOn;
-    services.bind.zones = cfg.zones;
+  config = lib.mkIf cfg.enable {
+    services.bind = {
+      enable = true;
+      cacheNetworks = cfg.allowedCIDRs;
+      forwarders = cfg.forwarders;
+      forward = "first";
+      listenOn = cfg.listenOn;
+      zones = cfg.zones;
+    };
     networking.firewall.allowedTCPPorts = [ 53 ];
     networking.firewall.allowedUDPPorts = [ 53 ];
   };
