@@ -16,6 +16,11 @@
     };
     # app specific
     scale-signs.url = "github:socallinuxexpo/scale-signs?ref=master";
+    # tools
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixos-unstable";
+    };
   };
 
   outputs =
@@ -28,7 +33,32 @@
     , nixpkgs-darwin
     , nix-darwin
     , scale-signs
+    , treefmt-nix
     }: {
+      formatter.x86_64-linux =
+        let
+          pkgs = import nixos-unstable {
+            system = "x86_64-linux";
+          };
+          treefmtEval = treefmt-nix.lib.evalModule pkgs {
+            projectRootFile = "flake.nix";
+            programs.nixpkgs-fmt.enable = true;
+            programs.prettier.enable = true;
+          };
+        in
+        treefmtEval.config.build.wrapper;
+      formatter.aarch64-darwin =
+        let
+          pkgs = import nixpkgs-darwin {
+            system = "aarch64-darwin";
+          };
+          treefmtEval = treefmt-nix.lib.evalModule pkgs {
+            projectRootFile = "flake.nix";
+            programs.nixpkgs-fmt.enable = true;
+            programs.prettier.enable = true;
+          };
+        in
+        treefmtEval.config.build.wrapper;
       packages.aarch64-darwin =
         let
           pkgs = import nixpkgs-darwin {

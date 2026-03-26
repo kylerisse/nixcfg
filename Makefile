@@ -62,10 +62,8 @@ deploy-gibson:
 
 deploy-all-nixos: deploy-db deploy-k8s-cluster deploy-dev-router deploy-qube-cluster deploy-gibson
 
-lint: nixlint
-
-nixlint:
-	nix shell nixpkgs#nixpkgs-fmt --command bash -c 'for i in `find ./ -name "*.nix"`; do echo $$i; nixpkgs-fmt $$i; done;'
+lint:
+	nix fmt -- --ci
 
 mac:
 	nix build -vv -L .#darwinConfigurations.zugzug.config.system.build.toplevel
@@ -81,6 +79,7 @@ bump-flake-linux:
 	nix flake update nixos-master
 	nix flake update nixos-unstable
 	nix flake update nixos-hardware
+	nix flake update treefmt-nix
 
 clean:
 	rm -f http_cache.sqlite sbom.* vulns.csv
