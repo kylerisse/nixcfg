@@ -223,7 +223,7 @@ in
     fish_add_path --prepend /run/wrappers/bin
   '';
 
-  ssh-server.enable = true;
+  mynixcfg.ssh-server.enable = true;
 
   services.ollama = {
     enable = true;

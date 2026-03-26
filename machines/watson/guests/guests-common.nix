@@ -2,7 +2,7 @@
 {
   mynixcfg.users.kylerisse.enable = true;
   nix-common.enable = true;
-  ssh-server.enable = true;
+  mynixcfg.ssh-server.enable = true;
 
   imports =
     [

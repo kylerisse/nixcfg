@@ -14,7 +14,7 @@
   mynixcfg.users.kylerisse.enable = true;
   nix-common.enable = true;
 
-  ssh-server.enable = true;
+  mynixcfg.ssh-server.enable = true;
 
   boot.loader.grub.enable = false;
   boot.loader.generic-extlinux-compatible.enable = true;

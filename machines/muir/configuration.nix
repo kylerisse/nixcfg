@@ -68,7 +68,7 @@ in
     firewall.allowPing = false;
   };
 
-  ssh-server.enable = false;
+  mynixcfg.ssh-server.enable = false;
 
   time.timeZone = "America/Los_Angeles";
 

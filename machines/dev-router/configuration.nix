@@ -19,8 +19,8 @@ in
 
   mynixcfg.users.kylerisse.enable = true;
   nix-common.enable = true;
-  ssh-server.enable = true;
-  #ssh-server.listenAddresses = [
+  mynixcfg.ssh-server.enable = true;
+  #mynixcfg.ssh-server.listenAddresses = [
   #  {
   #    addr = "192.168.70.1";
   #    port = 2222;
