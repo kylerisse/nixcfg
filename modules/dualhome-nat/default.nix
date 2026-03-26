@@ -1,9 +1,9 @@
 { config, pkgs, inputs, lib, ... }:
 let
-  cfg = config.dualhome-nat;
+  cfg = config.mynixcfg.dualhome-nat;
 in
 {
-  options.dualhome-nat = {
+  options.mynixcfg.dualhome-nat = {
     enable = lib.mkEnableOption (lib.mdDoc "Dual homed NAT router");
     externalInterface = lib.mkOption {
       type = lib.types.str;
