@@ -17,6 +17,9 @@ in
 
     mynixcfg.users.kylerisse.enable = true;
     mynixcfg.nix-common.enable = true;
+    mynixcfg.he-tunnel-update.enable = true;
+    mynixcfg.he-tunnel-update.wanInterface = wanIf;
+
     mynixcfg.ssh-server.enable = true;
     mynixcfg.ssh-server.listenAddresses = [{ addr = gateway; port = 22; }];
 
@@ -84,7 +87,7 @@ in
     services.radvd = {
       enable = true;
       config = ''
-        interface br0 {
+        interface ${lanIf} {
           AdvSendAdvert on;
           AdvDefaultLifetime 1800;
           prefix 2001:470:d:461::/64 {
@@ -151,6 +154,7 @@ in
         interfaces = [ "enp2s0" "enp3s0" "enp4s0" ];
         rstp = true;
       };
+      # Hurricane Electric tunnelbroker.net endpoint
       sits.he-ipv6 = {
         remote = "66.220.18.42";
         ttl = 255;
@@ -187,7 +191,7 @@ in
               ct state invalid drop
               ct state established,related accept
 
-              iifname "${wanIf}" meta l4proto icmp limit rate 10/second accept
+              iifname "${wanIf}" meta l4proto { icmp, ipv6-icmp } limit rate 10/second accept
 
               # Hurricane Electric tunnelbroker.net
               ip saddr 66.220.18.42 ip protocol 41 accept

@@ -65,6 +65,7 @@
             ./modules/wasgeht
             ./modules/users
             ./modules/dualhome-nat
+            ./modules/he-tunnel-update
           ];
         });
       darwinAll =
