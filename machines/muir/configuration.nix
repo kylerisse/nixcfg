@@ -38,7 +38,10 @@ in
     };
     kernelModules = [ ];
     extraModulePackages = [ ];
-    loader.systemd-boot.enable = true;
+    loader.systemd-boot = {
+      enable = true;
+      configurationLimit = 10;
+    };
     loader.efi.canTouchEfiVariables = true;
     binfmt.emulatedSystems = [ "aarch64-linux" ];
   };
@@ -206,4 +209,6 @@ in
     };
     virt-manager.enable = true;
   };
+
+  system.stateVersion = "25.11";
 }

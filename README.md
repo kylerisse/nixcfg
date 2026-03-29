@@ -6,10 +6,14 @@
 ```
 ├───darwinConfigurations
 │   └───zugzug: m2 MBP
+├───checks
+│   └───x86_64-linux
+│       └───galleta: derivation 'vm-test-run-galleta'
 ├───devShells: development environment 'nix-shell'
 ├───formatter: package 'treefmt'
 ├───nixosConfigurations
 │   ├───dev-router: router/dhcp/dns development
+│   ├───galleta: Qotom router
 │   ├───gibson: Digital Ocean VPS
 │   ├───muir: T490 laptop
 │   ├───pi3: Raspberry Pi3

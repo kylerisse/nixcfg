@@ -72,4 +72,6 @@
       192.168.73.53 k8s-worker2
       192.168.73.54 db
     '';
+
+  system.stateVersion = "25.11";
 }

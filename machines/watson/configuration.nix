@@ -21,6 +21,7 @@ in
     ];
 
   boot.loader.systemd-boot.enable = true;
+  boot.loader.systemd-boot.configurationLimit = 10;
   boot.loader.efi.canTouchEfiVariables = true;
 
   networking.hostName = "watson";
@@ -247,4 +248,6 @@ in
     host = "0.0.0.0";
     openFirewall = true;
   };
+
+  system.stateVersion = "25.11";
 }

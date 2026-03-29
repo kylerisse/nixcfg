@@ -153,4 +153,6 @@ in
 
   environment.systemPackages = with pkgs; [
   ];
+
+  system.stateVersion = "25.11";
 }

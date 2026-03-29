@@ -134,4 +134,6 @@
   };
 
   time.timeZone = "America/Los_Angeles";
+
+  system.stateVersion = "25.11";
 }
