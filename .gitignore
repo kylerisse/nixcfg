@@ -1,5 +1,6 @@
 **/result
 *.qcow2
+*.nixos-test-history
 
 http_cache.sqlite
 sbom.cdx.json

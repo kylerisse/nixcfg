@@ -28,6 +28,7 @@ test-all-arm-nixos:
 test-all-x86-nixos:
 	nix build -L .#nixosConfigurations.db.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.dev-router.config.system.build.toplevel
+	nix build -L .#nixosConfigurations.galleta.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.gibson.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.k8s-master.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.k8s-worker1.config.system.build.toplevel
@@ -37,7 +38,7 @@ test-all-x86-nixos:
 	nix build -L .#nixosConfigurations.riviera.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.watson.config.system.build.toplevel
 
-test-all-nixos: lint check test-all-arm-nixos build-x86-pkgs test-all-x86-nixos
+test-all-nixos: lint check test-all-arm-nixos build-x86-pkgs test-all-x86-nixos test-galleta
 
 test-all: test-all-images test-all-nixos
 
@@ -69,7 +70,14 @@ deploy-gibson:
 	nixos-rebuild --flake .#gibson --sudo --target-host gibson boot
 	ssh gibson 'sudo reboot'
 
-deploy-all-nixos: deploy-db deploy-k8s-cluster deploy-dev-router deploy-qube-cluster deploy-gibson
+deploy-galleta: test-galleta
+	nixos-rebuild --flake .#galleta --use-remote-sudo --target-host galleta boot
+	ssh galleta 'sudo reboot'
+
+deploy-all-nixos: deploy-db deploy-k8s-cluster deploy-dev-router deploy-qube-cluster deploy-gibson deploy-galleta
+
+test-galleta:
+	nix build -L .#checks.x86_64-linux.galleta
 
 check:
 	nix flake check

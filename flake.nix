@@ -36,6 +36,7 @@
     , treefmt-nix
     }:
     let
+      network = import ./network.nix { lib = nixos-unstable.lib; };
       supportedSystems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
       forAllSystems = nixos-unstable.lib.genAttrs supportedSystems;
       pkgsFor = system: import (if system == "aarch64-darwin" then nixpkgs-darwin else nixos-unstable) {
@@ -50,7 +51,7 @@
         }:
         nixpkgs.lib.nixosSystem {
           inherit system modules;
-          specialArgs = { inherit nixpkgs inputs; } // extraSpecialArgs;
+          specialArgs = { inherit nixpkgs inputs network; } // extraSpecialArgs;
         };
       all =
         ({ modulePath, ... }: {
@@ -98,6 +99,19 @@
             ];
           };
         });
+      checks.x86_64-linux =
+        let
+          pkgs = import nixos-unstable { system = "x86_64-linux"; };
+        in
+        {
+          galleta = pkgs.testers.runNixOSTest (import ./tests/galleta.nix {
+            lib = nixos-unstable.lib;
+            inherit network inputs;
+            nixpkgs = nixos-2511;
+            galletaConfig = ./machines/galleta/configuration.nix;
+            allModule = all;
+          });
+        };
       formatter = forAllSystems (system:
         let
           pkgs = pkgsFor system;
@@ -201,6 +215,13 @@
           modules = [
             all
             ./machines/dev-router/configuration.nix
+          ];
+        };
+        galleta = mkSystem {
+          modules = [
+            all
+            ./machines/galleta/hardware-configuration.nix
+            ./machines/galleta/configuration.nix
           ];
         };
         gibson = mkSystem {
