@@ -248,4 +248,6 @@ in
     host = "0.0.0.0";
     openFirewall = true;
   };
+
+  system.stateVersion = "25.11";
 }

@@ -32,4 +32,6 @@
     enable = true;
   };
   networking.firewall.allowedTCPPorts = [ 22 ];
+
+  system.stateVersion = config.system.nixos.release;
 }

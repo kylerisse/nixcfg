@@ -22,5 +22,7 @@
     jsonEndpoint = "http://qube.risse.tv:2018/sign.json";
     refreshInterval = 1;
   };
+
+  system.stateVersion = "25.11";
 }
 

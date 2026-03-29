@@ -312,4 +312,6 @@ in
     "helm"
     "vfkit"
   ];
+
+  system.stateVersion = 4;
 }

@@ -21,4 +21,6 @@
   mynixcfg.users.kylerisse.enable = true;
   mynixcfg.ssh-server.enable = true;
   mynixcfg.nix-common.enable = true;
+
+  system.stateVersion = config.system.nixos.release;
 }
