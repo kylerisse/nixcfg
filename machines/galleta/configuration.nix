@@ -80,14 +80,34 @@ in
       };
     };
 
+    # Router advertisements for LAN IPv6
+    services.radvd = {
+      enable = true;
+      config = ''
+        interface br0 {
+          AdvSendAdvert on;
+          AdvDefaultLifetime 1800;
+          prefix 2001:470:d:461::/64 {
+            AdvOnLink on;
+            AdvAutonomous on;
+            AdvValidLifetime 86400;
+            AdvPreferredLifetime 14400;
+          };
+          RDNSS 2001:470:d:461::1 {
+            AdvRDNSSLifetime 3600;
+          };
+        };
+      '';
+    };
+
     # DNS resolver + authoritative zones
     services.bind = {
       enable = true;
-      cacheNetworks = [ subnet "127.0.0.1/32" "::1/128" ];
+      cacheNetworks = [ subnet "127.0.0.1/32" "::1/128" "2001:470:d:461::/64" ];
       forwarders = [ "1.0.0.1" "1.1.1.1" "2606:4700:4700::1111" "2606:4700:4700::1001" ];
       forward = "first";
       listenOn = [ gateway "127.0.0.1" ];
-      listenOnIpv6 = [ "::1" ];
+      listenOnIpv6 = [ "::1" "2001:470:d:461::1" ];
       zones = {
         "${domain}" = {
           master = true;
@@ -131,12 +151,28 @@ in
         interfaces = [ "enp2s0" "enp3s0" "enp4s0" ];
         rstp = true;
       };
+      sits.he-ipv6 = {
+        remote = "66.220.18.42";
+        ttl = 255;
+      };
       interfaces = {
         enp1s0.useDHCP = true;
         br0.ipv4.addresses = [{
           address = "192.168.73.1";
           prefixLength = 24;
         }];
+        br0.ipv6.addresses = [{
+          address = "2001:470:d:461::1";
+          prefixLength = 64;
+        }];
+        he-ipv6.ipv6.addresses = [{
+          address = "2001:470:c:45f::2";
+          prefixLength = 64;
+        }];
+      };
+      defaultGateway6 = {
+        address = "2001:470:c:45f::1";
+        interface = "he-ipv6";
       };
       firewall.enable = false;
       nftables = {
@@ -150,6 +186,12 @@ in
 
               ct state invalid drop
               ct state established,related accept
+
+              iifname "${wanIf}" meta l4proto icmp limit rate 10/second accept
+
+              # Hurricane Electric tunnelbroker.net
+              ip saddr 66.220.18.42 ip protocol 41 accept
+              iifname "he-ipv6" meta l4proto ipv6-icmp limit rate 10/second accept
 
               iifname "${lanIf}" meta l4proto { icmp, ipv6-icmp } limit rate 25/second accept
 

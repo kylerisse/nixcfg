@@ -103,8 +103,8 @@
     # Verify nftables masquerade rule exists
     galleta.succeed("nft list ruleset | grep masquerade")
 
-    # Firewall: external cannot ping galleta
-    external.fail("ping -c 1 -W 2 10.0.0.1")
+    # Firewall: WAN ICMP is rate-limited but allowed
+    external.succeed("ping -c 1 -W 2 10.0.0.1")
 
     # Firewall: external cannot reach DNS
     external.fail("drill -w 2 @10.0.0.1 risse.tv A")
