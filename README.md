@@ -43,7 +43,7 @@
         ├───openwrt-archer-a7-v5: package 'openwrt-archer-a7-v5-24.10.0'
         ├───openwrt-archer-c7-v2: package 'openwrt-archer-c7-v2-23.05.5'
         ├───openwrt-one: package 'openwrt-one-25.12.0'
-        ├───parrot-htb-iso: package 'ParrotOS_HTB_ISO-6.3.2'
+        ├───parrot-htb-iso: package 'ParrotOS_HTB_ISO-7.1'
         ├───wasgeht: package 'wasgeht-0.3.0'
         └───wasgeht-unstable: package 'wasgeht-unstable'
 ```

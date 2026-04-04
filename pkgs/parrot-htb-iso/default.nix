@@ -5,9 +5,9 @@
 }:
 let
   cfg = {
-    version = "6.3.2";
-    url = "https://deb.parrot.sh/parrot/iso/${cfg.version}/Parrot-htb-${cfg.version}_amd64.iso";
-    sha256 = "sha256-7oRItid4tcdAkjY20IuTQfNPc8RA8TYiYqZkafTKhUs=";
+    version = "7.1";
+    url = "https://deb.parrot.sh/parrot/iso/${cfg.version}/Parrot-spin-htb-${cfg.version}_amd64.iso";
+    sha256 = "sha256-1YyQEKi5Hguvj/z3OQrZRSDfWfa8v0tYS+jHocjl+SI=";
   };
 in
 stdenv.mkDerivation rec {
