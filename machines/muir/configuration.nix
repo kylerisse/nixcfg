@@ -123,6 +123,7 @@ in
       direnv
       pkgs-unstable.discord
       dive
+      inputs.self.packages.x86_64-linux.docket-unstable
       element-desktop
       firefox
       gcc
