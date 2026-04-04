@@ -69,6 +69,7 @@ in
     networkmanager.enable = true;
     nftables.enable = true;
     firewall.allowPing = false;
+    firewall.trustedInterfaces = [ "virbr0" ];
   };
 
   mynixcfg.ssh-server.enable = false;
