@@ -132,6 +132,7 @@ in
           silver-searcher
           vim
           virt-manager
+          vscode
           wget
           xterm
           yubikey-manager
@@ -148,7 +149,6 @@ in
           slack
           spotify
           steam
-          vscode
         ];
 
         masterPackages = with pkgs-master; [
