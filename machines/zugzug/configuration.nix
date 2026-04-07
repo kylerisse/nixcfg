@@ -130,7 +130,7 @@ in
       "/Applications/Google\ Chrome.app"
       "/Applications/Microsoft\ Edge.app"
       "/System/Applications/System\ Settings.app"
-      "/Applications/iTerm.app"
+      "/Applications/Ghostty.app"
       "/Applications/Bitwarden.app"
       "/Applications/DBeaver.app"
       "/Applications/Visual\ Studio Code.app"
