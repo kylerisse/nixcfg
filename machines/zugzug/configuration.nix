@@ -130,14 +130,12 @@ in
       "/Applications/Google\ Chrome.app"
       "/Applications/Microsoft\ Edge.app"
       "/System/Applications/System\ Settings.app"
-      "/Applications/iTerm.app"
+      "/Applications/Ghostty.app"
       "/Applications/Bitwarden.app"
       "/Applications/DBeaver.app"
       "/Applications/Visual\ Studio Code.app"
       "/Applications/Cisco/Cisco\ Secure\ Client.app"
-      "/Applications/Element.app"
       "/Applications/Brave Browser.app"
-      "/Applications/Slack.app"
       "/System/Applications/Calculator.app"
     ];
     show-process-indicators = true;
@@ -179,11 +177,8 @@ in
   # some packages such as libressl and openssh already exist in OSX, but we want the latest
   environment.systemPackages = with pkgs; [
     awscli2
-    brotli
     btop
-    checkov
     chezmoi
-    cloudlens
     curl
     dig
     direnv
@@ -204,16 +199,13 @@ in
     nodePackages.cspell
     nodePackages_latest.markdownlint-cli
     nmap
-    rakudo
     openssh
     podman
-    protobuf
     pylint
     python3
     python3Packages.boto3
     python3Packages.botocore
     python3Packages.pytest
-    rrdtool
     shellcheck
     silver-searcher
     terminal-notifier
@@ -292,16 +284,12 @@ in
 
   # these gui apps tend to run better through homebrew
   homebrew.casks = [
-    "1password"
     "bitwarden"
     "brave-browser"
     "dbeaver-community"
-    "element"
     "flux-app"
     "ghostty"
     "iterm2"
-    "rectangle"
-    "slack"
     "visual-studio-code"
     "zoom"
   ];
