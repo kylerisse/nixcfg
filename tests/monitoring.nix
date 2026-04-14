@@ -1,0 +1,87 @@
+{ lib, network, inputs, nixpkgs, allModule }:
+{
+  name = "monitoring";
+
+  nodes = {
+    server = { pkgs, ... }: {
+      imports = [
+        allModule
+      ];
+
+      _module.args = { inherit network inputs nixpkgs; };
+
+      mynixcfg.nix-common.enable = lib.mkForce false;
+
+      mynixcfg.mimir.enable = true;
+      mynixcfg.grafana = {
+        enable = true;
+        domain = "localhost";
+        secretKeyFile = "${pkgs.writeText "grafana-secret" "test-secret-key-for-vm-test"}";
+      };
+      mynixcfg.alloy = {
+        enable = true;
+        remoteWriteUrl = "http://127.0.0.1:3200/api/v1/push";
+      };
+
+      networking.firewall.allowedTCPPorts = [ 3000 ];
+
+      virtualisation = {
+        memorySize = 1024;
+      };
+    };
+
+    agent = { pkgs, ... }: {
+      imports = [
+        allModule
+      ];
+
+      _module.args = { inherit network inputs nixpkgs; };
+
+      mynixcfg.nix-common.enable = lib.mkForce false;
+
+      mynixcfg.alloy = {
+        enable = true;
+        remoteWriteUrl = "http://server:3200/api/v1/push";
+      };
+    };
+  };
+
+  testScript = ''
+    start_all()
+
+    # Wait for core services on server
+    server.wait_for_unit("mimir.service")
+    server.wait_for_unit("grafana.service")
+    server.wait_for_unit("alloy.service")
+
+    # Wait for agent
+    agent.wait_for_unit("alloy.service")
+
+    # Mimir is ready
+    server.wait_until_succeeds("curl -sf http://127.0.0.1:3200/ready", timeout=60)
+
+    # Grafana is responding
+    server.wait_until_succeeds("curl -sf http://127.0.0.1:3000/api/health", timeout=30)
+
+    # Grafana has the Mimir datasource provisioned (default admin:admin creds)
+    server.succeed("curl -sf -u admin:admin http://127.0.0.1:3000/api/datasources | grep Mimir")
+
+    # Wait for metrics to flow through, then query Mimir for the up metric
+    server.wait_until_succeeds(
+        "curl -sf 'http://127.0.0.1:3200/prometheus/api/v1/query?query=up' | grep '\"value\"'",
+        timeout=120,
+    )
+
+    # Verify the server's own metrics are pushed with host=server
+    server.wait_until_succeeds(
+        "curl -sf 'http://127.0.0.1:3200/prometheus/api/v1/query?query=up' | grep '\"host\":\"server\"'",
+        timeout=60,
+    )
+
+    # Verify the agent pushed its own metrics (host=agent), not just scraped by server
+    server.wait_until_succeeds(
+        "curl -sf 'http://127.0.0.1:3200/prometheus/api/v1/query?query=up' | grep '\"host\":\"agent\"'",
+        timeout=60,
+    )
+  '';
+}

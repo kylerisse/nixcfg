@@ -38,7 +38,7 @@ test-all-x86-nixos:
 	nix build -L .#nixosConfigurations.riviera.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.watson.config.system.build.toplevel
 
-test-all-nixos: lint check test-all-arm-nixos build-x86-pkgs test-all-x86-nixos test-galleta
+test-all-nixos: lint check test-all-arm-nixos build-x86-pkgs test-all-x86-nixos test-galleta test-monitoring
 
 test-all: test-all-images test-all-nixos
 
@@ -78,6 +78,9 @@ deploy-all-nixos: deploy-db deploy-k8s-cluster deploy-dev-router deploy-qube-clu
 
 test-galleta:
 	nix build -L .#checks.x86_64-linux.galleta
+
+test-monitoring:
+	nix build -L .#checks.x86_64-linux.monitoring
 
 check:
 	nix flake check
