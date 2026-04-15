@@ -19,6 +19,7 @@ in
     mynixcfg.nix-common.enable = true;
     mynixcfg.he-tunnel-update.enable = true;
     mynixcfg.he-tunnel-update.wanInterface = wanIf;
+    mynixcfg.alloy.enable = true;
 
     mynixcfg.ssh-server.enable = true;
     mynixcfg.ssh-server.listenAddresses = [{ addr = gateway; port = 22; }];
