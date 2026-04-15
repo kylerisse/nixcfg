@@ -38,7 +38,7 @@ test-all-x86-nixos:
 	nix build -L .#nixosConfigurations.riviera.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.watson.config.system.build.toplevel
 
-test-all-nixos: lint check test-all-arm-nixos build-x86-pkgs test-all-x86-nixos test-galleta
+test-all-nixos: lint check test-all-arm-nixos build-x86-pkgs test-all-x86-nixos test-galleta test-monitoring
 
 test-all: test-all-images test-all-nixos
 
@@ -46,9 +46,11 @@ deploy-dev-router:
 	nixos-rebuild --flake .#dev-router --sudo --target-host dev-router boot
 	ssh dev-router 'sudo reboot'
 
-deploy-qube-cluster:
+deploy-qube: test-monitoring
 	nixos-rebuild --flake .#qube --use-remote-sudo --target-host qube boot
 	ssh qube 'sudo reboot'
+
+deploy-pis:
 	nixos-rebuild --flake .#pi3 --sudo --target-host pi3 boot
 	ssh pi3 'sudo reboot'
 	nixos-rebuild --flake .#pi4 --sudo --target-host pi4 boot
@@ -74,10 +76,13 @@ deploy-galleta: test-galleta
 	nixos-rebuild --flake .#galleta --use-remote-sudo --target-host galleta boot
 	ssh galleta 'sudo reboot'
 
-deploy-all-nixos: deploy-db deploy-k8s-cluster deploy-dev-router deploy-qube-cluster deploy-gibson deploy-galleta
+deploy-all-nixos: deploy-db deploy-k8s-cluster deploy-dev-router deploy-qube deploy-pis deploy-gibson deploy-galleta
 
 test-galleta:
 	nix build -L .#checks.x86_64-linux.galleta
+
+test-monitoring:
+	nix build -L .#checks.x86_64-linux.monitoring
 
 check:
 	nix flake check

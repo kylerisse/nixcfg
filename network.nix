@@ -12,7 +12,7 @@ let
     galleta = { ip = "192.168.73.1"; mac = "00:0e:c4:ce:d9:6e"; cnames = [ "router" ]; };
     pi3 = { ip = "192.168.73.2"; mac = "b8:27:eb:86:1f:26"; };
     pi4 = { ip = "192.168.73.3"; mac = "dc:a6:32:1d:f3:50"; };
-    qube = { ip = "192.168.73.4"; mac = "8e:e4:dc:57:ed:0a"; cnames = [ "mrtg" "whatsup" "wasgeht" ]; };
+    qube = { ip = "192.168.73.4"; mac = "8e:e4:dc:57:ed:0a"; cnames = [ "mrtg" "whatsup" "wasgeht" "grafana" ]; };
     switch1 = { ip = "192.168.73.5"; mac = "ec:9a:74:0f:b8:80"; cnames = [ "switch2" ]; };
     ap1 = { ip = "192.168.73.6"; mac = "20:05:b6:ff:d4:d0"; };
     ap2 = { ip = "192.168.73.7"; mac = "20:05:b6:ff:d1:40"; };

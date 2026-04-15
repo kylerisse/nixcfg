@@ -19,6 +19,16 @@ in
     package = inputs.self.packages.x86_64-linux.wasgeht;
     hostFile = "${./wasgeht-hosts.json}";
   };
+  mynixcfg.mimir.enable = true;
+  mynixcfg.grafana = {
+    enable = true;
+    secretKeyFile = "/etc/grafana/secret-key";
+  };
+  mynixcfg.alloy = {
+    enable = true;
+    remoteWriteUrl = "http://127.0.0.1:3200/api/v1/push";
+    apTargets = [ "ap1.risse.tv:9100" "ap2.risse.tv:9100" ];
+  };
   mynixcfg.scale-simulator.enable = true;
   mynixcfg.scale-signs = {
     enable = true;
@@ -65,6 +75,18 @@ in
         acmeRoot = null;
         locations."/" = {
           proxyPass = "http://localhost:1982/";
+        };
+      };
+      "grafana.risse.tv" = {
+        forceSSL = true;
+        enableACME = true;
+        acmeRoot = null;
+        locations."/" = {
+          proxyPass = "http://127.0.0.1:3000/";
+          proxyWebsockets = true;
+          extraConfig = ''
+            proxy_set_header Host $host;
+          '';
         };
       };
     };
@@ -115,6 +137,7 @@ in
 
   systemd.network = {
     enable = true;
+    wait-online.anyInterface = false;
     netdevs.br0.netdevConfig = {
       Kind = "bridge";
       Name = "br0";

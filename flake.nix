@@ -66,6 +66,9 @@
             ./modules/users
             ./modules/dualhome-nat
             ./modules/he-tunnel-update
+            ./modules/mimir
+            ./modules/grafana
+            ./modules/alloy
           ];
         });
       darwinAll =
@@ -110,6 +113,12 @@
             inherit network inputs;
             nixpkgs = nixos-2511;
             galletaConfig = ./machines/galleta/configuration.nix;
+            allModule = all;
+          });
+          monitoring = pkgs.testers.runNixOSTest (import ./tests/monitoring.nix {
+            lib = nixos-unstable.lib;
+            inherit network inputs;
+            nixpkgs = nixos-2511;
             allModule = all;
           });
         };
