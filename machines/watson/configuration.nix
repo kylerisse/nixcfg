@@ -15,6 +15,7 @@ in
     enable = true;
     autoGC = false;
   };
+  mynixcfg.alloy.enable = true;
   imports =
     [
       ./hardware-configuration.nix
