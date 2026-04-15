@@ -46,8 +46,15 @@ in
           {
             name = "Mimir";
             type = "prometheus";
+            uid = "PAE45454D0EDB9216";
             url = cfg.mimirUrl;
             isDefault = true;
+          }
+        ];
+        dashboards.settings.providers = [
+          {
+            name = "default";
+            options.path = ./dashboards;
           }
         ];
       };

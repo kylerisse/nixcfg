@@ -27,7 +27,7 @@ in
   mynixcfg.alloy = {
     enable = true;
     remoteWriteUrl = "http://127.0.0.1:3200/api/v1/push";
-    scrapeTargets = [ "ap1.risse.tv:9100" "ap2.risse.tv:9100" ];
+    apTargets = [ "ap1.risse.tv:9100" "ap2.risse.tv:9100" ];
   };
   mynixcfg.scale-simulator.enable = true;
   mynixcfg.scale-signs = {

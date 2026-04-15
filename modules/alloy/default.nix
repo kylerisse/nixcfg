@@ -6,18 +6,28 @@
 let
   cfg = config.mynixcfg.alloy;
 
-  scrapeTargetsList = lib.concatMapStringsSep ",\n    "
-    (t:
-      ''{"__address__" = "${t}"}''
-    )
-    cfg.scrapeTargets;
+  mkTargetsList = targets: lib.concatMapStringsSep ",\n      "
+    (t: ''{"__address__" = "${t}"}'')
+    targets;
 
-  scrapeTargetsBlock = lib.optionalString (cfg.scrapeTargets != [ ]) ''
+  apScrapeBlock = lib.optionalString (cfg.apTargets != [ ]) ''
 
-    prometheus.scrape "additional_targets" {
+    discovery.relabel "aps" {
       targets = [
-        ${scrapeTargetsList},
+        ${mkTargetsList cfg.apTargets},
       ]
+
+      rule {
+        source_labels = ["__address__"]
+        regex         = "([^.]+)\\..*"
+        target_label  = "instance"
+        replacement   = "$1"
+      }
+    }
+
+    prometheus.scrape "aps" {
+      targets    = discovery.relabel.aps.output
+      job_name   = "aps"
       forward_to = [prometheus.remote_write.mimir.receiver]
       scrape_interval = "15s"
     }
@@ -28,7 +38,8 @@ let
     }
 
     prometheus.scrape "local" {
-      targets = prometheus.exporter.unix.local.targets
+      targets  = prometheus.exporter.unix.local.targets
+      job_name = "integrations/unix"
       forward_to = [prometheus.remote_write.mimir.receiver]
       scrape_interval = "15s"
     }
@@ -41,7 +52,7 @@ let
         url = "${cfg.remoteWriteUrl}"
       }
     }
-    ${scrapeTargetsBlock}
+    ${apScrapeBlock}
   '';
 in
 {
@@ -59,10 +70,10 @@ in
       default = "http://qube.risse.tv:3200/api/v1/push";
     };
 
-    scrapeTargets = lib.mkOption {
+    apTargets = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
-      description = "Additional host:port targets to scrape (e.g. ap1.risse.tv:9100)";
+      description = "AP host:port targets to scrape with job=aps";
     };
   };
 
