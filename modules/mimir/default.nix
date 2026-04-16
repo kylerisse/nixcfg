@@ -57,7 +57,5 @@ in
         };
       };
     };
-
-    networking.firewall.allowedTCPPorts = [ cfg.httpListenPort ];
   };
 }

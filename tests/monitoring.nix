@@ -23,7 +23,7 @@
         remoteWriteUrl = "http://127.0.0.1:3200/api/v1/push";
       };
 
-      networking.firewall.allowedTCPPorts = [ 3000 ];
+      networking.firewall.allowedTCPPorts = [ 3000 3200 ];
 
       virtualisation = {
         memorySize = 1024;

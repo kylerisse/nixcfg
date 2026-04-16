@@ -67,7 +67,7 @@ in
 
     remoteWriteUrl = lib.mkOption {
       type = lib.types.str;
-      default = "http://qube.risse.tv:3200/api/v1/push";
+      default = "https://telemetry.risse.tv/mimir/api/v1/push";
     };
 
     apTargets = lib.mkOption {
