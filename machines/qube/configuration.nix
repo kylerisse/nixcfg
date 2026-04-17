@@ -20,6 +20,7 @@ in
     hostFile = "${./wasgeht-hosts.json}";
   };
   mynixcfg.mimir.enable = true;
+  mynixcfg.tempo.enable = true;
   mynixcfg.grafana = {
     enable = true;
     secretKeyFile = "/etc/grafana/secret-key";
@@ -87,6 +88,20 @@ in
           extraConfig = ''
             proxy_set_header Host $host;
           '';
+        };
+      };
+      "telemetry.risse.tv" = {
+        forceSSL = true;
+        enableACME = true;
+        acmeRoot = null;
+        locations."/mimir/" = {
+          proxyPass = "http://127.0.0.1:3200/";
+          extraConfig = ''
+            client_max_body_size 10m;
+          '';
+        };
+        locations."/otlp/" = {
+          proxyPass = "http://127.0.0.1:4418/";
         };
       };
     };

@@ -15,7 +15,10 @@ in
     enable = true;
     autoGC = false;
   };
-  mynixcfg.alloy.enable = true;
+  mynixcfg.alloy = {
+    enable = true;
+    enableTracing = true;
+  };
   imports =
     [
       ./hardware-configuration.nix
