@@ -24,6 +24,11 @@ in
       default = "http://127.0.0.1:3200/prometheus";
     };
 
+    tempoUrl = lib.mkOption {
+      type = lib.types.str;
+      default = "http://127.0.0.1:4410";
+    };
+
     secretKeyFile = lib.mkOption {
       type = lib.types.str;
       description = "Path to file containing the Grafana secret key";
@@ -34,6 +39,7 @@ in
     services.grafana = {
       enable = true;
       settings.security.secret_key = "$__file{${cfg.secretKeyFile}}";
+      settings."plugin.tempo".enabled = true;
       settings.server = {
         domain = cfg.domain;
         http_addr = "127.0.0.1";
@@ -49,6 +55,15 @@ in
             uid = "PAE45454D0EDB9216";
             url = cfg.mimirUrl;
             isDefault = true;
+          }
+          {
+            name = "Tempo";
+            type = "tempo";
+            uid = "tempo";
+            url = cfg.tempoUrl;
+            jsonData = {
+              httpMethod = "GET";
+            };
           }
         ];
         dashboards.settings.providers = [

@@ -69,6 +69,7 @@
             ./modules/mimir
             ./modules/grafana
             ./modules/alloy
+            ./modules/tempo
           ];
         });
       darwinAll =
