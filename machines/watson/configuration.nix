@@ -92,8 +92,9 @@ in
     LC_TIME = "en_US.UTF-8";
   };
 
-  services.desktopManager.gnome.enable = true;
-  services.displayManager.gdm.enable = true;
+  services.xserver.enable = true;
+  services.xserver.desktopManager.cinnamon.enable = true;
+  services.xserver.displayManager.lightdm.enable = true;
 
   services.printing.enable = true;
 
@@ -171,31 +172,6 @@ in
       in
       stablePackages ++ unstablePackages ++ masterPackages ++ nodePackages ++ selfPackages;
   };
-
-  environment.gnome.excludePackages = (with pkgs; [
-    baobab
-    epiphany
-    gnome-text-editor
-    # gnome-calculator
-    gnome-calendar
-    # gnome-characters
-    gnome-clocks
-    gnome-console
-    gnome-contacts
-    # gnome-font-viewer
-    gnome-logs
-    gnome-maps
-    gnome-music
-    gnome-system-monitor
-    gnome-weather
-    loupe
-    # nautilus
-    gnome-connections
-    simple-scan
-    snapshot
-    totem
-    yelp
-  ]);
 
   environment.systemPackages =
     let
