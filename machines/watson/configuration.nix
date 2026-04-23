@@ -207,15 +207,20 @@ in
 
   mynixcfg.ssh-server.enable = true;
 
+  nixpkgs.config.cudaCapabilities = [ "6.1" ];
+
   services.ollama = {
     enable = true;
     loadModels = [
-      "llama3.3:latest"
-      "gemma2:latest"
+      "gemma3:1b"
+      "llama3.2:1b"
+      "qwen2.5-coder:3b"
+      "qwen3:1.7b"
     ];
-    acceleration = false;
+    acceleration = "cuda";
     environmentVariables = {
-      OLLAMA_LLM_LIBRARY = "cpu";
+      OLLAMA_NUM_PARALLEL = "1";
+      OLLAMA_MAX_LOADED_MODELS = "1";
     };
   };
   services.open-webui = {
