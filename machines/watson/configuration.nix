@@ -19,6 +19,7 @@ in
     enable = true;
     enableTracing = true;
   };
+  mynixcfg.nvidia-fan-curve.enable = true;
   imports =
     [
       ./hardware-configuration.nix
