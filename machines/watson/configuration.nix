@@ -18,6 +18,7 @@ in
   mynixcfg.alloy = {
     enable = true;
     enableTracing = true;
+    enableNvidiaGpu = true;
   };
   mynixcfg.nvidia-fan-curve.enable = true;
   imports =
