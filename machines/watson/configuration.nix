@@ -76,6 +76,7 @@ in
     dconf.enable = true;
     virt-manager.enable = true;
   };
+  boot.kernelParams = [ "pcie_aspm=off" ];
   boot.extraModprobeConfig = "options kvm_amd nested=1";
 
   time.timeZone = "America/Los_Angeles";
@@ -208,15 +209,23 @@ in
 
   mynixcfg.ssh-server.enable = true;
 
-  nixpkgs.config.cudaCapabilities = [ "6.1" ];
-
   services.ollama = {
     enable = true;
     loadModels = [
-      "gemma3:1b"
-      "llama3.2:1b"
-      "qwen2.5-coder:3b"
-      "qwen3:1.7b"
+      # multimodal (vision + text)
+      "gemma3:12b" # ~8GB
+      "llama3.2-vision:11b" # ~8GB
+      # coding
+      "codegemma:7b" # ~5GB
+      "granite-code:8b" # ~5GB
+      # reasoning / general purpose
+      "phi4:14b" # ~9GB
+      # general purpose
+      "mistral:7b" # ~4GB
+      "llama3.1:8b" # ~5GB
+      # lightweight general purpose
+      "phi4-mini:3.8b" # ~2.5GB
+      "gemma3:4b" # ~3GB
     ];
     acceleration = "cuda";
     environmentVariables = {
