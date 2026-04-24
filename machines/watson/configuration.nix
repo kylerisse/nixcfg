@@ -51,15 +51,21 @@ in
     networks = {
       "20-enp8s0" = {
         matchConfig.Name = "enp8s0";
-        networkConfig.Bridge = "br0";
+        networkConfig = {
+          Bridge = "br0";
+          DHCP = "no";
+          LinkLocalAddressing = "no";
+        };
         linkConfig.RequiredForOnline = "enslaved";
       };
       "30-br0" = {
         matchConfig.Name = "br0";
         enable = true;
-        networkConfig.DHCP = "yes";
+        networkConfig = {
+          DHCP = "yes";
+          DNSDefaultRoute = true;
+        };
         linkConfig.RequiredForOnline = "routable";
-        # TODO: why doesn't this work when sent via DHCP?
         domains = [ "risse.tv" ];
       };
     };
