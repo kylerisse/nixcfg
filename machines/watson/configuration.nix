@@ -18,7 +18,9 @@ in
   mynixcfg.alloy = {
     enable = true;
     enableTracing = true;
+    enableNvidiaGpu = true;
   };
+  mynixcfg.nvidia-fan-curve.enable = true;
   imports =
     [
       ./hardware-configuration.nix
@@ -49,15 +51,21 @@ in
     networks = {
       "20-enp8s0" = {
         matchConfig.Name = "enp8s0";
-        networkConfig.Bridge = "br0";
+        networkConfig = {
+          Bridge = "br0";
+          DHCP = "no";
+          LinkLocalAddressing = "no";
+        };
         linkConfig.RequiredForOnline = "enslaved";
       };
       "30-br0" = {
         matchConfig.Name = "br0";
         enable = true;
-        networkConfig.DHCP = "yes";
+        networkConfig = {
+          DHCP = "yes";
+          DNSDefaultRoute = true;
+        };
         linkConfig.RequiredForOnline = "routable";
-        # TODO: why doesn't this work when sent via DHCP?
         domains = [ "risse.tv" ];
       };
     };
@@ -74,6 +82,7 @@ in
     dconf.enable = true;
     virt-manager.enable = true;
   };
+  boot.kernelParams = [ "pcie_aspm=off" ];
   boot.extraModprobeConfig = "options kvm_amd nested=1";
 
   time.timeZone = "America/Los_Angeles";
@@ -92,8 +101,9 @@ in
     LC_TIME = "en_US.UTF-8";
   };
 
-  services.desktopManager.gnome.enable = true;
-  services.displayManager.gdm.enable = true;
+  services.xserver.enable = true;
+  services.xserver.desktopManager.cinnamon.enable = true;
+  services.xserver.displayManager.lightdm.enable = true;
 
   services.printing.enable = true;
 
@@ -172,31 +182,6 @@ in
       stablePackages ++ unstablePackages ++ masterPackages ++ nodePackages ++ selfPackages;
   };
 
-  environment.gnome.excludePackages = (with pkgs; [
-    baobab
-    epiphany
-    gnome-text-editor
-    # gnome-calculator
-    gnome-calendar
-    # gnome-characters
-    gnome-clocks
-    gnome-console
-    gnome-contacts
-    # gnome-font-viewer
-    gnome-logs
-    gnome-maps
-    gnome-music
-    gnome-system-monitor
-    gnome-weather
-    loupe
-    # nautilus
-    gnome-connections
-    simple-scan
-    snapshot
-    totem
-    yelp
-  ]);
-
   environment.systemPackages =
     let
       basePackages = with pkgs; [
@@ -233,12 +218,25 @@ in
   services.ollama = {
     enable = true;
     loadModels = [
-      "llama3.3:latest"
-      "gemma2:latest"
+      # multimodal (vision + text)
+      "gemma3:12b" # ~8GB
+      "llama3.2-vision:11b" # ~8GB
+      # coding
+      "codegemma:7b" # ~5GB
+      "granite-code:8b" # ~5GB
+      # reasoning / general purpose
+      "phi4:14b" # ~9GB
+      # general purpose
+      "mistral:7b" # ~4GB
+      "llama3.1:8b" # ~5GB
+      # lightweight general purpose
+      "phi4-mini:3.8b" # ~2.5GB
+      "gemma3:4b" # ~3GB
     ];
-    acceleration = false;
+    acceleration = "cuda";
     environmentVariables = {
-      OLLAMA_LLM_LIBRARY = "cpu";
+      OLLAMA_NUM_PARALLEL = "1";
+      OLLAMA_MAX_LOADED_MODELS = "1";
     };
   };
   services.open-webui = {

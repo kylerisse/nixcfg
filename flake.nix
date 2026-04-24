@@ -70,6 +70,7 @@
             ./modules/grafana
             ./modules/alloy
             ./modules/tempo
+            ./modules/nvidia-fan-curve
           ];
         });
       darwinAll =

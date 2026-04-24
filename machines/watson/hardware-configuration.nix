@@ -61,9 +61,21 @@
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
+    extraPackages = with pkgs; [
+      nvidia-vaapi-driver
+    ];
   };
 
   services.xserver.videoDrivers = [ "nvidia" ];
-  hardware.nvidia.open = false;
-  hardware.nvidia.modesetting.enable = true;
+  services.xserver.screenSection = ''
+    Option "Coolbits" "4"
+  '';
+  hardware.nvidia = {
+    open = true;
+    modesetting.enable = true;
+    nvidiaSettings = true;
+    nvidiaPersistenced = true;
+    powerManagement.enable = false;
+    powerManagement.finegrained = false;
+  };
 }

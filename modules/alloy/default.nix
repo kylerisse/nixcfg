@@ -10,6 +10,16 @@ let
     (t: ''{"__address__" = "${t}"}'')
     targets;
 
+  nvidiaGpuBlock = lib.optionalString cfg.enableNvidiaGpu ''
+
+    prometheus.scrape "nvidia_gpu" {
+      targets  = [{"__address__" = "127.0.0.1:${toString cfg.nvidiaGpuPort}"}]
+      job_name = "integrations/nvidia-gpu"
+      forward_to = [prometheus.remote_write.mimir.receiver]
+      scrape_interval = "15s"
+    }
+  '';
+
   tracingBlock = lib.optionalString cfg.enableTracing ''
 
     otelcol.receiver.otlp "default" {
@@ -80,6 +90,7 @@ let
       }
     }
     ${apScrapeBlock}
+    ${nvidiaGpuBlock}
     ${tracingBlock}
   '';
 in
@@ -104,6 +115,14 @@ in
       description = "AP host:port targets to scrape with job=aps";
     };
 
+    enableNvidiaGpu = lib.mkEnableOption "NVIDIA GPU metrics via prometheus-nvidia-gpu-exporter";
+
+    nvidiaGpuPort = lib.mkOption {
+      type = lib.types.int;
+      default = 9835;
+      description = "Port for the NVIDIA GPU exporter";
+    };
+
     enableTracing = lib.mkEnableOption "OTLP receiver for traces and metrics fan-out";
 
     traceEndpointUrl = lib.mkOption {
@@ -113,10 +132,26 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    services.alloy = {
-      enable = true;
-      configPath = alloyConfig;
-    };
-  };
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
+      services.alloy = {
+        enable = true;
+        configPath = alloyConfig;
+      };
+    }
+
+    (lib.mkIf cfg.enableNvidiaGpu {
+      systemd.services.prometheus-nvidia-gpu-exporter = {
+        description = "NVIDIA GPU Prometheus exporter";
+        after = [ "network.target" ];
+        wantedBy = [ "multi-user.target" ];
+        serviceConfig = {
+          ExecStart = "${pkgs.prometheus-nvidia-gpu-exporter}/bin/nvidia_gpu_exporter --web.listen-address=127.0.0.1:${toString cfg.nvidiaGpuPort}";
+          Restart = "on-failure";
+          RestartSec = 5;
+        };
+        path = [ config.hardware.nvidia.package.bin ];
+      };
+    })
+  ]);
 }
