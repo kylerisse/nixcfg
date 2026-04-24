@@ -47,24 +47,23 @@ let
       temp=$($NVIDIA_SMI --query-gpu=temperature.gpu --format=csv,noheader,nounits)
       speed=$(get_target_speed "$temp")
 
-      if (( temp < 45 )); then
-        # below 45C, disable manual control and let GPU handle fans (fans off)
-        if (( MANUAL_CONTROL == 1 )); then
-          $NVIDIA_SETTINGS -c "$DISPLAY" -a "[gpu:0]/GPUFanControlState=0" > /dev/null 2>&1
-          MANUAL_CONTROL=0
-          LAST_SPEED=-1
-        fi
-      else
-        # at or above 45C, enable manual control and set fan speed
-        if (( MANUAL_CONTROL == 0 )); then
-          $NVIDIA_SETTINGS -c "$DISPLAY" -a "[gpu:0]/GPUFanControlState=1" > /dev/null 2>&1
-          MANUAL_CONTROL=1
-        fi
-        if (( speed != LAST_SPEED )); then
-          $NVIDIA_SETTINGS -c "$DISPLAY" -a "[fan:0]/GPUTargetFanSpeed=$speed" > /dev/null 2>&1
-          $NVIDIA_SETTINGS -c "$DISPLAY" -a "[fan:1]/GPUTargetFanSpeed=$speed" > /dev/null 2>&1
-          LAST_SPEED=$speed
-        fi
+      if (( MANUAL_CONTROL == 1 && temp < CURVE_TEMPS[0] )); then
+        # below lowest curve temp, disable manual control (hysteresis: off at 40C)
+        $NVIDIA_SETTINGS -c "$DISPLAY" -a "[gpu:0]/GPUFanControlState=0" > /dev/null 2>&1
+        MANUAL_CONTROL=0
+        LAST_SPEED=-1
+      elif (( MANUAL_CONTROL == 0 && temp >= CURVE_TEMPS[1] )); then
+        # at or above second curve point, enable manual control (hysteresis: on at 45C)
+        $NVIDIA_SETTINGS -c "$DISPLAY" -a "[gpu:0]/GPUFanControlState=1" > /dev/null 2>&1
+        MANUAL_CONTROL=1
+        $NVIDIA_SETTINGS -c "$DISPLAY" -a "[fan:0]/GPUTargetFanSpeed=$speed" > /dev/null 2>&1
+        $NVIDIA_SETTINGS -c "$DISPLAY" -a "[fan:1]/GPUTargetFanSpeed=$speed" > /dev/null 2>&1
+        LAST_SPEED=$speed
+      elif (( MANUAL_CONTROL == 1 && speed != LAST_SPEED )); then
+        # already in manual control, adjust speed if it changed
+        $NVIDIA_SETTINGS -c "$DISPLAY" -a "[fan:0]/GPUTargetFanSpeed=$speed" > /dev/null 2>&1
+        $NVIDIA_SETTINGS -c "$DISPLAY" -a "[fan:1]/GPUTargetFanSpeed=$speed" > /dev/null 2>&1
+        LAST_SPEED=$speed
       fi
 
       fan0_rpm=$($NVIDIA_SETTINGS -c "$DISPLAY" -t -q "[fan:0]/GPUCurrentFanSpeedRPM" 2>/dev/null)
@@ -99,13 +98,13 @@ in
     curve = {
       temps = lib.mkOption {
         type = lib.types.listOf lib.types.int;
-        default = [ 40 45 80 ];
+        default = [ 37 48 65 80 ];
         description = "Temperature thresholds in Celsius (must be same length as speeds)";
       };
 
       speeds = lib.mkOption {
         type = lib.types.listOf lib.types.int;
-        default = [ 30 45 100 ];
+        default = [ 50 65 80 100 ];
         description = "Fan speed percentages corresponding to each temperature threshold";
       };
     };
