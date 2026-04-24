@@ -49,8 +49,8 @@ in
       Name = "br0";
     };
     networks = {
-      "20-enp8s0" = {
-        matchConfig.Name = "enp8s0";
+      "20-enp5s0" = {
+        matchConfig.Name = "enp5s0";
         networkConfig = {
           Bridge = "br0";
           DHCP = "no";
