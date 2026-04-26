@@ -188,6 +188,7 @@
           doImage = images.doImage.config.system.build.digitalOceanImage;
           installerISO = images.installerImage.config.system.build.isoImage;
           docket-unstable = pkgs.callPackage ./pkgs/docket-unstable { };
+          sdl-ss-inhibitors = pkgs.callPackage ./pkgs/sdl-ss-inhibitors { };
           wasgeht = pkgs.callPackage ./pkgs/wasgeht { };
           wasgeht-unstable = pkgs.callPackage ./pkgs/wasgeht-unstable { };
         };
