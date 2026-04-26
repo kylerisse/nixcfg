@@ -98,13 +98,13 @@ in
     curve = {
       temps = lib.mkOption {
         type = lib.types.listOf lib.types.int;
-        default = [ 37 48 65 80 ];
+        default = [ 36 49 75 ];
         description = "Temperature thresholds in Celsius (must be same length as speeds)";
       };
 
       speeds = lib.mkOption {
         type = lib.types.listOf lib.types.int;
-        default = [ 50 65 80 100 ];
+        default = [ 50 50 100 ];
         description = "Fan speed percentages corresponding to each temperature threshold";
       };
     };
