@@ -178,6 +178,7 @@ in
         selfPackages = [
           inputs.self.packages.x86_64-linux.docket-unstable
           inputs.self.packages.x86_64-linux.sdl-ss-inhibitors
+          inputs.self.packages.x86_64-linux.sdl-ss-inhibitors-tray
         ];
       in
       stablePackages ++ unstablePackages ++ masterPackages ++ nodePackages ++ selfPackages;
