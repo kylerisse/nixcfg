@@ -131,6 +131,7 @@
             projectRootFile = "flake.nix";
             programs.nixpkgs-fmt.enable = true;
             programs.prettier.enable = true;
+            programs.ruff.format = true;
           };
         in
         treefmtEval.config.build.wrapper);
