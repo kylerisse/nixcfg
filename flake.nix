@@ -131,6 +131,7 @@
             projectRootFile = "flake.nix";
             programs.nixpkgs-fmt.enable = true;
             programs.prettier.enable = true;
+            programs.ruff.format = true;
           };
         in
         treefmtEval.config.build.wrapper);
@@ -187,6 +188,8 @@
           doImage = images.doImage.config.system.build.digitalOceanImage;
           installerISO = images.installerImage.config.system.build.isoImage;
           docket-unstable = pkgs.callPackage ./pkgs/docket-unstable { };
+          sdl-ss-inhibitors = pkgs.callPackage ./pkgs/sdl-ss-inhibitors { };
+          sdl-ss-inhibitors-tray = pkgs.callPackage ./pkgs/sdl-ss-inhibitors-tray { };
           wasgeht = pkgs.callPackage ./pkgs/wasgeht { };
           wasgeht-unstable = pkgs.callPackage ./pkgs/wasgeht-unstable { };
         };
