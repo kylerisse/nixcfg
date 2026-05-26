@@ -248,6 +248,7 @@
           ];
         };
         watson = mkSystem {
+          nixpkgs = nixos-2605;
           modules = [
             all
             ./machines/watson/configuration.nix

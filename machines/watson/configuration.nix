@@ -131,6 +131,7 @@ in
           bitwarden-desktop
           brave
           chezmoi
+          cspell
           curl
           direnv
           firefox
@@ -140,9 +141,11 @@ in
           icdiff
           jq
           libressl
+          markdownlint-cli
           nixpkgs-fmt
           openssh
           podman-compose
+          prettier
           silver-searcher
           vim
           virt-manager
@@ -169,19 +172,13 @@ in
           claude-code
         ];
 
-        nodePackages = with pkgs.nodePackages; [
-          cspell
-          markdownlint-cli
-          prettier
-        ];
-
         selfPackages = [
           inputs.self.packages.x86_64-linux.docket-unstable
           inputs.self.packages.x86_64-linux.sdl-ss-inhibitors
           inputs.self.packages.x86_64-linux.sdl-ss-inhibitors-tray
         ];
       in
-      stablePackages ++ unstablePackages ++ masterPackages ++ nodePackages ++ selfPackages;
+      stablePackages ++ unstablePackages ++ masterPackages ++ selfPackages;
   };
 
   environment.systemPackages =
@@ -219,6 +216,7 @@ in
 
   services.ollama = {
     enable = true;
+    package = pkgs.ollama-cuda;
     loadModels = [
       # multimodal (vision + text)
       "gemma3:12b" # ~8GB
@@ -235,7 +233,6 @@ in
       "phi4-mini:3.8b" # ~2.5GB
       "gemma3:4b" # ~3GB
     ];
-    acceleration = "cuda";
     environmentVariables = {
       OLLAMA_NUM_PARALLEL = "1";
       OLLAMA_MAX_LOADED_MODELS = "1";
