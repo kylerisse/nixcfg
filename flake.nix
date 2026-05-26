@@ -5,6 +5,7 @@
     # linux
     nixos-2411.url = "github:nixos/nixpkgs/nixos-24.11?shallow=1";
     nixos-2511.url = "github:nixos/nixpkgs/nixos-25.11?shallow=1";
+    nixos-2605.url = "github:nixos/nixpkgs/nixos-26.05?shallow=1";
     nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable?shallow=1";
     nixos-master.url = "github:nixos/nixpkgs/master?shallow=1";
     nixos-hardware.url = "github:nixos/nixos-hardware?shallow=1";
@@ -27,6 +28,7 @@
     inputs@{ self
     , nixos-2411
     , nixos-2511
+    , nixos-2605
     , nixos-unstable
     , nixos-master
     , nixos-hardware
