@@ -257,7 +257,7 @@ in
   # homebrew (requires homebrew installed outside of nix)
   # /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   environment.shellInit = mkIf brewEnabled ''
-    eval "$(${config.homebrew.prefix}/brew shellenv)"
+    eval "$(${config.homebrew.prefix}/bin/brew shellenv)"
   '';
 
   # https://docs.brew.sh/Shell-Completion#configuring-completions-in-fish
