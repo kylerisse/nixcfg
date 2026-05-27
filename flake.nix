@@ -163,13 +163,13 @@
         {
           pi3Image = (images.piImage.extendModules {
             modules = [
-              "${nixos-2511}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+              "${nixos-2605}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
               nixos-hardware.nixosModules.raspberry-pi-3
             ];
           }).config.system.build.sdImage;
           pi4Image = (images.piImage.extendModules {
             modules = [
-              "${nixos-2511}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+              "${nixos-2605}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
               nixos-hardware.nixosModules.raspberry-pi-4
             ];
           }).config.system.build.sdImage;
@@ -211,6 +211,7 @@
       };
       nixosConfigurations = {
         pi3 = mkSystem {
+          nixpkgs = nixos-2605;
           system = "aarch64-linux";
           modules = [
             all
@@ -220,6 +221,7 @@
           extraSpecialArgs = { hostname = "pi3"; };
         };
         pi4 = mkSystem {
+          nixpkgs = nixos-2605;
           system = "aarch64-linux";
           modules = [
             all
