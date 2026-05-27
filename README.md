@@ -45,6 +45,8 @@
         ├───openwrt-archer-c7-v2: package 'openwrt-archer-c7-v2-23.05.5'
         ├───openwrt-one: package 'openwrt-one-25.12.0'
         ├───parrot-htb-iso: package 'ParrotOS_HTB_ISO-7.1'
+        ├───sdl-ss-inhibitors: package 'sdl-ss-inhibitors'
+        ├───sdl-ss-inhibitors-tray: package 'sdl-ss-inhibitors-tray'
         ├───wasgeht: package 'wasgeht-0.3.0'
         └───wasgeht-unstable: package 'wasgeht-unstable'
 ```
