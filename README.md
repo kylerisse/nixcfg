@@ -8,7 +8,8 @@
 │   └───zugzug: m2 MBP
 ├───checks
 │   └───x86_64-linux
-│       └───galleta: derivation 'vm-test-run-galleta'
+│       ├───galleta: derivation 'vm-test-run-galleta'
+│       └───monitoring: derivation 'vm-test-run-monitoring'
 ├───devShells: development environment 'nix-shell'
 ├───formatter: package 'treefmt'
 ├───nixosConfigurations
