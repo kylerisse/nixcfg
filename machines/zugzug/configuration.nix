@@ -196,8 +196,8 @@ in
     libressl
     netcat
     nixpkgs-fmt
-    nodePackages.cspell
-    nodePackages_latest.markdownlint-cli
+    cspell
+    markdownlint-cli
     nmap
     openssh
     podman
@@ -257,7 +257,7 @@ in
   # homebrew (requires homebrew installed outside of nix)
   # /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   environment.shellInit = mkIf brewEnabled ''
-    eval "$(${config.homebrew.brewPrefix}/brew shellenv)"
+    eval "$(${config.homebrew.prefix}/brew shellenv)"
   '';
 
   # https://docs.brew.sh/Shell-Completion#configuring-completions-in-fish
