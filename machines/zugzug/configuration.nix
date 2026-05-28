@@ -7,6 +7,19 @@ let
     "system" = "aarch64-darwin";
     config = { allowUnfree = true; };
   };
+  ollamaModels = [ "gemma4:31b-mlx" ];
+  ollamaPullScript = pkgs.writeShellScript "ollama-pull-models" ''
+    max_attempts=24
+    attempt=0
+    until ${config.homebrew.prefix}/bin/ollama list > /dev/null 2>&1; do
+      attempt=$((attempt + 1))
+      if [ "$attempt" -ge "$max_attempts" ]; then
+        exit 1
+      fi
+      sleep 5
+    done
+    ${lib.concatMapStringsSep "\n" (model: "${config.homebrew.prefix}/bin/ollama pull ${lib.escapeShellArg model}") ollamaModels}
+  '';
 in
 {
   mynixcfg.nix-common = {
@@ -257,7 +270,7 @@ in
   # homebrew (requires homebrew installed outside of nix)
   # /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   environment.shellInit = mkIf brewEnabled ''
-    eval "$(${config.homebrew.prefix}/brew shellenv)"
+    eval "$(${config.homebrew.prefix}/bin/brew shellenv)"
   '';
 
   # https://docs.brew.sh/Shell-Completion#configuring-completions-in-fish
@@ -291,11 +304,33 @@ in
   ];
 
   # the nixpkgs version of helm doesn't currently support aarch64-darwin
+  # using ollama from homebrew instead of nixpkgs for mlx support
   # vfkit work around from https://github.com/kevinmichaelchen/dotfiles/commit/ec3438f259f6f1b4e4de4b0ef3bee1308cf85128
   homebrew.brews = [
     "helm"
+    "ollama"
     "vfkit"
   ];
+
+  launchd.user.agents.ollama = {
+    serviceConfig = {
+      ProgramArguments = [ "${config.homebrew.prefix}/bin/ollama" "serve" ];
+      RunAtLoad = true;
+      KeepAlive = true;
+      StandardOutPath = "/tmp/ollama.log";
+      StandardErrorPath = "/tmp/ollama.log";
+    };
+  };
+
+  launchd.user.agents.ollama-pull-models = {
+    serviceConfig = {
+      ProgramArguments = [ "${ollamaPullScript}" ];
+      RunAtLoad = true;
+      KeepAlive = { SuccessfulExit = false; };
+      StandardOutPath = "/tmp/ollama-pull.log";
+      StandardErrorPath = "/tmp/ollama-pull.log";
+    };
+  };
 
   system.stateVersion = 4;
 }
