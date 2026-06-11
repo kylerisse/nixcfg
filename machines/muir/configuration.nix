@@ -118,6 +118,7 @@ in
       btop
       chezmoi
       pkgs-master.claude-code
+      cspell
       curl
       cyberchef
       dig
@@ -142,12 +143,10 @@ in
       kubectl
       kubectx
       libressl
-      mudlet
+      markdownlint-cli
       netcat
       nixpkgs-fmt
       nmap
-      nodePackages.cspell
-      nodePackages_latest.markdownlint-cli
       openssh
       podman-compose
       python3

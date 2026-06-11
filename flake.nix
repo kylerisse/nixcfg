@@ -253,6 +253,7 @@
           ];
         };
         muir = mkSystem {
+          nixpkgs = nixos-2605;
           modules = [
             all
             nixos-hardware.nixosModules.lenovo-thinkpad-t490
