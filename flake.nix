@@ -290,10 +290,6 @@
           modules = [ all ./machines/watson/guests/kube-api-cluster.nix ];
           extraSpecialArgs = { hostname = "k8s-worker2"; };
         };
-        db = mkSystem {
-          modules = [ all ./machines/watson/guests/db.nix ];
-          extraSpecialArgs = { hostname = "db"; };
-        };
       };
     };
 }
