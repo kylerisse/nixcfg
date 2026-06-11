@@ -265,6 +265,7 @@
           ];
         };
         qube = mkSystem {
+          nixpkgs = nixos-2605;
           modules = [
             all
             ./machines/qube/configuration.nix

@@ -82,7 +82,7 @@ test-galleta:
 	nix run .#checks.x86_64-linux.galleta.driver
 
 test-monitoring:
-	nix build -L .#checks.x86_64-linux.monitoring
+	nix run .#checks.x86_64-linux.monitoring.driver
 
 check:
 	nix flake check
