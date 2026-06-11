@@ -30,7 +30,6 @@ test-all-x86-nixos:
 	nix build -L .#nixosConfigurations.gibson.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.muir.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.qube.config.system.build.toplevel
-	nix build -L .#nixosConfigurations.riviera.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.watson.config.system.build.toplevel
 
 test-all-nixos: lint check test-all-arm-nixos build-x86-pkgs test-all-x86-nixos test-galleta test-monitoring

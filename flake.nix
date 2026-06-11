@@ -265,12 +265,6 @@
             ./machines/qube/configuration.nix
           ];
         };
-        riviera = mkSystem {
-          modules = [
-            nixos-hardware.nixosModules.lenovo-thinkpad-t490
-            ./machines/riviera/configuration.nix
-          ];
-        };
       };
     };
 }

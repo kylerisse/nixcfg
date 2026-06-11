@@ -19,7 +19,6 @@
 │   ├───pi3: Raspberry Pi3
 │   ├───pi4: Raspberry Pi4
 │   ├───qube: Intel NUC
-│   ├───riviera: T490 laptop (DC32)
 │   └───watson: Ryzen Desktop
 └───packages
     ├───aarch64-darwin
