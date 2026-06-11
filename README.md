@@ -22,9 +22,6 @@
 │   ├───qube: Intel NUC
 │   ├───riviera: T490 laptop (DC32)
 │   └───watson: Ryzen Desktop
-│       ├───k8s-master: Kubernetes master development
-│       ├───k8s-worker1: Kubernetes worker development
-│       └───k8s-worker2: Kubernetes worker development
 └───packages
     ├───aarch64-darwin
     │   ├───docket-unstable: package 'docket-unstable'

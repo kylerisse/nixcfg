@@ -29,9 +29,6 @@ test-all-x86-nixos:
 	nix build -L .#nixosConfigurations.dev-router.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.galleta.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.gibson.config.system.build.toplevel
-	nix build -L .#nixosConfigurations.k8s-master.config.system.build.toplevel
-	nix build -L .#nixosConfigurations.k8s-worker1.config.system.build.toplevel
-	nix build -L .#nixosConfigurations.k8s-worker2.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.muir.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.qube.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.riviera.config.system.build.toplevel
@@ -55,14 +52,6 @@ deploy-pis:
 	nixos-rebuild --flake .#pi4 --sudo --target-host pi4 boot
 	ssh pi4 'sudo reboot'
 
-deploy-k8s-cluster:
-	nixos-rebuild --flake .#k8s-master --sudo --target-host k8s-master boot
-	ssh k8s-master 'sudo reboot'
-	nixos-rebuild --flake .#k8s-worker1 --sudo --target-host k8s-worker1 boot
-	ssh k8s-worker1 'sudo reboot'
-	nixos-rebuild --flake .#k8s-worker2 --sudo --target-host k8s-worker2 boot
-	ssh k8s-worker2 'sudo reboot'
-
 deploy-gibson:
 	nixos-rebuild --flake .#gibson --sudo --target-host gibson boot
 	ssh gibson 'sudo reboot'
@@ -71,7 +60,7 @@ deploy-galleta: test-galleta
 	nixos-rebuild --flake .#galleta --sudo --target-host galleta boot
 	ssh galleta 'sudo reboot'
 
-deploy-all-nixos: deploy-k8s-cluster deploy-dev-router deploy-qube deploy-pis deploy-gibson deploy-galleta
+deploy-all-nixos: deploy-dev-router deploy-qube deploy-pis deploy-gibson deploy-galleta
 
 test-galleta:
 	nix run .#checks.x86_64-linux.galleta.driver

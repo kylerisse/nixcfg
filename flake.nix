@@ -277,19 +277,6 @@
             ./machines/riviera/configuration.nix
           ];
         };
-        # watson guests
-        k8s-master = mkSystem {
-          modules = [ all ./machines/watson/guests/kube-api-cluster.nix ];
-          extraSpecialArgs = { hostname = "k8s-master"; };
-        };
-        k8s-worker1 = mkSystem {
-          modules = [ all ./machines/watson/guests/kube-api-cluster.nix ];
-          extraSpecialArgs = { hostname = "k8s-worker1"; };
-        };
-        k8s-worker2 = mkSystem {
-          modules = [ all ./machines/watson/guests/kube-api-cluster.nix ];
-          extraSpecialArgs = { hostname = "k8s-worker2"; };
-        };
       };
     };
 }
