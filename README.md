@@ -13,7 +13,6 @@
 ├───devShells: development environment 'nix-shell'
 ├───formatter: package 'treefmt'
 ├───nixosConfigurations
-│   ├───dev-router: router/dhcp/dns development
 │   ├───galleta: Qotom router
 │   ├───gibson: Digital Ocean VPS
 │   ├───muir: T490 laptop

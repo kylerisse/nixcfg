@@ -230,12 +230,6 @@
           ];
           extraSpecialArgs = { hostname = "pi4"; };
         };
-        dev-router = mkSystem {
-          modules = [
-            all
-            ./machines/dev-router/configuration.nix
-          ];
-        };
         galleta = mkSystem {
           nixpkgs = nixos-2605;
           modules = [

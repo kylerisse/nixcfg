@@ -26,7 +26,6 @@ test-all-arm-nixos:
 	nix build -L .#nixosConfigurations.pi4.config.system.build.toplevel
 
 test-all-x86-nixos:
-	nix build -L .#nixosConfigurations.dev-router.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.galleta.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.gibson.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.muir.config.system.build.toplevel
@@ -37,10 +36,6 @@ test-all-x86-nixos:
 test-all-nixos: lint check test-all-arm-nixos build-x86-pkgs test-all-x86-nixos test-galleta test-monitoring
 
 test-all: test-all-images test-all-nixos
-
-deploy-dev-router:
-	nixos-rebuild --flake .#dev-router --sudo --target-host dev-router boot
-	ssh dev-router 'sudo reboot'
 
 deploy-qube: test-monitoring
 	nixos-rebuild --flake .#qube --use-remote-sudo --target-host qube boot
@@ -60,7 +55,7 @@ deploy-galleta: test-galleta
 	nixos-rebuild --flake .#galleta --sudo --target-host galleta boot
 	ssh galleta 'sudo reboot'
 
-deploy-all-nixos: deploy-dev-router deploy-qube deploy-pis deploy-gibson deploy-galleta
+deploy-all-nixos: deploy-qube deploy-pis deploy-gibson deploy-galleta
 
 test-galleta:
 	nix run .#checks.x86_64-linux.galleta.driver
