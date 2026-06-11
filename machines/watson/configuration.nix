@@ -245,10 +245,40 @@ in
       DO_NOT_TRACK = "True";
       SCARF_NO_ANALYTICS = "True";
       OLLAMA_API_BASE_URL = "http://127.0.0.1:11434";
+      WEBUI_URL = "https://ai.risse.tv";
     };
-    host = "0.0.0.0";
-    openFirewall = true;
+    host = "127.0.0.1";
+    port = 3088;
+    openFirewall = false;
   };
+
+  security.acme = {
+    acceptTerms = true;
+    defaults = {
+      email = "kylerisse@users.noreply.github.com";
+      dnsProvider = "route53";
+      environmentFile = "/etc/acme/aws.key";
+      dnsPropagationCheck = true;
+      dnsResolver = "1.1.1.1:53";
+    };
+  };
+
+  services.nginx = {
+    enable = true;
+    recommendedProxySettings = true;
+    recommendedTlsSettings = true;
+    virtualHosts."ai.risse.tv" = {
+      onlySSL = true;
+      enableACME = true;
+      acmeRoot = null;
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:3088/";
+        proxyWebsockets = true;
+      };
+    };
+  };
+
+  networking.firewall.allowedTCPPorts = [ 443 ];
 
   system.stateVersion = "25.11";
 }
