@@ -4,7 +4,6 @@
   inputs = {
     # linux
     nixos-2411.url = "github:nixos/nixpkgs/nixos-24.11?shallow=1";
-    nixos-2511.url = "github:nixos/nixpkgs/nixos-25.11?shallow=1";
     nixos-2605.url = "github:nixos/nixpkgs/nixos-26.05?shallow=1";
     nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable?shallow=1";
     nixos-master.url = "github:nixos/nixpkgs/master?shallow=1";
@@ -27,7 +26,6 @@
   outputs =
     inputs@{ self
     , nixos-2411
-    , nixos-2511
     , nixos-2605
     , nixos-unstable
     , nixos-master
@@ -45,7 +43,7 @@
         inherit system;
       };
       mkSystem =
-        { nixpkgs ? nixos-2511
+        { nixpkgs ? nixos-2605
         , system ? "x86_64-linux"
         , modules
         , extraSpecialArgs ? { }
@@ -122,7 +120,7 @@
           monitoring = pkgs.testers.runNixOSTest (import ./tests/monitoring.nix {
             lib = nixos-unstable.lib;
             inherit network inputs;
-            nixpkgs = nixos-2511;
+            nixpkgs = nixos-2605;
             allModule = all;
           });
         };
@@ -211,7 +209,6 @@
       };
       nixosConfigurations = {
         pi3 = mkSystem {
-          nixpkgs = nixos-2605;
           system = "aarch64-linux";
           modules = [
             all
@@ -221,7 +218,6 @@
           extraSpecialArgs = { hostname = "pi3"; };
         };
         pi4 = mkSystem {
-          nixpkgs = nixos-2605;
           system = "aarch64-linux";
           modules = [
             all
@@ -231,7 +227,6 @@
           extraSpecialArgs = { hostname = "pi4"; };
         };
         galleta = mkSystem {
-          nixpkgs = nixos-2605;
           modules = [
             all
             ./machines/galleta/hardware-configuration.nix
@@ -239,21 +234,18 @@
           ];
         };
         gibson = mkSystem {
-          nixpkgs = nixos-2605;
           modules = [
             all
             ./machines/gibson/configuration.nix
           ];
         };
         watson = mkSystem {
-          nixpkgs = nixos-2605;
           modules = [
             all
             ./machines/watson/configuration.nix
           ];
         };
         muir = mkSystem {
-          nixpkgs = nixos-2605;
           modules = [
             all
             nixos-hardware.nixosModules.lenovo-thinkpad-t490
@@ -261,7 +253,6 @@
           ];
         };
         qube = mkSystem {
-          nixpkgs = nixos-2605;
           modules = [
             all
             ./machines/qube/configuration.nix

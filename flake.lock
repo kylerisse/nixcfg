@@ -37,22 +37,6 @@
         "type": "github"
       }
     },
-    "nixos-2511": {
-      "locked": {
-        "lastModified": 1779467186,
-        "narHash": "sha256-nOesoDCiXcUftqbRBMz9tt4blI5PvljMWbm3kuCA+0s=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "b77b3de8775677f84492abe84635f87b0e153f0f",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "ref": "nixos-25.11",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixos-2605": {
       "locked": {
         "lastModified": 1779622335,
@@ -152,7 +136,6 @@
       "inputs": {
         "nix-darwin": "nix-darwin",
         "nixos-2411": "nixos-2411",
-        "nixos-2511": "nixos-2511",
         "nixos-2605": "nixos-2605",
         "nixos-hardware": "nixos-hardware",
         "nixos-master": "nixos-master",

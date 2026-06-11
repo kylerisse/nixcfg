@@ -83,7 +83,6 @@ bump-flake-darwin:
 
 bump-flake-linux:
 	nix flake update nixos-2411
-	nix flake update nixos-2511
 	nix flake update nixos-2605
 	nix flake update nixos-master
 	nix flake update nixos-unstable
