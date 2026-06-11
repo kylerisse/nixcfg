@@ -73,13 +73,13 @@ deploy-gibson:
 	ssh gibson 'sudo reboot'
 
 deploy-galleta: test-galleta
-	nixos-rebuild --flake .#galleta --use-remote-sudo --target-host galleta boot
+	nixos-rebuild --flake .#galleta --sudo --target-host galleta boot
 	ssh galleta 'sudo reboot'
 
 deploy-all-nixos: deploy-db deploy-k8s-cluster deploy-dev-router deploy-qube deploy-pis deploy-gibson deploy-galleta
 
 test-galleta:
-	nix build -L .#checks.x86_64-linux.galleta
+	nix run .#checks.x86_64-linux.galleta.driver
 
 test-monitoring:
 	nix build -L .#checks.x86_64-linux.monitoring

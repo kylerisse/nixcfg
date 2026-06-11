@@ -115,7 +115,7 @@
           galleta = pkgs.testers.runNixOSTest (import ./tests/galleta.nix {
             lib = nixos-unstable.lib;
             inherit network inputs;
-            nixpkgs = nixos-2511;
+            nixpkgs = nixos-2605;
             galletaConfig = ./machines/galleta/configuration.nix;
             allModule = all;
           });
@@ -237,6 +237,7 @@
           ];
         };
         galleta = mkSystem {
+          nixpkgs = nixos-2605;
           modules = [
             all
             ./machines/galleta/hardware-configuration.nix
