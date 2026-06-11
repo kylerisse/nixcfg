@@ -239,6 +239,7 @@
           ];
         };
         gibson = mkSystem {
+          nixpkgs = nixos-2605;
           modules = [
             all
             ./machines/gibson/configuration.nix
