@@ -13,19 +13,13 @@
 ├───devShells: development environment 'nix-shell'
 ├───formatter: package 'treefmt'
 ├───nixosConfigurations
-│   ├───dev-router: router/dhcp/dns development
 │   ├───galleta: Qotom router
 │   ├───gibson: Digital Ocean VPS
 │   ├───muir: T490 laptop
 │   ├───pi3: Raspberry Pi3
 │   ├───pi4: Raspberry Pi4
 │   ├───qube: Intel NUC
-│   ├───riviera: T490 laptop (DC32)
 │   └───watson: Ryzen Desktop
-│       ├───db: Postgres development
-│       ├───k8s-master: Kubernetes master development
-│       ├───k8s-worker1: Kubernetes worker development
-│       └───k8s-worker2: Kubernetes worker development
 └───packages
     ├───aarch64-darwin
     │   ├───docket-unstable: package 'docket-unstable'

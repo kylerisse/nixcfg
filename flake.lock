@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1779036909,
-        "narHash": "sha256-zXcwYQGCT6pzinK+1dBB2ekTVtfxGZAapb3Evdcu4fY=",
+        "lastModified": 1781190061,
+        "narHash": "sha256-QRMpLbsmlciMGv4yx75FUoIl54K02JbIX1tgdPHPw1s=",
         "owner": "LnL7",
         "repo": "nix-darwin",
-        "rev": "56c666e108467d87d13508936aade6d567f2a501",
+        "rev": "f2b3fdb347f91dfd344ad196666a0b0fe8aad05c",
         "type": "github"
       },
       "original": {
@@ -33,22 +33,6 @@
       "original": {
         "owner": "nixos",
         "ref": "nixos-24.11",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixos-2511": {
-      "locked": {
-        "lastModified": 1779467186,
-        "narHash": "sha256-nOesoDCiXcUftqbRBMz9tt4blI5PvljMWbm3kuCA+0s=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "b77b3de8775677f84492abe84635f87b0e153f0f",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "ref": "nixos-25.11",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -86,11 +70,11 @@
     },
     "nixos-master": {
       "locked": {
-        "lastModified": 1777859948,
-        "narHash": "sha256-Oa8zhCJNU+0uzEx+nPPgTGWaxqWGm2mJDvBz4V69aV4=",
+        "lastModified": 1781208676,
+        "narHash": "sha256-l6xcABdI2sr4quZ9zYvPnA0KhvDBA6YCrXiw3KNTtwI=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "822a236ba0c20ba23f4225185e9a49a42c6bc99f",
+        "rev": "9b3243c6051fc796ca10ff255b80f45f2238747e",
         "type": "github"
       },
       "original": {
@@ -134,11 +118,11 @@
     },
     "nixpkgs-darwin": {
       "locked": {
-        "lastModified": 1779869144,
-        "narHash": "sha256-+RLzvzzuI0JFheQRvXONHTFknnjYBRPAdq4y5ZvEp98=",
+        "lastModified": 1781088061,
+        "narHash": "sha256-ccyIWjP94eLTyvzTNXH91iXGd+AfGseTQtXAirxlogk=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "dad03392cd65d4b7c7b2cdc834b3aa8807c2320e",
+        "rev": "2262daccaac76e0319dc0590c2ef711a3c79c5bd",
         "type": "github"
       },
       "original": {
@@ -152,7 +136,6 @@
       "inputs": {
         "nix-darwin": "nix-darwin",
         "nixos-2411": "nixos-2411",
-        "nixos-2511": "nixos-2511",
         "nixos-2605": "nixos-2605",
         "nixos-hardware": "nixos-hardware",
         "nixos-master": "nixos-master",

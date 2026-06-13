@@ -26,25 +26,15 @@ test-all-arm-nixos:
 	nix build -L .#nixosConfigurations.pi4.config.system.build.toplevel
 
 test-all-x86-nixos:
-	nix build -L .#nixosConfigurations.db.config.system.build.toplevel
-	nix build -L .#nixosConfigurations.dev-router.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.galleta.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.gibson.config.system.build.toplevel
-	nix build -L .#nixosConfigurations.k8s-master.config.system.build.toplevel
-	nix build -L .#nixosConfigurations.k8s-worker1.config.system.build.toplevel
-	nix build -L .#nixosConfigurations.k8s-worker2.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.muir.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.qube.config.system.build.toplevel
-	nix build -L .#nixosConfigurations.riviera.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.watson.config.system.build.toplevel
 
 test-all-nixos: lint check test-all-arm-nixos build-x86-pkgs test-all-x86-nixos test-galleta test-monitoring
 
 test-all: test-all-images test-all-nixos
-
-deploy-dev-router:
-	nixos-rebuild --flake .#dev-router --sudo --target-host dev-router boot
-	ssh dev-router 'sudo reboot'
 
 deploy-qube: test-monitoring
 	nixos-rebuild --flake .#qube --use-remote-sudo --target-host qube boot
@@ -56,33 +46,21 @@ deploy-pis:
 	nixos-rebuild --flake .#pi4 --sudo --target-host pi4 boot
 	ssh pi4 'sudo reboot'
 
-deploy-k8s-cluster:
-	nixos-rebuild --flake .#k8s-master --sudo --target-host k8s-master boot
-	ssh k8s-master 'sudo reboot'
-	nixos-rebuild --flake .#k8s-worker1 --sudo --target-host k8s-worker1 boot
-	ssh k8s-worker1 'sudo reboot'
-	nixos-rebuild --flake .#k8s-worker2 --sudo --target-host k8s-worker2 boot
-	ssh k8s-worker2 'sudo reboot'
-
-deploy-db:
-	nixos-rebuild --flake .#db --sudo --target-host db boot
-	ssh db 'sudo reboot'
-
 deploy-gibson:
 	nixos-rebuild --flake .#gibson --sudo --target-host gibson boot
 	ssh gibson 'sudo reboot'
 
 deploy-galleta: test-galleta
-	nixos-rebuild --flake .#galleta --use-remote-sudo --target-host galleta boot
+	nixos-rebuild --flake .#galleta --sudo --target-host galleta boot
 	ssh galleta 'sudo reboot'
 
-deploy-all-nixos: deploy-db deploy-k8s-cluster deploy-dev-router deploy-qube deploy-pis deploy-gibson deploy-galleta
+deploy-all-nixos: deploy-qube deploy-pis deploy-gibson deploy-galleta
 
 test-galleta:
-	nix build -L .#checks.x86_64-linux.galleta
+	nix run .#checks.x86_64-linux.galleta.driver
 
 test-monitoring:
-	nix build -L .#checks.x86_64-linux.monitoring
+	nix run .#checks.x86_64-linux.monitoring.driver
 
 check:
 	nix flake check
@@ -105,7 +83,6 @@ bump-flake-darwin:
 
 bump-flake-linux:
 	nix flake update nixos-2411
-	nix flake update nixos-2511
 	nix flake update nixos-2605
 	nix flake update nixos-master
 	nix flake update nixos-unstable

@@ -4,7 +4,6 @@
   inputs = {
     # linux
     nixos-2411.url = "github:nixos/nixpkgs/nixos-24.11?shallow=1";
-    nixos-2511.url = "github:nixos/nixpkgs/nixos-25.11?shallow=1";
     nixos-2605.url = "github:nixos/nixpkgs/nixos-26.05?shallow=1";
     nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable?shallow=1";
     nixos-master.url = "github:nixos/nixpkgs/master?shallow=1";
@@ -27,7 +26,6 @@
   outputs =
     inputs@{ self
     , nixos-2411
-    , nixos-2511
     , nixos-2605
     , nixos-unstable
     , nixos-master
@@ -45,7 +43,7 @@
         inherit system;
       };
       mkSystem =
-        { nixpkgs ? nixos-2511
+        { nixpkgs ? nixos-2605
         , system ? "x86_64-linux"
         , modules
         , extraSpecialArgs ? { }
@@ -115,14 +113,14 @@
           galleta = pkgs.testers.runNixOSTest (import ./tests/galleta.nix {
             lib = nixos-unstable.lib;
             inherit network inputs;
-            nixpkgs = nixos-2511;
+            nixpkgs = nixos-2605;
             galletaConfig = ./machines/galleta/configuration.nix;
             allModule = all;
           });
           monitoring = pkgs.testers.runNixOSTest (import ./tests/monitoring.nix {
             lib = nixos-unstable.lib;
             inherit network inputs;
-            nixpkgs = nixos-2511;
+            nixpkgs = nixos-2605;
             allModule = all;
           });
         };
@@ -163,13 +161,13 @@
         {
           pi3Image = (images.piImage.extendModules {
             modules = [
-              "${nixos-2511}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+              "${nixos-2605}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
               nixos-hardware.nixosModules.raspberry-pi-3
             ];
           }).config.system.build.sdImage;
           pi4Image = (images.piImage.extendModules {
             modules = [
-              "${nixos-2511}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+              "${nixos-2605}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
               nixos-hardware.nixosModules.raspberry-pi-4
             ];
           }).config.system.build.sdImage;
@@ -228,12 +226,6 @@
           ];
           extraSpecialArgs = { hostname = "pi4"; };
         };
-        dev-router = mkSystem {
-          modules = [
-            all
-            ./machines/dev-router/configuration.nix
-          ];
-        };
         galleta = mkSystem {
           modules = [
             all
@@ -248,7 +240,6 @@
           ];
         };
         watson = mkSystem {
-          nixpkgs = nixos-2605;
           modules = [
             all
             ./machines/watson/configuration.nix
@@ -266,29 +257,6 @@
             all
             ./machines/qube/configuration.nix
           ];
-        };
-        riviera = mkSystem {
-          modules = [
-            nixos-hardware.nixosModules.lenovo-thinkpad-t490
-            ./machines/riviera/configuration.nix
-          ];
-        };
-        # watson guests
-        k8s-master = mkSystem {
-          modules = [ all ./machines/watson/guests/kube-api-cluster.nix ];
-          extraSpecialArgs = { hostname = "k8s-master"; };
-        };
-        k8s-worker1 = mkSystem {
-          modules = [ all ./machines/watson/guests/kube-api-cluster.nix ];
-          extraSpecialArgs = { hostname = "k8s-worker1"; };
-        };
-        k8s-worker2 = mkSystem {
-          modules = [ all ./machines/watson/guests/kube-api-cluster.nix ];
-          extraSpecialArgs = { hostname = "k8s-worker2"; };
-        };
-        db = mkSystem {
-          modules = [ all ./machines/watson/guests/db.nix ];
-          extraSpecialArgs = { hostname = "db"; };
         };
       };
     };
