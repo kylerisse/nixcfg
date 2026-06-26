@@ -6,17 +6,16 @@
 buildGoModule rec {
   pname = "docket";
   version = "unstable";
-
-  commit = "a2ccaa209372514fbb51a3c336188321d0132ad6";
+  commit = "0705830edc161a186a850f76130c804c19e3329b";
 
   src = fetchFromGitHub {
     owner = "ALT-F4-LLC";
     repo = "docket";
     rev = commit;
-    sha256 = "sha256-BNTxQfPdfMmIfruyreCtmYS84oZxGgQ1WfnRN87g0WM=";
+    sha256 = "sha256-MHn0CRFt5OXJORGdu0gyzCt8qma5bD3rrpq/YlWhyTs=";
   };
 
-  vendorHash = "sha256-HIM1iaBLDy1hPOnPe+25RM15YwQRrCFubiuzGLFnvbM=";
+  vendorHash = "sha256-vf92FTM1jtWC4NG0LmG7zPD+Q4DETY355VUlqpIOYF4=";
 
   ldflags = [
     "-s"
