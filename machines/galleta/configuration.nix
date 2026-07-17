@@ -86,7 +86,7 @@ in
 
     # Router advertisements for LAN IPv6
     services.radvd = {
-      enable = true;
+      enable = false;
       config = ''
         interface ${lanIf} {
           AdvSendAdvert on;
