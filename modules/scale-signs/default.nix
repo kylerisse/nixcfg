@@ -7,7 +7,7 @@
 let
   cfg = config.mynixcfg.scale-signs;
 
-  externalPkgs = inputs.scale-signs.packages.${pkgs.system};
+  externalPkgs = inputs.scale-signs.packages.${pkgs.stdenv.hostPlatform.system};
 in
 {
   options.mynixcfg.scale-signs = {
