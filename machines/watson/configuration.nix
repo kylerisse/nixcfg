@@ -228,19 +228,17 @@ in
     # 9 default architectures, ollama-cuda is never in the binary cache
     package = pkgs.ollama-cuda.override { cudaArches = [ "sm_86" ]; };
     loadModels = [
-      # multimodal (vision + text)
-      "gemma3:12b" # ~8GB
-      "llama3.2-vision:11b" # ~8GB
+      # multimodal (vision + text) + coding
+      "gemma4:12b" # ~8GB
+      # multimodal edge (vision + audio + text)
+      "gemma4:e4b" # ~10GB
       # coding
-      "codegemma:7b" # ~5GB
-      "granite-code:8b" # ~5GB
+      "granite4:tiny" # ~4GB
       # reasoning / general purpose
       "phi4:14b" # ~9GB
       # general purpose
-      "mistral:7b" # ~4GB
-      "llama3.1:8b" # ~5GB
+      "mistral-nemo:12b" # ~7GB
       # lightweight general purpose
-      "phi4-mini:3.8b" # ~2.5GB
       "gemma3:4b" # ~3GB
     ];
     environmentVariables = {
