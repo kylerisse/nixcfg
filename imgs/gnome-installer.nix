@@ -15,6 +15,10 @@
   };
   nixpkgs.config.allowUnfree = true;
 
+  # silence warning about the pre-26.11 default; the installer never boots
+  # from a ZFS root so force-importing is unnecessary
+  boot.zfs.forceImportRoot = false;
+
   environment.systemPackages = with pkgs; [
     dosfstools
     fish
