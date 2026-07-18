@@ -224,7 +224,9 @@ in
 
   services.ollama = {
     enable = true;
-    package = pkgs.ollama-cuda;
+    # only compile CUDA kernels for the RTX 3060 (sm_86) instead of all
+    # 9 default architectures, ollama-cuda is never in the binary cache
+    package = pkgs.ollama-cuda.override { cudaArches = [ "sm_86" ]; };
     loadModels = [
       # multimodal (vision + text)
       "gemma3:12b" # ~8GB
