@@ -96,7 +96,8 @@
     galleta.wait_for_unit("kea-dhcp4-server.service")
     galleta.wait_for_unit("chronyd.service")
     galleta.wait_for_unit("sshd.service")
-    galleta.wait_for_unit("radvd.service")
+    # radvd disabled: router keeps IPv6 but does not advertise it to the LAN
+    galleta.fail("systemctl is-active radvd.service")
 
     # Validate BIND config
     galleta.succeed("named-checkconf ${nodes.galleta.services.bind.configFile}")
