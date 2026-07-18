@@ -47,6 +47,15 @@ in
           local.path = "${cfg.dataDir}/traces";
           wal.path = "${cfg.dataDir}/wal";
         };
+        # tempo 3.0 single-binary runs these modules by default and they
+        # write to /var/tempo, which is read-only under the service's
+        # systemd sandbox; inert on 2.10 where the modules don't run
+        backend_scheduler.local_work_path = "${cfg.dataDir}/backend-scheduler";
+        live_store = {
+          wal.path = "${cfg.dataDir}/live-store/traces";
+          shutdown_marker_dir = "${cfg.dataDir}/live-store/shutdown-marker";
+        };
+        block_builder.wal.path = "${cfg.dataDir}/block-builder/traces";
       };
     };
   };
