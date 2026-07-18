@@ -169,7 +169,6 @@ in
           go
           gopls
           go-outline
-          openrct2
           signal-desktop
           slack
           spotify
@@ -178,6 +177,7 @@ in
 
         masterPackages = with pkgs-master; [
           claude-code
+          openrct2
         ];
 
         selfPackages = [
