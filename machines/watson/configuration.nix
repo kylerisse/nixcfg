@@ -15,6 +15,14 @@ in
     enable = true;
     autoGC = false;
   };
+
+  # electron 39 is EOL upstream but still required by bitwarden-desktop
+  # and other electron apps on nixos-26.05
+  # https://github.com/NixOS/nixpkgs/issues/526914
+  # https://github.com/bitwarden/clients/issues/21581
+  nixpkgs.config.permittedInsecurePackages = [
+    "electron-39.8.10"
+  ];
   mynixcfg.alloy = {
     enable = true;
     enableTracing = true;
