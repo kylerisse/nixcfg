@@ -136,7 +136,7 @@ in
     device = "/dev/disk/by-label/SWAP";
   }];
 
-  networking.useDHCP = lib.mkDefault true;
+  networking.useDHCP = false;
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
