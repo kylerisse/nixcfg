@@ -32,7 +32,7 @@
       },
       "id": 100,
       "panels": [],
-      "title": "📊 Overview",
+      "title": "\ud83d\udcca Overview",
       "type": "row"
     },
     {
@@ -479,9 +479,22 @@
               }
             ]
           },
-          "unit": "binBps"
+          "unit": "bps"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*upload.*"
+            },
+            "properties": [
+              {
+                "id": "custom.transform",
+                "value": "negative-Y"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -506,22 +519,22 @@
       "pluginVersion": "12.1.1",
       "targets": [
         {
+          "expr": "sum(rate(node_network_transmit_bytes_total{job=\"aps\",device=~\"phy.*\"}[$__rate_interval])) * 8",
+          "legendFormat": "Client download (AP TX)",
+          "refId": "A",
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
-          },
-          "expr": "sum(rate(node_network_receive_bytes_total{job=\"aps\",device=~\"phy.*\"}[$__rate_interval]))",
-          "legendFormat": "WiFi RX",
-          "refId": "A"
+          }
         },
         {
+          "expr": "sum(rate(node_network_receive_bytes_total{job=\"aps\",device=~\"phy.*\"}[$__rate_interval])) * 8",
+          "legendFormat": "Client upload (AP RX)",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
-          },
-          "expr": "sum(rate(node_network_transmit_bytes_total{job=\"aps\",device=~\"phy.*\"}[$__rate_interval]))",
-          "legendFormat": "WiFi TX",
-          "refId": "B"
+          }
         }
       ],
       "title": "Total WiFi Throughput",
@@ -582,7 +595,32 @@
           },
           "unit": "short"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "phy0-ap0"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "2.4GHz"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "phy1-ap0"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "5GHz"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -607,29 +645,16 @@
       "pluginVersion": "12.1.1",
       "targets": [
         {
+          "expr": "sum by (ifname) (wifi_stations{job=\"aps\"})",
+          "legendFormat": "{{ ifname }}",
+          "refId": "A",
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "sum by (ifname) (wifi_stations{job=\"aps\",ifname=\"phy0-ap0\"})",
-          "legendFormat": "2.4GHz Ch {{ channel }}",
-          "range": true,
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "sum by (ifname) (wifi_stations{job=\"aps\",ifname=\"phy1-ap0\"})",
-          "legendFormat": "5GHz Ch {{ channel }}",
-          "range": true,
-          "refId": "B"
+          }
         }
       ],
-      "title": "Clients per Channel Over Time",
+      "title": "Clients per Band Over Time",
       "type": "timeseries"
     },
     {
@@ -821,18 +846,16 @@
           "pluginVersion": "12.1.1",
           "targets": [
             {
+              "expr": "sum by (instance) (wifi_stations{job=\"aps\"})",
+              "legendFormat": "{{ instance }}",
+              "refId": "A",
               "datasource": {
                 "type": "prometheus",
                 "uid": "${datasource}"
-              },
-              "editorMode": "code",
-              "expr": "topk(20, sum by (ap) (wifi_stations{job=\"aps\"}))",
-              "legendFormat": "{{ ap }}",
-              "range": true,
-              "refId": "A"
+              }
             }
           ],
-          "title": "Top 20 APs by Client Count",
+          "title": "Clients per AP",
           "type": "bargauge"
         },
         {
@@ -918,18 +941,16 @@
           "pluginVersion": "12.1.1",
           "targets": [
             {
+              "expr": "sum by (instance) (wifi_stations{job=\"aps\"})",
+              "legendFormat": "{{ instance }}",
+              "refId": "A",
               "datasource": {
                 "type": "prometheus",
                 "uid": "${datasource}"
-              },
-              "editorMode": "code",
-              "expr": "topk(5, sum by (ap) (wifi_stations{job=\"aps\"}))",
-              "legendFormat": "{{ ap }}",
-              "range": true,
-              "refId": "A"
+              }
             }
           ],
-          "title": "Top 5 APs by Client Counts over Time",
+          "title": "Clients per AP Over Time",
           "type": "timeseries"
         },
         {
@@ -940,44 +961,76 @@
           "fieldConfig": {
             "defaults": {
               "color": {
-                "mode": "thresholds"
+                "mode": "palette-classic"
               },
-              "custom": {
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                }
+              "mappings": [],
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
               },
-              "mappings": []
+              "unit": "short"
             },
-            "overrides": []
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "phy0-ap0"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "2.4GHz"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "phy1-ap0"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "5GHz"
+                  }
+                ]
+              }
+            ]
           },
           "gridPos": {
             "h": 8,
-            "w": 6,
+            "w": 8,
             "x": 0,
             "y": 24
           },
           "id": 11,
           "options": {
-            "displayLabels": ["name", "value"],
+            "displayMode": "gradient",
             "legend": {
+              "calcs": [],
               "displayMode": "list",
-              "placement": "right",
-              "showLegend": true
+              "placement": "bottom",
+              "showLegend": false
             },
-            "pieType": "donut",
+            "maxVizHeight": 300,
+            "minVizHeight": 16,
+            "minVizWidth": 8,
+            "namePlacement": "auto",
+            "orientation": "horizontal",
             "reduceOptions": {
               "calcs": ["lastNotNull"],
               "fields": "",
               "values": false
             },
-            "tooltip": {
-              "hideZeros": false,
-              "mode": "multi",
-              "sort": "desc"
-            }
+            "showUnfilled": true,
+            "sizing": "auto",
+            "valueMode": "color"
           },
           "pluginVersion": "12.1.1",
           "targets": [
@@ -986,15 +1039,13 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "editorMode": "code",
-              "expr": "sum by (ssid) (wifi_stations{job=\"aps\"})",
-              "legendFormat": "{{ ssid }}",
-              "range": true,
+              "expr": "sum by (ifname) (wifi_stations{job=\"aps\"})",
+              "legendFormat": "{{ ifname }}",
               "refId": "A"
             }
           ],
-          "title": "Clients by SSID",
-          "type": "piechart"
+          "title": "Clients by Band",
+          "type": "bargauge"
         },
         {
           "datasource": {
@@ -1007,41 +1058,87 @@
                 "mode": "thresholds"
               },
               "custom": {
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                }
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "filterable": false,
+                "inspect": false
               },
-              "mappings": []
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              }
             },
-            "overrides": []
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Band"
+                },
+                "properties": [
+                  {
+                    "id": "mappings",
+                    "value": [
+                      {
+                        "type": "value",
+                        "options": {
+                          "phy0-ap0": {
+                            "text": "2.4GHz",
+                            "index": 0
+                          },
+                          "phy1-ap0": {
+                            "text": "5GHz",
+                            "index": 1
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Noise (dBm)"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "dBm"
+                  }
+                ]
+              }
+            ]
           },
           "gridPos": {
             "h": 8,
-            "w": 6,
-            "x": 6,
+            "w": 16,
+            "x": 8,
             "y": 24
           },
           "id": 12,
           "options": {
-            "displayLabels": ["name", "value"],
-            "legend": {
-              "displayMode": "list",
-              "placement": "right",
-              "showLegend": true
-            },
-            "pieType": "donut",
-            "reduceOptions": {
-              "calcs": ["lastNotNull"],
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
               "fields": "",
-              "values": false
+              "reducer": ["sum"],
+              "show": false
             },
-            "tooltip": {
-              "hideZeros": false,
-              "mode": "multi",
-              "sort": "desc"
-            }
+            "showHeader": true,
+            "sortBy": [
+              {
+                "desc": false,
+                "displayName": "AP"
+              }
+            ]
           },
           "pluginVersion": "12.1.1",
           "targets": [
@@ -1050,18 +1147,51 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "editorMode": "code",
-              "expr": "sum by (channel) (wifi_stations{job=\"aps\"})",
-              "legendFormat": "Ch {{ channel }}",
-              "range": true,
+              "expr": "wifi_network_noise_dbm{job=\"aps\",mode=\"Master\"}",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "",
               "refId": "A"
             }
           ],
-          "title": "Clients by Channel",
-          "type": "piechart"
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "__name__": true,
+                  "job": true,
+                  "host": true,
+                  "mode": true,
+                  "country": true,
+                  "device": true,
+                  "bssid": true
+                },
+                "indexByName": {
+                  "instance": 0,
+                  "ifname": 1,
+                  "ssid": 2,
+                  "channel": 3,
+                  "frequency": 4,
+                  "Value": 5
+                },
+                "renameByName": {
+                  "instance": "AP",
+                  "ifname": "Band",
+                  "ssid": "SSID",
+                  "channel": "Channel",
+                  "frequency": "MHz",
+                  "Value": "Noise (dBm)"
+                }
+              }
+            }
+          ],
+          "title": "Current Channels",
+          "type": "table"
         }
       ],
-      "title": "📡 Client Distribution",
+      "title": "\ud83d\udce1 Client Distribution",
       "type": "row"
     },
     {
@@ -1131,15 +1261,13 @@
           "pluginVersion": "12.1.1",
           "targets": [
             {
+              "expr": "avg by (instance) (wifi_station_signal_dbm{job=\"aps\"})",
+              "legendFormat": "{{ instance }}",
+              "refId": "A",
               "datasource": {
                 "type": "prometheus",
                 "uid": "${datasource}"
-              },
-              "editorMode": "code",
-              "expr": "avg(wifi_station_signal_dbm{job=\"aps\"}) by (ap)",
-              "legendFormat": "{{ ap }}",
-              "range": true,
-              "refId": "A"
+              }
             }
           ],
           "title": "Average Client Signal by AP",
@@ -1215,22 +1343,20 @@
           "pluginVersion": "12.1.1",
           "targets": [
             {
+              "expr": "wifi_network_noise_dbm{job=\"aps\",mode=\"Master\"}",
+              "legendFormat": "{{ instance }} {{ ifname }} ch{{ channel }}",
+              "refId": "A",
               "datasource": {
                 "type": "prometheus",
                 "uid": "${datasource}"
-              },
-              "editorMode": "code",
-              "expr": "bottomk(20, wifi_network_noise_dbm{job=\"aps\"})",
-              "legendFormat": "{{ ap }} - {{ ssid }}",
-              "range": true,
-              "refId": "A"
+              }
             }
           ],
-          "title": "Worst Noise Floor by AP (Bottom 20)",
+          "title": "Noise Floor by Radio",
           "type": "bargauge"
         }
       ],
-      "title": "📶 RF Environment",
+      "title": "\ud83d\udcf6 RF Environment",
       "type": "row"
     },
     {
@@ -1313,18 +1439,16 @@
           "pluginVersion": "12.1.1",
           "targets": [
             {
+              "expr": "100 - ((node_memory_MemAvailable_bytes{job=\"aps\"} / node_memory_MemTotal_bytes{job=\"aps\"}) * 100)",
+              "legendFormat": "{{ instance }}",
+              "refId": "A",
               "datasource": {
                 "type": "prometheus",
                 "uid": "${datasource}"
-              },
-              "editorMode": "code",
-              "expr": "topk(15, 100 - ((node_memory_MemAvailable_bytes{job=\"aps\"} / node_memory_MemTotal_bytes{job=\"aps\"}) * 100))",
-              "legendFormat": "{{ ap }}",
-              "range": true,
-              "refId": "A"
+              }
             }
           ],
-          "title": "Top 15 APs by Memory Usage",
+          "title": "Memory Usage per AP",
           "type": "bargauge"
         },
         {
@@ -1397,18 +1521,16 @@
           "pluginVersion": "12.1.1",
           "targets": [
             {
+              "expr": "100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{job=\"aps\",mode=\"idle\"}[$__rate_interval])))",
+              "legendFormat": "{{ instance }}",
+              "refId": "A",
               "datasource": {
                 "type": "prometheus",
                 "uid": "${datasource}"
-              },
-              "editorMode": "code",
-              "expr": "topk(15, 100 * (1 - avg by (ap) (rate(node_cpu_seconds_total{job=\"aps\",mode=\"idle\"}[$__rate_interval]))))",
-              "legendFormat": "{{ ap }}",
-              "range": true,
-              "refId": "A"
+              }
             }
           ],
-          "title": "Top 15 APs by CPU Usage",
+          "title": "CPU Usage per AP",
           "type": "bargauge"
         },
         {
@@ -1475,18 +1597,16 @@
           "pluginVersion": "12.1.1",
           "targets": [
             {
+              "expr": "time() - node_boot_time_seconds{job=\"aps\"}",
+              "legendFormat": "{{ instance }}",
+              "refId": "A",
               "datasource": {
                 "type": "prometheus",
                 "uid": "${datasource}"
-              },
-              "editorMode": "code",
-              "expr": "bottomk(15, time() - node_boot_time_seconds{job=\"aps\"})",
-              "legendFormat": "{{ ap }}",
-              "range": true,
-              "refId": "A"
+              }
             }
           ],
-          "title": "Recently Rebooted APs (Bottom 15 Uptime)",
+          "title": "AP Uptime",
           "type": "bargauge"
         },
         {
@@ -1692,7 +1812,7 @@
           "type": "timeseries"
         }
       ],
-      "title": "🖥️ AP Health",
+      "title": "\ud83d\udda5\ufe0f AP Health",
       "type": "row"
     },
     {
@@ -1705,7 +1825,7 @@
       },
       "id": 104,
       "panels": [],
-      "title": "🌐 Network Traffic",
+      "title": "\ud83c\udf10 Network Traffic",
       "type": "row"
     },
     {
@@ -1761,7 +1881,7 @@
               }
             ]
           },
-          "unit": "binBps"
+          "unit": "bps"
         },
         "overrides": [
           {
@@ -1801,27 +1921,25 @@
       "pluginVersion": "12.1.1",
       "targets": [
         {
+          "expr": "sum(rate(node_network_receive_bytes_total{job=\"aps\",device=\"eth1\"}[$__rate_interval])) * 8",
+          "legendFormat": "Download (RX)",
+          "refId": "A",
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(node_network_receive_bytes_total{job=\"aps\",device=\"eth0\"}[$__rate_interval]))",
-          "legendFormat": "Uplink RX",
-          "range": true,
-          "refId": "A"
+          }
         },
         {
+          "expr": "sum(rate(node_network_transmit_bytes_total{job=\"aps\",device=\"eth1\"}[$__rate_interval])) * 8",
+          "legendFormat": "Upload (TX)",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
-          },
-          "expr": "sum(rate(node_network_transmit_bytes_total{job=\"aps\",device=\"eth0\"}[$__rate_interval]))",
-          "legendFormat": "Uplink TX",
-          "refId": "B"
+          }
         }
       ],
-      "title": "Total Uplink Traffic (eth0)",
+      "title": "Total Uplink Traffic (eth1)",
       "type": "timeseries"
     },
     {
@@ -1852,7 +1970,7 @@
               }
             ]
           },
-          "unit": "binBps"
+          "unit": "bps"
         },
         "overrides": []
       },
@@ -1888,18 +2006,16 @@
       "pluginVersion": "12.1.1",
       "targets": [
         {
+          "expr": "sum by (instance) (rate(node_network_transmit_bytes_total{job=\"aps\",device=~\"phy.*\"}[$__rate_interval]) + rate(node_network_receive_bytes_total{job=\"aps\",device=~\"phy.*\"}[$__rate_interval])) * 8",
+          "legendFormat": "{{ instance }}",
+          "refId": "A",
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "topk(5, sum by (ap) (rate(node_network_transmit_bytes_total{job=\"aps\",device=~\"phy.*\"}[$__rate_interval]) + rate(node_network_receive_bytes_total{job=\"aps\",device=~\"phy.*\"}[$__rate_interval])))",
-          "legendFormat": "{{ ap }}",
-          "range": true,
-          "refId": "A"
+          }
         }
       ],
-      "title": "Top 15 APs by WiFi Throughput",
+      "title": "WiFi Throughput per AP",
       "type": "bargauge"
     },
     {
@@ -1986,7 +2102,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(rate(node_network_receive_drop_total{job=\"aps\",device=\"eth0\"}[$__rate_interval]))",
+          "expr": "sum(rate(node_network_receive_drop_total{job=\"aps\",device=\"eth1\"}[$__rate_interval]))",
           "legendFormat": "RX Drops",
           "refId": "A"
         },
@@ -1995,7 +2111,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(rate(node_network_transmit_drop_total{job=\"aps\",device=\"eth0\"}[$__rate_interval]))",
+          "expr": "sum(rate(node_network_transmit_drop_total{job=\"aps\",device=\"eth1\"}[$__rate_interval]))",
           "legendFormat": "TX Drops",
           "refId": "B"
         },
@@ -2004,7 +2120,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(rate(node_network_receive_errs_total{job=\"aps\",device=\"eth0\"}[$__rate_interval]))",
+          "expr": "sum(rate(node_network_receive_errs_total{job=\"aps\",device=\"eth1\"}[$__rate_interval]))",
           "legendFormat": "RX Errors",
           "refId": "C"
         },
@@ -2013,12 +2129,12 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(rate(node_network_transmit_errs_total{job=\"aps\",device=\"eth0\"}[$__rate_interval]))",
+          "expr": "sum(rate(node_network_transmit_errs_total{job=\"aps\",device=\"eth1\"}[$__rate_interval]))",
           "legendFormat": "TX Errors",
           "refId": "D"
         }
       ],
-      "title": "Network Errors & Drops",
+      "title": "Network Errors & Drops (eth1)",
       "type": "timeseries"
     },
     {
@@ -2085,18 +2201,16 @@
       "pluginVersion": "12.1.1",
       "targets": [
         {
+          "expr": "increase(node_network_receive_drop_total{job=\"aps\",device=\"eth1\"}[1h]) + increase(node_network_transmit_drop_total{job=\"aps\",device=\"eth1\"}[1h])",
+          "legendFormat": "{{ instance }}",
+          "refId": "A",
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "topk(5, increase(node_network_receive_drop_total{job=\"aps\",device=\"eth0\"}[1h]) + increase(node_network_transmit_drop_total{job=\"aps\",device=\"eth0\"}[1h]))",
-          "legendFormat": "{{ ap }}",
-          "range": true,
-          "refId": "A"
+          }
         }
       ],
-      "title": "Top 5 APs by Packet Drops (1h)",
+      "title": "Packet Drops per AP (1h)",
       "type": "bargauge"
     },
     {
@@ -2285,12 +2399,12 @@
               {
                 "matcher": {
                   "id": "byName",
-                  "options": "WiFi TX"
+                  "options": "WiFi Download"
                 },
                 "properties": [
                   {
                     "id": "unit",
-                    "value": "binBps"
+                    "value": "bps"
                   }
                 ]
               }
@@ -2371,7 +2485,7 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "sum by (instance) (rate(node_network_transmit_bytes_total{job=\"aps\",device=~\"phy.*\"}[5m]))",
+              "expr": "sum by (instance) (rate(node_network_transmit_bytes_total{job=\"aps\",device=~\"phy.*\"}[5m])) * 8",
               "format": "table",
               "instant": true,
               "legendFormat": "__auto",
@@ -2402,7 +2516,7 @@
                   "Value #Clients": "Clients",
                   "Value #Memory": "Memory %",
                   "Value #Noise": "Noise (dBm)",
-                  "Value #Traffic": "WiFi TX",
+                  "Value #Traffic": "WiFi Download",
                   "Value #Uptime": "Uptime",
                   "instance": "AP"
                 }
@@ -2412,7 +2526,7 @@
           "type": "table"
         }
       ],
-      "title": "📋 AP Inventory",
+      "title": "\ud83d\udccb AP Inventory",
       "type": "row"
     },
     {
@@ -2510,7 +2624,7 @@
                 "uid": "${datasource}"
               },
               "expr": "wifi_stations{job=\"aps\",instance=~\"$ap\"}",
-              "legendFormat": "{{ ssid }} ({{ ifname }})",
+              "legendFormat": "{{ ifname }}",
               "refId": "A"
             }
           ],
@@ -2570,7 +2684,7 @@
                   }
                 ]
               },
-              "unit": "binBps"
+              "unit": "bps"
             },
             "overrides": [
               {
@@ -2614,7 +2728,7 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "rate(node_network_receive_bytes_total{job=\"aps\",instance=~\"$ap\",device=~\"phy.*|eth0\"}[$__rate_interval])",
+              "expr": "(rate(node_network_receive_bytes_total{job=\"aps\",instance=~\"$ap\",device=~\"phy.*|eth1\"}[$__rate_interval])) * 8",
               "legendFormat": "{{ device }} RX",
               "refId": "A"
             },
@@ -2623,7 +2737,7 @@
                 "type": "prometheus",
                 "uid": "${datasource}"
               },
-              "expr": "rate(node_network_transmit_bytes_total{job=\"aps\",instance=~\"$ap\",device=~\"phy.*|eth0\"}[$__rate_interval])",
+              "expr": "(rate(node_network_transmit_bytes_total{job=\"aps\",instance=~\"$ap\",device=~\"phy.*|eth1\"}[$__rate_interval])) * 8",
               "legendFormat": "{{ device }} TX",
               "refId": "B"
             }
@@ -2835,7 +2949,7 @@
           "type": "timeseries"
         }
       ],
-      "title": "🔍 Single AP Deep Dive",
+      "title": "\ud83d\udd0d Single AP Deep Dive",
       "type": "row"
     }
   ],
