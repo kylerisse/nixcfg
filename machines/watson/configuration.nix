@@ -109,6 +109,19 @@ in
     LC_TIME = "en_US.UTF-8";
   };
 
+  services.keyd = {
+    enable = true;
+    keyboards.default = {
+      ids = [ "*" ];
+      settings.main = {
+        leftalt = "leftmeta";
+        leftmeta = "leftalt";
+        rightalt = "rightmeta";
+        rightmeta = "rightalt";
+      };
+    };
+  };
+
   services.xserver.enable = true;
   services.xserver.desktopManager.cinnamon.enable = true;
   services.xserver.displayManager.lightdm.enable = true;
