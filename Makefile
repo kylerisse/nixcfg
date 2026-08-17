@@ -11,6 +11,7 @@ pi4Image:
 	nix build -L .#packages.aarch64-linux.pi4Image
 
 build-x86-pkgs:
+	nix build -L .#packages.x86_64-linux.andiamo
 	nix build -L .#packages.x86_64-linux.wasgeht
 	nix build -L .#packages.x86_64-linux.wasgeht-unstable
 	nix build -L .#packages.x86_64-linux.docket-unstable
@@ -36,25 +37,23 @@ test-all-nixos: lint check test-all-arm-nixos build-x86-pkgs test-all-x86-nixos 
 
 test-all: test-all-images test-all-nixos
 
-deploy-qube: test-monitoring
-	nixos-rebuild --flake .#qube --use-remote-sudo --target-host qube boot
-	ssh qube 'sudo reboot'
+status:
+	nix run . -- status
+
+deploy-qube:
+	nix run . -- deploy qube
 
 deploy-pis:
-	nixos-rebuild --flake .#pi3 --sudo --target-host pi3 boot
-	ssh pi3 'sudo reboot'
-	nixos-rebuild --flake .#pi4 --sudo --target-host pi4 boot
-	ssh pi4 'sudo reboot'
+	nix run . -- deploy pi3 pi4
 
 deploy-gibson:
-	nixos-rebuild --flake .#gibson --sudo --target-host gibson boot
-	ssh gibson 'sudo reboot'
+	nix run . -- deploy gibson
 
-deploy-galleta: test-galleta
-	nixos-rebuild --flake .#galleta --sudo --target-host galleta boot
-	ssh galleta 'sudo reboot'
+deploy-galleta:
+	nix run . -- deploy galleta
 
-deploy-all-nixos: deploy-qube deploy-pis deploy-gibson deploy-galleta
+deploy-all-nixos:
+	nix run . -- deploy -all
 
 test-galleta:
 	nix run .#checks.x86_64-linux.galleta.driver
