@@ -99,6 +99,8 @@
           default = pkgs.mkShell {
             packages = with pkgs; [
               gnumake
+              go
+              gopls
               jq
               nil
               python3
@@ -129,6 +131,7 @@
           pkgs = pkgsFor system;
           treefmtEval = treefmt-nix.lib.evalModule pkgs {
             projectRootFile = "flake.nix";
+            programs.gofmt.enable = true;
             programs.nixpkgs-fmt.enable = true;
             programs.prettier.enable = true;
             programs.ruff.format = true;
