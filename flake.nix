@@ -104,6 +104,7 @@
               jq
               nil
               python3
+              self.packages.${system}.andiamo
             ];
           };
         });
@@ -149,6 +150,7 @@
           terraformPkgs = pkgs.callPackage ./pkgs/terraform { };
         in
         {
+          andiamo = pkgs.callPackage ./pkgs/andiamo { };
           docket-unstable = pkgs.callPackage ./pkgs/docket-unstable { };
           terraform_1-8-2 = terraformPkgs."1.8.2";
           terraform_1-8-3 = terraformPkgs."1.8.3";
@@ -162,6 +164,7 @@
           };
         in
         {
+          andiamo = pkgs.callPackage ./pkgs/andiamo { };
           pi3Image = (images.piImage.extendModules {
             modules = [
               "${nixos-2605}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
@@ -183,6 +186,7 @@
         in
         {
           # nix build --show-trace --verbose -L .#packages.x86_64-linux.wasgeht
+          andiamo = pkgs.callPackage ./pkgs/andiamo { };
           debian-netinst-iso = pkgs.callPackage ./pkgs/debian-netinst-iso { };
           parrot-htb-iso = pkgs.callPackage ./pkgs/parrot-htb-iso { };
           openwrt-archer-a7-v5 = pkgs.callPackage ./pkgs/openwrt-archer-a7-v5 { };
@@ -195,6 +199,19 @@
           sdl-ss-inhibitors-tray = pkgs.callPackage ./pkgs/sdl-ss-inhibitors-tray { };
           wasgeht = pkgs.callPackage ./pkgs/wasgeht { };
           wasgeht-unstable = pkgs.callPackage ./pkgs/wasgeht-unstable { };
+        };
+      apps =
+        let
+          mkApp = system: {
+            default = {
+              type = "app";
+              program = "${self.packages.${system}.andiamo}/bin/andiamo";
+            };
+          };
+        in
+        {
+          x86_64-linux = mkApp "x86_64-linux";
+          aarch64-darwin = mkApp "aarch64-darwin";
         };
       darwinConfigurations = {
         "zugzug" =
@@ -234,6 +251,7 @@
             all
             ./machines/galleta/hardware-configuration.nix
             ./machines/galleta/configuration.nix
+            { _module.args.andiamo = { checks = [ "galleta" ]; rebootLast = true; }; }
           ];
         };
         gibson = mkSystem {
@@ -259,6 +277,7 @@
           modules = [
             all
             ./machines/qube/configuration.nix
+            { _module.args.andiamo.checks = [ "monitoring" ]; }
           ];
         };
       };
