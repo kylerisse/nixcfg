@@ -1,0 +1,290 @@
+// Package flake derives the fleet inventory and deployment policy from
+// the flake itself — nothing is hardcoded about the hosts. Per-host
+// facts are evaluated in parallel nix processes and memoized in a
+// disposable content-keyed cache: a pure flake eval is a function of
+// the tracked tree content (incl. flake.lock), so HEAD + `git diff
+// HEAD` + the nix version + the eval expression key everything the
+// eval can see.
+package flake
+
+import (
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/kylerisse/nixcfg/tools/andiamo/internal/plan"
+)
+
+// hostExpr maps one nixosConfiguration to the facts andiamo needs.
+// Per-host policy lives in the host's own config as
+// `_module.args.andiamo = { checks = [...]; rebootLast = true; }`
+// (nixinate-style; absent attrs default). The module system strips
+// _module out of config, so the args are read from the eval result's
+// sibling _module attr. outPath is computed at eval time; nothing gets
+// built.
+const hostExpr = `c: let a = c._module.args.andiamo or { }; in {
+  toplevel = c.config.system.build.toplevel.outPath;
+  system = c.pkgs.stdenv.hostPlatform.system;
+  sshable = c.config.mynixcfg.ssh-server.enable;
+  hostName = c.config.networking.hostName;
+  checks = a.checks or [ ];
+  rebootLast = a.rebootLast or false;
+}`
+
+type facts struct {
+	Toplevel   string   `json:"toplevel"`
+	System     string   `json:"system"`
+	Sshable    bool     `json:"sshable"`
+	HostName   string   `json:"hostName"`
+	Checks     []string `json:"checks"`
+	RebootLast bool     `json:"rebootLast"`
+}
+
+// HostNames lists the nixosConfigurations without forcing any of them
+// — this is near-instant regardless of fleet size.
+func HostNames(ctx context.Context, flakePath string) ([]string, error) {
+	out, err := nixEval(ctx, flakePath+"#nixosConfigurations", "--apply", "builtins.attrNames")
+	if err != nil {
+		return nil, fmt.Errorf("listing nixosConfigurations: %w", err)
+	}
+	var names []string
+	if err := json.Unmarshal(out, &names); err != nil {
+		return nil, fmt.Errorf("parsing host names: %w", err)
+	}
+	return names, nil
+}
+
+// Inventory accumulates per-host facts from cache and parallel evals.
+type Inventory struct {
+	flakePath string
+	jobs      int
+	key       string // "" disables caching
+	dir       string
+	mu        sync.Mutex
+	facts     map[string]facts
+}
+
+// Open prepares an inventory. Caching is silently disabled when the
+// cache key can't be computed (e.g. no git) or noCache is set.
+func Open(flakePath string, jobs int, noCache bool) *Inventory {
+	if jobs < 1 {
+		jobs = 1
+	}
+	inv := &Inventory{
+		flakePath: flakePath,
+		jobs:      jobs,
+		facts:     map[string]facts{},
+	}
+	if base, err := os.UserCacheDir(); err == nil {
+		inv.dir = filepath.Join(base, "andiamo")
+	}
+	if !noCache && inv.dir != "" {
+		if key, err := treeKey(flakePath); err == nil {
+			inv.key = key
+		}
+	}
+	return inv
+}
+
+// Cached loads whatever the cache holds for names and reports which
+// hosts still need a live eval.
+func (inv *Inventory) Cached(names []string) (have, missing []string) {
+	for _, n := range names {
+		if inv.key != "" {
+			if f, ok := loadCached(inv.dir, inv.key, n); ok {
+				inv.facts[n] = f
+				have = append(have, n)
+				continue
+			}
+		}
+		missing = append(missing, n)
+	}
+	return have, missing
+}
+
+// EvalProgress carries optional callbacks so the caller can render
+// per-host eval progress without this package knowing about the UI.
+type EvalProgress struct {
+	Start func(name string)
+	Done  func(name string, err error)
+}
+
+// Eval evaluates the given hosts in parallel nix processes (bounded by
+// jobs) and stores the results in memory and, when caching is active,
+// on disk.
+func (inv *Inventory) Eval(ctx context.Context, names []string, p EvalProgress) error {
+	if len(names) == 0 {
+		return nil
+	}
+	sem := make(chan struct{}, inv.jobs)
+	var wg sync.WaitGroup
+	var firstErr error
+	for _, n := range names {
+		wg.Add(1)
+		go func(n string) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+			if p.Start != nil {
+				p.Start(n)
+			}
+			out, err := nixEval(ctx, fmt.Sprintf("%s#nixosConfigurations.%s", inv.flakePath, n), "--apply", hostExpr)
+			var f facts
+			if err == nil {
+				err = json.Unmarshal(out, &f)
+			}
+			if p.Done != nil {
+				p.Done(n, err)
+			}
+			inv.mu.Lock()
+			defer inv.mu.Unlock()
+			if err != nil {
+				if firstErr == nil {
+					firstErr = fmt.Errorf("evaluating %s: %w", n, err)
+				}
+				return
+			}
+			inv.facts[n] = f
+			if inv.key != "" {
+				storeCached(inv.dir, inv.key, n, f)
+			}
+		}(n)
+	}
+	wg.Wait()
+	if firstErr != nil {
+		return firstErr
+	}
+	if inv.key != "" {
+		pruneCache(inv.dir, 30*24*time.Hour)
+	}
+	return nil
+}
+
+// Hosts returns everything loaded so far as plan types.
+func (inv *Inventory) Hosts() (map[string]plan.Host, map[string]plan.Policy) {
+	hosts := make(map[string]plan.Host, len(inv.facts))
+	policies := make(map[string]plan.Policy, len(inv.facts))
+	for name, f := range inv.facts {
+		hosts[name] = plan.Host{
+			Name:     name,
+			Toplevel: f.Toplevel,
+			System:   f.System,
+			Sshable:  f.Sshable,
+			HostName: f.HostName,
+		}
+		policies[name] = plan.Policy{
+			Checks:     f.Checks,
+			RebootLast: f.RebootLast,
+		}
+	}
+	return hosts, policies
+}
+
+// treeKey hashes everything a pure flake eval can observe: HEAD, the
+// diff of tracked files against it (what nix's dirty-tree copy sees;
+// untracked files are invisible to the flake), the nix version, and
+// the eval expression itself.
+func treeKey(flakePath string) (string, error) {
+	head, err := exec.Command("git", "-C", flakePath, "rev-parse", "HEAD").Output()
+	if err != nil {
+		return "", err
+	}
+	diff, err := exec.Command("git", "-C", flakePath, "diff", "HEAD").Output()
+	if err != nil {
+		return "", err
+	}
+	ver, err := exec.Command("nix", "--version").Output()
+	if err != nil {
+		return "", err
+	}
+	return hashKey(string(head), string(diff), string(ver), hostExpr), nil
+}
+
+func hashKey(parts ...string) string {
+	h := sha256.New()
+	for _, p := range parts {
+		h.Write([]byte(p))
+		h.Write([]byte{0})
+	}
+	return hex.EncodeToString(h.Sum(nil))[:32]
+}
+
+func cachePath(dir, key, host string) string {
+	return filepath.Join(dir, key+"-"+host+".json")
+}
+
+func loadCached(dir, key, host string) (facts, bool) {
+	var f facts
+	data, err := os.ReadFile(cachePath(dir, key, host))
+	if err != nil || json.Unmarshal(data, &f) != nil || f.Toplevel == "" {
+		return facts{}, false
+	}
+	return f, true
+}
+
+// storeCached is best-effort: a failed write only costs a re-eval.
+func storeCached(dir, key, host string, f facts) {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return
+	}
+	data, err := json.Marshal(f)
+	if err != nil {
+		return
+	}
+	_ = os.WriteFile(cachePath(dir, key, host), data, 0o644)
+}
+
+// pruneCache drops entries untouched for longer than maxAge. The cache
+// is disposable; failures here are ignored.
+func pruneCache(dir string, maxAge time.Duration) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return
+	}
+	cutoff := time.Now().Add(-maxAge)
+	for _, e := range entries {
+		if !strings.HasSuffix(e.Name(), ".json") {
+			continue
+		}
+		if info, err := e.Info(); err == nil && info.ModTime().Before(cutoff) {
+			_ = os.Remove(filepath.Join(dir, e.Name()))
+		}
+	}
+}
+
+func nixEval(ctx context.Context, installable string, extra ...string) ([]byte, error) {
+	args := append([]string{"eval", "--json", installable}, extra...)
+	cmd := exec.CommandContext(ctx, "nix", args...)
+	var stderr strings.Builder
+	cmd.Stderr = &stderr
+	out, err := cmd.Output()
+	if err != nil {
+		msg := strings.TrimSpace(stderr.String())
+		if msg != "" {
+			return nil, fmt.Errorf("%s", msg)
+		}
+		return nil, err
+	}
+	return out, nil
+}
+
+// GitInfo reports the flake repo's short revision and whether the
+// working tree is dirty. Errors degrade to zero values; deploys from
+// outside a git checkout are unusual but not andiamo's problem.
+func GitInfo(flakePath string) (rev string, dirty bool) {
+	if out, err := exec.Command("git", "-C", flakePath, "rev-parse", "--short", "HEAD").Output(); err == nil {
+		rev = strings.TrimSpace(string(out))
+	}
+	if out, err := exec.Command("git", "-C", flakePath, "status", "--porcelain").Output(); err == nil {
+		dirty = len(strings.TrimSpace(string(out))) > 0
+	}
+	return rev, dirty
+}
