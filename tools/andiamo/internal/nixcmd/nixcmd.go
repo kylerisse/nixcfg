@@ -27,11 +27,11 @@ func run(ctx context.Context, extraEnv []string, args ...string) (string, error)
 	return strings.TrimSpace(string(out)), nil
 }
 
-// runLive mirrors nix's own live progress (bar with streaming log
-// lines) to the terminal instead of capturing it; stdout is still
-// returned. Use only while no other live renderer owns the terminal.
+// runLive mirrors nix's own live progress bar to the terminal instead
+// of capturing it; stdout is still returned. Use only while no other
+// live renderer owns the terminal.
 func runLive(ctx context.Context, args ...string) (string, error) {
-	args = append(args, "--log-format", "bar-with-logs")
+	args = append(args, "--log-format", "bar")
 	cmd := exec.CommandContext(ctx, "nix", args...)
 	cmd.Stderr = os.Stderr
 	out, err := cmd.Output()
