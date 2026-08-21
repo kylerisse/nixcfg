@@ -3,15 +3,15 @@
 
   inputs = {
     # linux
-    nixos-2411.url = "github:nixos/nixpkgs/nixos-24.11?shallow=1";
-    nixos-2605.url = "github:nixos/nixpkgs/nixos-26.05?shallow=1";
-    nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable?shallow=1";
-    nixos-master.url = "github:nixos/nixpkgs/master?shallow=1";
-    nixos-hardware.url = "github:nixos/nixos-hardware?shallow=1";
+    nixos-2411.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixos-2605.url = "github:nixos/nixpkgs/nixos-26.05";
+    nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixos-master.url = "github:nixos/nixpkgs/master";
+    nixos-hardware.url = "github:nixos/nixos-hardware";
     # mac
-    nixpkgs-darwin.url = "github:nixos/nixpkgs/nixpkgs-26.05-darwin?shallow=1";
+    nixpkgs-darwin.url = "github:nixos/nixpkgs/nixpkgs-26.05-darwin";
     nix-darwin = {
-      url = "github:LnL7/nix-darwin/nix-darwin-26.05?shallow=1";
+      url = "github:LnL7/nix-darwin/nix-darwin-26.05";
       inputs.nixpkgs.follows = "nixpkgs-darwin";
     };
     # app specific
