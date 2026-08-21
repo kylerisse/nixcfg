@@ -146,6 +146,9 @@ func (p *Progress) Set(host, phase string) {
 	if r == nil || r.done {
 		return
 	}
+	if r.phase == "queued" {
+		r.started = time.Now()
+	}
 	r.phase = phase
 	if !p.live {
 		fmt.Printf("%s: %s\n", host, phase)
