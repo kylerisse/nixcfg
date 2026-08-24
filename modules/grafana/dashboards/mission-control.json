@@ -58,7 +58,7 @@
             "spanNulls": false,
             "stacking": {
               "group": "A",
-              "mode": "normal"
+              "mode": "none"
             },
             "thresholdsStyle": {
               "mode": "dashed"
@@ -182,7 +182,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "clamp_min(rate(node_network_receive_bytes_total{host=\"galleta\",device=\"enp1s0\"}[$__rate_interval]) - ignoring(device) rate(node_network_receive_bytes_total{host=\"galleta\",device=\"he-ipv6\"}[$__rate_interval]), 0) * 8",
+          "expr": "rate(node_network_receive_bytes_total{host=\"galleta\",device=\"enp1s0\"}[$__rate_interval]) * 8",
           "legendFormat": "IPv4 down",
           "refId": "A"
         },
@@ -200,7 +200,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "clamp_min(rate(node_network_transmit_bytes_total{host=\"galleta\",device=\"enp1s0\"}[$__rate_interval]) - ignoring(device) rate(node_network_transmit_bytes_total{host=\"galleta\",device=\"he-ipv6\"}[$__rate_interval]), 0) * 8",
+          "expr": "rate(node_network_transmit_bytes_total{host=\"galleta\",device=\"enp1s0\"}[$__rate_interval]) * 8",
           "legendFormat": "IPv4 up",
           "refId": "C"
         },
