@@ -245,8 +245,8 @@ in
       "gemma4:12b" # ~8GB
       # multimodal edge (vision + audio + text)
       "gemma4:e4b" # ~10GB
-      # coding
-      "granite4:tiny" # ~4GB
+      # general purpose MoE (7b-a1b hybrid, 1M context)
+      "granite4:tiny-h" # ~4GB
       # reasoning / general purpose
       "phi4:14b" # ~9GB
       # general purpose
