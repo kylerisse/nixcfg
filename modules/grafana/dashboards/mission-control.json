@@ -461,7 +461,7 @@
             "spanNulls": false,
             "stacking": {
               "group": "A",
-              "mode": "normal"
+              "mode": "none"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -477,7 +477,8 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "short",
+          "min": 0
         },
         "overrides": [
           {
@@ -507,6 +508,25 @@
                   "mode": "fixed",
                   "fixedColor": "#9085e9"
                 }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#e0b400"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
               }
             ]
           }
@@ -542,9 +562,18 @@
           "expr": "sum by (instance) (wifi_stations{job=\"aps\"})",
           "legendFormat": "{{ instance }}",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(wifi_stations{job=\"aps\"})",
+          "legendFormat": "total",
+          "refId": "B"
         }
       ],
-      "title": "WiFi Clients per AP (stacked = total)",
+      "title": "WiFi Clients",
       "type": "timeseries"
     },
     {
