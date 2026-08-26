@@ -274,13 +274,15 @@ func stateCells(s plan.State) (glyph, label string) {
 
 // factHeader and factCells are the per-host columns shared by status
 // and the deploy dry run: what the host runs now, with "→ expected"
-// where the flake says otherwise. A host that wasn't probed gets
-// dashes throughout.
-var factHeader = []string{"GEN", "UP", "KERNEL", "NIXOS"}
+// where the flake says otherwise. SYSTEM is the toplevel store hash —
+// the thing the state is actually decided on — so a row is never
+// "out of date" without showing what differs, even when no other
+// column moved. A host that wasn't probed gets dashes throughout.
+var factHeader = []string{"GEN", "UP", "KERNEL", "NIXOS", "SYSTEM"}
 
 func factCells(h plan.Host, p plan.Probe, probed bool) []string {
 	if !probed || p.Err != nil {
-		return []string{"-", "-", "-", "-"}
+		return []string{"-", "-", "-", "-", "-"}
 	}
 	gen := "-"
 	if p.Generation > 0 {
@@ -291,6 +293,7 @@ func factCells(h plan.Host, p plan.Probe, probed bool) []string {
 		plan.Uptime(p.UptimeSec),
 		plan.Arrow(p.Kernel, h.Kernel),
 		plan.Arrow(p.NixosVersion, h.NixosVersion),
+		plan.Arrow(ui.ShortPath(p.Current), ui.ShortPath(h.Toplevel)),
 	}
 }
 
