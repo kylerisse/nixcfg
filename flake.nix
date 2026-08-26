@@ -203,19 +203,6 @@
           wasgeht = pkgs.callPackage ./pkgs/wasgeht { };
           wasgeht-unstable = pkgs.callPackage ./pkgs/wasgeht-unstable { };
         };
-      apps =
-        let
-          mkApp = system: {
-            default = {
-              type = "app";
-              program = "${self.packages.${system}.andiamo}/bin/andiamo";
-            };
-          };
-        in
-        {
-          x86_64-linux = mkApp "x86_64-linux";
-          aarch64-darwin = mkApp "aarch64-darwin";
-        };
       darwinConfigurations = {
         "zugzug" =
           let

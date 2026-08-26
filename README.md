@@ -4,11 +4,6 @@
 [![Images](https://github.com/kylerisse/nixcfg/actions/workflows/images.yml/badge.svg)](https://github.com/kylerisse/nixcfg/actions/workflows/images.yml)
 
 ```
-├───apps
-│   ├───aarch64-darwin
-│   │   └───default: app 'andiamo'
-│   └───x86_64-linux
-│       └───default: app 'andiamo'
 ├───darwinConfigurations
 │   └───zugzug: m2 MBP
 ├───checks
@@ -93,9 +88,8 @@ andiamo deploy pi3 -dry-run    # print the action plan only
 andiamo deploy -all            # gate on checks, build, push, activate
 ```
 
-`nix run . -- <cmd>` works from anywhere (slower: re-evaluates the flake
-per invocation) and the `deploy-*` Makefile targets use that form.
-zugzug is not a deploy target — darwin stays on `make mac`. Cross-arch
+`nix run .#andiamo -- <cmd>` works from anywhere (slower: re-evaluates the
+flake per invocation). zugzug is not a deploy target — darwin stays on `make mac`. Cross-arch
 deploys assume the operator machine builds `aarch64-linux` via binfmt,
 same as `make test-all-arm-nixos`.
 
