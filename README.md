@@ -1,82 +1,62 @@
 # nixcfg
 
+> "My home, Elaine! Where I sleep; where I come to play with my toys." -Jerry
+
 [![CI](https://github.com/kylerisse/nixcfg/actions/workflows/ci.yml/badge.svg)](https://github.com/kylerisse/nixcfg/actions/workflows/ci.yml)
 [![Images](https://github.com/kylerisse/nixcfg/actions/workflows/images.yml/badge.svg)](https://github.com/kylerisse/nixcfg/actions/workflows/images.yml)
 
 ```
-├───darwinConfigurations
-│   └───zugzug: m2 MBP
-├───checks
-│   └───x86_64-linux
-│       ├───galleta: derivation 'vm-test-run-galleta'
-│       └───monitoring: derivation 'vm-test-run-monitoring'
-├───devShells: development environment 'nix-shell'
-├───formatter: package 'treefmt'
-├───nixosConfigurations
-│   ├───galleta: Qotom router
-│   ├───gibson: Digital Ocean VPS
-│   ├───muir: T490 laptop
-│   ├───pi3: Raspberry Pi3
-│   ├───pi4: Raspberry Pi4
-│   ├───qube: Intel NUC
-│   └───watson: Ryzen Desktop
-└───packages
-    ├───aarch64-darwin
-    │   ├───andiamo: package 'andiamo-0.1.1'
-    │   ├───docket-unstable: package 'docket-unstable'
-    │   ├───terraform_1-8-2: package 'terraform_1-8-2-binary'
-    │   ├───terraform_1-8-3: package 'terraform_1-8-3-binary'
-    │   ├───terraform_1-9-1: package 'terraform_1-9-1-binary'
-    │   └───terraform_1-9-6: package 'terraform_1-9-6-binary'
-    ├───aarch64-linux
-    │   ├───andiamo: package 'andiamo-0.1.1'
-    │   ├───pi3Image: package 'nixos-sd-image'
-    │   └───pi4Image: package 'nixos-sd-image'
-    └───x86_64-linux
-        ├───andiamo: package 'andiamo-0.1.1'
-        ├───debian-netinst-iso: package 'debian-netinst-iso-12.10.0'
-        ├───doImage: package 'digital-ocean-image'
-        ├───docket-unstable: package 'docket-unstable'
-        ├───installerISO: package 'nixos-gnome-x86_64-linux.iso'
-        ├───openwrt-archer-a7-v5: package 'openwrt-archer-a7-v5-24.10.0'
-        ├───openwrt-archer-c7-v2: package 'openwrt-archer-c7-v2-23.05.5'
-        ├───openwrt-one: package 'openwrt-one-25.12.0'
-        ├───parrot-htb-iso: package 'ParrotOS_HTB_ISO-7.1'
-        ├───sdl-ss-inhibitors: package 'sdl-ss-inhibitors'
-        ├───sdl-ss-inhibitors-tray: package 'sdl-ss-inhibitors-tray'
-        ├───wasgeht: package 'wasgeht-0.3.0'
-        └───wasgeht-unstable: package 'wasgeht-unstable'
+nixcfg
+├───network.nix: network map and lib
+├───machines:
+│   ├───galleta: router
+│   ├───gibson: scale dev
+│   ├───muir: t490 laptop
+│   ├───pis: pi3 & pi4, arm dev
+│   ├───qube: monitoring
+│   ├───watson: workstation, gaming, ai
+│   └───zugzug: macbook, nix-darwin
+├───modules:
+│   ├───alloy: metrics and logs push agent
+│   ├───dualhome-nat: dual-wan nat (deprecated)
+│   ├───grafana: service and dashboards
+│   ├───he-tunnel-update: hurricane electric ipv6 tunnel endpoint updater
+│   ├───kube-cluster: kubernetes
+│   ├───mimir: metrics store
+│   ├───mrtg: snmp network graphs
+│   ├───nix-common: nix settings
+│   ├───nvidia-fan-curve: gpu cooling service
+│   ├───scale-signs: scale digital signage
+│   ├───scale-simulator: scale simulator for dev
+│   ├───ssh-server: sshd
+│   ├───tempo: OTEL traces store
+│   ├───users: accounts
+│   └───wasgeht: network host monitor
+├───pkgs:
+│   ├───andiamo: nix deploy cli
+│   ├───debian-netinst-iso: debian installer
+│   ├───docket-unstable: issue tracker for ai and humans
+│   ├───openwrt-archer-a7-v5: openwrt firmware
+│   ├───openwrt-archer-c7-v2: openwrt firmware
+│   ├───openwrt-one: openwrt firmware
+│   ├───parrot-htb-iso: parrot os live/installer
+│   ├───sdl-ss-inhibitors: cli for screensaver inhibitors
+│   ├───sdl-ss-inhibitors-tray: tray app for screensaver inhibitors
+│   ├───terraform: pinned terraform versions
+│   ├───wasgeht: network host monitor, release
+│   └───wasgeht-unstable: network host monitor, git head
+├───tools:
+│   └───andiamo: nix deploy cli source (go)
+├───tests:
+│   ├───galleta.nix: router nixos tests
+│   └───monitoring.nix: monitoring stack nixos tests
+└───imgs:
+    ├───do.nix: digital ocean image
+    ├───gnome-installer.nix: custom installer iso
+    └───pi.nix: pi sd card images
 ```
 
-## Deploy (andiamo)
-
-`andiamo` ("let's go") lives in `tools/andiamo` and drives fleet
-deployments. The host list, per-host facts, and each expected system
-are derived from `nixosConfigurations` via parallel `nix eval`s,
-memoized in a disposable cache keyed by tree content (`-no-cache`
-bypasses; safe to delete `~/.cache/andiamo` anytime); actual state is
-read from each host's system symlinks over ssh. Deploys
-run in parallel; safe changes activate live with `switch`, while
-boot-critical changes (kernel/initrd/kernel-modules/systemd) are staged
-with `boot` and andiamo then offers to reboot the affected hosts
-(`-reboot ask|auto|always|never`, default `ask`; declining or running
-non-interactively leaves them `staged-awaiting-reboot` in `status`).
-
-Per-host policy is declared right where the host is, as an inline
-module in its `nixosConfigurations` entry:
-
-```nix
-qube = mkSystem {
-  modules = [
-    all
-    ./machines/qube/configuration.nix
-    { _module.args.andiamo.checks = [ "monitoring" ]; }
-  ];
-};
-```
-
-`checks` gates deploys to that host on flake checks; `rebootLast = true`
-reboots it after all other hosts (the router). Absent attrs default.
+## andiamo
 
 andiamo is part of the devShell, so inside the repo (direnv or
 `nix develop`) it is on PATH:
@@ -88,10 +68,28 @@ andiamo deploy pi3 -dry-run    # print the action plan only
 andiamo deploy -all            # gate on checks, build, push, activate
 ```
 
-`nix run .#andiamo -- <cmd>` works from anywhere (slower: re-evaluates the
-flake per invocation). zugzug is not a deploy target — darwin stays on `make mac`. Cross-arch
-deploys assume the operator machine builds `aarch64-linux` via binfmt,
-same as `make test-all-arm-nixos`.
+Example:
+
+```
+> andiamo status --no-cache
+✓ galleta  evaluated  5s
+✓ gibson   evaluated  6s
+✓ muir     evaluated  11s
+✓ pi3      evaluated  6s
+✓ pi4      evaluated  6s
+✓ qube     evaluated  8s
+✓ watson   evaluated  15s
+inventory: 0 cached, 7 evaluated in 14.9s
+flake @ 5947577 (includes uncommitted changes)
+   HOST     STATE        GEN  UP  KERNEL           NIXOS                                            SYSTEM
+✓  galleta  in sync      27   4d  7.2.0            26.05.20260825.f4f6986                           4zmn77jg
+✓  gibson   in sync      55   4d  7.2.0            digital-ocean-26.05.20260825.f4f6986             jywvr2wn
+⌂  muir     local only   -    -   -                -                                                -                    no ssh server; run andiamo on the host itself
+✓  pi3      in sync      51   4d  7.2.0            26.05.20260825.f4f6986                           4lfwvbml
+↻  pi4      out of date  51   4d  7.2.0            26.05.20260825.f4f6986 → 26.11.20260823.56c02bc  hsis661r → 07f6k8ix
+✓  qube     in sync      141  4d  7.2.0            26.05.20260825.f4f6986                           00awx6i7
+↻  watson   out of date  290  8h  6.18.46 → 7.2.0  26.05.20260825.f4f6986                           35z9gjm6 → 5yxzdg7v
+```
 
 ## Disk Setup
 
