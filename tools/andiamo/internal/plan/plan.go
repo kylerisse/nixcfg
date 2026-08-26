@@ -51,6 +51,8 @@ type Probe struct {
 	Generation   int    // from the profile symlink name; 0 = unknown
 	DeployedAt   int64  // epoch mtime of the profile symlink; 0 = unknown
 	NixosVersion string // /run/current-system/nixos-version
+	UptimeSec    int64  // /proc/uptime; 0 = unknown
+	Kernel       string // uname -r (the booted kernel)
 }
 
 type State string
