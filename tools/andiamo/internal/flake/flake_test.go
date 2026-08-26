@@ -31,12 +31,14 @@ func TestHashKey(t *testing.T) {
 func TestCacheRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 	f := facts{
-		Toplevel:   "/nix/store/abc-nixos-system-qube",
-		System:     "x86_64-linux",
-		Sshable:    true,
-		HostName:   "qube",
-		Checks:     []string{"monitoring"},
-		RebootLast: false,
+		Toplevel:     "/nix/store/abc-nixos-system-qube",
+		System:       "x86_64-linux",
+		Sshable:      true,
+		HostName:     "qube",
+		NixosVersion: "26.05.20260825.f4f6986",
+		Kernel:       "7.2.0",
+		Checks:       []string{"monitoring"},
+		RebootLast:   false,
 	}
 	if _, ok := loadCached(dir, "key1", "qube"); ok {
 		t.Fatal("unexpected cache hit in empty dir")
@@ -47,6 +49,7 @@ func TestCacheRoundTrip(t *testing.T) {
 		t.Fatal("expected cache hit after store")
 	}
 	if got.Toplevel != f.Toplevel || got.HostName != f.HostName ||
+		got.NixosVersion != f.NixosVersion || got.Kernel != f.Kernel ||
 		len(got.Checks) != 1 || got.Checks[0] != "monitoring" || !got.Sshable {
 		t.Errorf("round trip mismatch: %+v", got)
 	}

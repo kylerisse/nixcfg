@@ -11,11 +11,13 @@ import (
 
 // Host is one entry derived from the flake's nixosConfigurations.
 type Host struct {
-	Name     string
-	Toplevel string // expected system toplevel store path
-	System   string // e.g. x86_64-linux
-	Sshable  bool   // mynixcfg.ssh-server.enable
-	HostName string // networking.hostName
+	Name         string
+	Toplevel     string // expected system toplevel store path
+	System       string // e.g. x86_64-linux
+	Sshable      bool   // mynixcfg.ssh-server.enable
+	HostName     string // networking.hostName
+	NixosVersion string // system.nixos.label, e.g. 26.05.20260825.f4f6986 (tags prefixed)
+	Kernel       string // boot.kernelPackages.kernel.modDirVersion (matches uname -r)
 }
 
 // Policy is per-host deployment policy, read from each host's
