@@ -11,11 +11,13 @@ import (
 
 // Host is one entry derived from the flake's nixosConfigurations.
 type Host struct {
-	Name     string
-	Toplevel string // expected system toplevel store path
-	System   string // e.g. x86_64-linux
-	Sshable  bool   // mynixcfg.ssh-server.enable
-	HostName string // networking.hostName
+	Name         string
+	Toplevel     string // expected system toplevel store path
+	System       string // e.g. x86_64-linux
+	Sshable      bool   // mynixcfg.ssh-server.enable
+	HostName     string // networking.hostName
+	NixosVersion string // system.nixos.label, e.g. 26.05.20260825.f4f6986 (tags prefixed)
+	Kernel       string // boot.kernelPackages.kernel.modDirVersion (matches uname -r)
 }
 
 // Policy is per-host deployment policy, read from each host's
@@ -51,6 +53,8 @@ type Probe struct {
 	Generation   int    // from the profile symlink name; 0 = unknown
 	DeployedAt   int64  // epoch mtime of the profile symlink; 0 = unknown
 	NixosVersion string // /run/current-system/nixos-version
+	UptimeSec    int64  // /proc/uptime; 0 = unknown
+	Kernel       string // uname -r (the booted kernel)
 }
 
 type State string
@@ -129,15 +133,72 @@ func ParseGeneration(link string) int {
 	return n
 }
 
-// NixpkgsRev extracts the nixpkgs revision from a nixos-version string
-// like "26.05.20260809.fcb8fcd" (the last dot-segment). Returns ""
-// when the string doesn't look versioned.
-func NixpkgsRev(version string) string {
-	i := strings.LastIndexByte(version, '.')
-	if i < 0 || i == len(version)-1 {
-		return ""
+// Label is the human-readable form of a State for tables. The State
+// values themselves stay stable for -json consumers.
+func Label(s State) string {
+	switch s {
+	case InSync:
+		return "in sync"
+	case RebootPending:
+		return "reboot pending"
+	case Staged:
+		return "staged"
+	case OutOfDate:
+		return "out of date"
+	case Unreachable:
+		return "unreachable"
+	case LocalOnly:
+		return "local only"
 	}
-	return version[i+1:]
+	return string(s)
+}
+
+// Detail explains a state where the row's other columns don't already
+// say what to do; "" for the self-explanatory ones. err is the probe
+// error for Unreachable.
+func Detail(s State, err error) string {
+	switch s {
+	case RebootPending:
+		return "switched live, old kernel still booted — reboot"
+	case Staged:
+		return "in boot menu, not activated — reboot"
+	case Unreachable:
+		if err != nil {
+			return err.Error()
+		}
+		return "unreachable"
+	case LocalOnly:
+		return "no ssh server; run andiamo on the host itself"
+	}
+	return ""
+}
+
+// Arrow renders a running/expected pair for a table cell: the single
+// value when they agree, "running → expected" when they differ. An
+// unknown side shows as "-", so a host that has never reported a
+// value still shows what it will get.
+func Arrow(running, expected string) string {
+	if running == "" {
+		running = "-"
+	}
+	if expected == "" || expected == running {
+		return running
+	}
+	return running + " → " + expected
+}
+
+// Uptime renders whole seconds as "12d", "5h", or "3m"; "-" for zero.
+func Uptime(sec int64) string {
+	switch {
+	case sec <= 0:
+		return "-"
+	case sec < 3600:
+		return strconv.FormatInt(sec/60, 10) + "m"
+	case sec < 86400:
+		return strconv.FormatInt(sec/3600, 10) + "h"
+	default:
+		return strconv.FormatInt(sec/86400, 10) + "d"
+	}
 }
 
 // Checks returns the deduplicated, sorted union of check gates for the

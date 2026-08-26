@@ -71,23 +71,38 @@ var probePaths = []string{
 	"/run/booted-system/systemd",
 }
 
+// probeScript resolves probePaths, then prints one line each for: the
+// generation name (unresolved link), the profile symlink mtime (store
+// paths carry no dates; the symlink records when the profile was set),
+// the running system's version string, uptime in whole seconds, and
+// the booted kernel release. Each value is captured and echoed so a
+// file without a trailing newline (nixos-version) or a failing command
+// still yields exactly one line.
+var probeScript = "for p in " + strings.Join(probePaths, " ") +
+	`; do readlink -f "$p" 2>/dev/null || echo MISSING; done; ` +
+	`readlink /nix/var/nix/profiles/system 2>/dev/null || echo MISSING; ` +
+	`stat -c %Y /nix/var/nix/profiles/system 2>/dev/null || echo 0; ` +
+	`v=$(cat /run/current-system/nixos-version 2>/dev/null); echo "${v:-MISSING}"; ` +
+	`v=$(cut -d. -f1 /proc/uptime 2>/dev/null); echo "${v:-0}"; ` +
+	`v=$(uname -r 2>/dev/null); echo "${v:-MISSING}"`
+
+// probeExtra is the number of lines probeScript prints after probePaths.
+const probeExtra = 5
+
 // Probe reads the target's system symlinks plus generation, deploy
-// time, and nixos-version in one round trip.
+// time, version, uptime, and kernel in one round trip.
 func Probe(ctx context.Context, t Target) plan.Probe {
-	script := "for p in " + strings.Join(probePaths, " ") +
-		`; do readlink -f "$p" 2>/dev/null || echo MISSING; done; ` +
-		// Generation name (unresolved link), profile symlink mtime
-		// (store paths carry no dates; the symlink records when the
-		// profile was set), and the running system's version string.
-		`readlink /nix/var/nix/profiles/system 2>/dev/null || echo MISSING; ` +
-		`stat -c %Y /nix/var/nix/profiles/system 2>/dev/null || echo 0; ` +
-		`cat /run/current-system/nixos-version 2>/dev/null || echo MISSING`
-	out, err := t.Run(ctx, script)
+	out, err := t.Run(ctx, probeScript)
 	if err != nil {
 		return plan.Probe{Err: err}
 	}
+	return parseProbe(out)
+}
+
+// parseProbe maps probeScript's output positionally onto a Probe.
+func parseProbe(out string) plan.Probe {
 	lines := strings.Split(out, "\n")
-	want := len(probePaths) + 3
+	want := len(probePaths) + probeExtra
 	if len(lines) != want {
 		return plan.Probe{Err: fmt.Errorf("probe returned %d lines, want %d", len(lines), want)}
 	}
@@ -98,7 +113,9 @@ func Probe(ctx context.Context, t Target) plan.Probe {
 		}
 		return v
 	}
-	deployedAt, _ := strconv.ParseInt(get(12), 10, 64)
+	n := len(probePaths)
+	deployedAt, _ := strconv.ParseInt(get(n+1), 10, 64)
+	uptime, _ := strconv.ParseInt(get(n+3), 10, 64)
 	return plan.Probe{
 		Current: get(0),
 		Booted:  get(1),
@@ -109,9 +126,11 @@ func Probe(ctx context.Context, t Target) plan.Probe {
 		BootedLinks: plan.Links{
 			Kernel: get(7), Initrd: get(8), KernelModules: get(9), Systemd: get(10),
 		},
-		Generation:   plan.ParseGeneration(get(11)),
+		Generation:   plan.ParseGeneration(get(n)),
 		DeployedAt:   deployedAt,
-		NixosVersion: get(13),
+		NixosVersion: get(n + 2),
+		UptimeSec:    uptime,
+		Kernel:       get(n + 4),
 	}
 }
 

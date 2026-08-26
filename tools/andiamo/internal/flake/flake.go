@@ -35,17 +35,21 @@ const hostExpr = `c: let a = c._module.args.andiamo or { }; in {
   system = c.pkgs.stdenv.hostPlatform.system;
   sshable = c.config.mynixcfg.ssh-server.enable;
   hostName = c.config.networking.hostName;
+  nixosVersion = c.config.system.nixos.label;
+  kernel = c.config.boot.kernelPackages.kernel.modDirVersion;
   checks = a.checks or [ ];
   rebootLast = a.rebootLast or false;
 }`
 
 type facts struct {
-	Toplevel   string   `json:"toplevel"`
-	System     string   `json:"system"`
-	Sshable    bool     `json:"sshable"`
-	HostName   string   `json:"hostName"`
-	Checks     []string `json:"checks"`
-	RebootLast bool     `json:"rebootLast"`
+	Toplevel     string   `json:"toplevel"`
+	System       string   `json:"system"`
+	Sshable      bool     `json:"sshable"`
+	HostName     string   `json:"hostName"`
+	NixosVersion string   `json:"nixosVersion"` // system.nixos.label: what /run/current-system/nixos-version holds
+	Kernel       string   `json:"kernel"`       // modDirVersion: what uname -r reports
+	Checks       []string `json:"checks"`
+	RebootLast   bool     `json:"rebootLast"`
 }
 
 // HostNames lists the nixosConfigurations without forcing any of them
@@ -174,11 +178,13 @@ func (inv *Inventory) Hosts() (map[string]plan.Host, map[string]plan.Policy) {
 	policies := make(map[string]plan.Policy, len(inv.facts))
 	for name, f := range inv.facts {
 		hosts[name] = plan.Host{
-			Name:     name,
-			Toplevel: f.Toplevel,
-			System:   f.System,
-			Sshable:  f.Sshable,
-			HostName: f.HostName,
+			Name:         name,
+			Toplevel:     f.Toplevel,
+			System:       f.System,
+			Sshable:      f.Sshable,
+			HostName:     f.HostName,
+			NixosVersion: f.NixosVersion,
+			Kernel:       f.Kernel,
 		}
 		policies[name] = plan.Policy{
 			Checks:     f.Checks,

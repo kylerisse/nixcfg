@@ -80,18 +80,61 @@ func TestParseGeneration(t *testing.T) {
 	}
 }
 
-func TestNixpkgsRev(t *testing.T) {
+func TestLabelDetail(t *testing.T) {
+	labels := map[State]string{
+		InSync: "in sync", RebootPending: "reboot pending", Staged: "staged",
+		OutOfDate: "out of date", Unreachable: "unreachable", LocalOnly: "local only",
+	}
+	for s, want := range labels {
+		if got := Label(s); got != want {
+			t.Errorf("Label(%q) = %q, want %q", s, got, want)
+		}
+	}
+	if Detail(InSync, nil) != "" || Detail(OutOfDate, nil) != "" {
+		t.Error("in sync / out of date need no detail")
+	}
+	if d := Detail(Unreachable, errors.New("ssh: connect timeout")); d != "ssh: connect timeout" {
+		t.Errorf("Detail(Unreachable) = %q", d)
+	}
+	if Detail(Staged, nil) == "" || Detail(RebootPending, nil) == "" || Detail(LocalOnly, nil) == "" {
+		t.Error("half-deployed and local-only states need a detail")
+	}
+}
+
+func TestArrow(t *testing.T) {
 	cases := []struct {
-		in, want string
+		running, expected, want string
 	}{
-		{"26.05.20260809.fcb8fcd", "fcb8fcd"},
-		{"noversion", ""},
-		{"trailing.", ""},
-		{"", ""},
+		{"6.18.46", "6.18.46", "6.18.46"},
+		{"6.18.46", "7.2", "6.18.46 → 7.2"},
+		{"", "a61d215", "- → a61d215"},
+		{"a61d215", "", "a61d215"},
+		{"", "", "-"},
 	}
 	for _, c := range cases {
-		if got := NixpkgsRev(c.in); got != c.want {
-			t.Errorf("NixpkgsRev(%q) = %q, want %q", c.in, got, c.want)
+		if got := Arrow(c.running, c.expected); got != c.want {
+			t.Errorf("Arrow(%q, %q) = %q, want %q", c.running, c.expected, got, c.want)
+		}
+	}
+}
+
+func TestUptime(t *testing.T) {
+	cases := []struct {
+		sec  int64
+		want string
+	}{
+		{0, "-"},
+		{-5, "-"},
+		{59, "0m"},
+		{180, "3m"},
+		{3600, "1h"},
+		{5 * 3600, "5h"},
+		{86400, "1d"},
+		{3542400, "41d"},
+	}
+	for _, c := range cases {
+		if got := Uptime(c.sec); got != c.want {
+			t.Errorf("Uptime(%d) = %q, want %q", c.sec, got, c.want)
 		}
 	}
 }

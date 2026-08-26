@@ -1420,7 +1420,7 @@
             "spanNulls": false,
             "stacking": {
               "group": "A",
-              "mode": "normal"
+              "mode": "none"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -1436,7 +1436,8 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "short",
+          "min": 0
         },
         "overrides": []
       },

@@ -57,25 +57,6 @@ func ShortPath(p string) string {
 	return base[:8]
 }
 
-// Age renders an epoch as a short relative age ("5m", "3h", "12d"),
-// or "-" for zero/future values.
-func Age(epoch int64) string {
-	if epoch <= 0 {
-		return "-"
-	}
-	d := time.Since(time.Unix(epoch, 0))
-	switch {
-	case d < 0:
-		return "-"
-	case d < 90*time.Minute:
-		return fmt.Sprintf("%dm", int(d.Minutes()))
-	case d < 36*time.Hour:
-		return fmt.Sprintf("%dh", int(d.Hours()))
-	default:
-		return fmt.Sprintf("%dd", int(d.Hours()/24))
-	}
-}
-
 var spinnerFrames = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
 
 type row struct {

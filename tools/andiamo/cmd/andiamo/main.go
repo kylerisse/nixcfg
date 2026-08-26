@@ -15,6 +15,7 @@ import (
 	"os"
 	"runtime"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -26,7 +27,7 @@ import (
 	"github.com/kylerisse/nixcfg/tools/andiamo/internal/ui"
 )
 
-const version = "0.1.0"
+const version = "0.1.1"
 
 const usageText = `andiamo — let's go
 
@@ -255,6 +256,55 @@ func pad(s string, w int) string {
 	return s + strings.Repeat(" ", w-len(s))
 }
 
+// stateCells returns the coloured glyph and label for a state.
+func stateCells(s plan.State) (glyph, label string) {
+	l := plan.Label(s)
+	switch s {
+	case plan.InSync:
+		return ui.Green("✓"), ui.Green(l)
+	case plan.RebootPending, plan.Staged, plan.OutOfDate:
+		return ui.Yellow("↻"), ui.Yellow(l)
+	case plan.Unreachable:
+		return ui.Red("~"), ui.Red(l)
+	case plan.LocalOnly:
+		return ui.Dim("⌂"), ui.Dim(l)
+	}
+	return "?", l
+}
+
+// factHeader and factCells are the per-host columns shared by status
+// and the deploy dry run: what the host runs now, with "→ expected"
+// where the flake says otherwise. SYSTEM is the toplevel store hash —
+// the thing the state is actually decided on — so a row is never
+// "out of date" without showing what differs, even when no other
+// column moved. A host that wasn't probed gets dashes throughout.
+var factHeader = []string{"GEN", "UP", "KERNEL", "NIXOS", "SYSTEM"}
+
+func factCells(h plan.Host, p plan.Probe, probed bool) []string {
+	if !probed || p.Err != nil {
+		return []string{"-", "-", "-", "-", "-"}
+	}
+	gen := "-"
+	if p.Generation > 0 {
+		gen = strconv.Itoa(p.Generation)
+	}
+	return []string{
+		gen,
+		plan.Uptime(p.UptimeSec),
+		plan.Arrow(p.Kernel, h.Kernel),
+		plan.Arrow(p.NixosVersion, h.NixosVersion),
+		plan.Arrow(ui.ShortPath(p.Current), ui.ShortPath(h.Toplevel)),
+	}
+}
+
+func dimAll(cells []string) []string {
+	out := make([]string, len(cells))
+	for i, c := range cells {
+		out[i] = ui.Dim(c)
+	}
+	return out
+}
+
 // ---------------------------------------------------------------- status
 
 func cmdStatus(args []string) int {
@@ -295,28 +345,37 @@ func cmdStatus(args []string) int {
 
 	if *jsonOut {
 		type jsonRow struct {
-			Host         string `json:"host"`
-			State        string `json:"state"`
-			Expected     string `json:"expected"`
-			Current      string `json:"current,omitempty"`
-			Booted       string `json:"booted,omitempty"`
-			Profile      string `json:"profile,omitempty"`
-			Generation   int    `json:"generation,omitempty"`
-			DeployedAt   string `json:"deployedAt,omitempty"`
-			NixosVersion string `json:"nixosVersion,omitempty"`
-			Error        string `json:"error,omitempty"`
+			Host                 string `json:"host"`
+			State                string `json:"state"`
+			Expected             string `json:"expected"`
+			Current              string `json:"current,omitempty"`
+			Booted               string `json:"booted,omitempty"`
+			Profile              string `json:"profile,omitempty"`
+			Generation           int    `json:"generation,omitempty"`
+			DeployedAt           string `json:"deployedAt,omitempty"`
+			UptimeSec            int64  `json:"uptimeSec,omitempty"`
+			Kernel               string `json:"kernel,omitempty"`
+			ExpectedKernel       string `json:"expectedKernel,omitempty"`
+			NixosVersion         string `json:"nixosVersion,omitempty"`
+			ExpectedNixosVersion string `json:"expectedNixosVersion,omitempty"`
+			Error                string `json:"error,omitempty"`
 		}
 		out := make([]jsonRow, 0, len(rows))
 		for _, r := range rows {
+			h := f.hosts[r.name]
 			jr := jsonRow{
-				Host:         r.name,
-				State:        string(r.state),
-				Expected:     f.hosts[r.name].Toplevel,
-				Current:      r.probe.Current,
-				Booted:       r.probe.Booted,
-				Profile:      r.probe.Profile,
-				Generation:   r.probe.Generation,
-				NixosVersion: r.probe.NixosVersion,
+				Host:                 r.name,
+				State:                string(r.state),
+				Expected:             h.Toplevel,
+				Current:              r.probe.Current,
+				Booted:               r.probe.Booted,
+				Profile:              r.probe.Profile,
+				Generation:           r.probe.Generation,
+				UptimeSec:            r.probe.UptimeSec,
+				Kernel:               r.probe.Kernel,
+				ExpectedKernel:       h.Kernel,
+				NixosVersion:         r.probe.NixosVersion,
+				ExpectedNixosVersion: h.NixosVersion,
 			}
 			if r.probe.DeployedAt > 0 {
 				jr.DeployedAt = time.Unix(r.probe.DeployedAt, 0).Format(time.RFC3339)
@@ -333,48 +392,18 @@ func cmdStatus(args []string) int {
 	}
 
 	printBanner(c)
-	nameW := 0
+	table := [][]string{dimAll(append([]string{"", "HOST", "STATE"}, factHeader...))}
 	for _, r := range rows {
-		if len(r.name) > nameW {
-			nameW = len(r.name)
+		h := f.hosts[r.name]
+		glyph, label := stateCells(r.state)
+		detail := plan.Detail(r.state, r.probe.Err)
+		if r.state == plan.LocalOnly {
+			detail = ui.Dim(detail)
 		}
+		cells := append([]string{glyph, r.name, label}, factCells(h, r.probe, f.reachable(h))...)
+		table = append(table, append(cells, detail))
 	}
-	for _, r := range rows {
-		expected := f.hosts[r.name].Toplevel
-		gen, age, rev := "-", "-", "-"
-		if r.probe.Err == nil {
-			if r.probe.Generation > 0 {
-				gen = fmt.Sprintf("gen %d", r.probe.Generation)
-			}
-			age = ui.Age(r.probe.DeployedAt)
-			if v := plan.NixpkgsRev(r.probe.NixosVersion); v != "" {
-				rev = v
-			}
-		}
-		meta := ui.Dim(fmt.Sprintf("%s  %s  %s", pad(gen, 7), pad(age, 4), pad(rev, 8)))
-		var glyph, state, detail string
-		switch r.state {
-		case plan.InSync:
-			glyph, state = ui.Green("✓"), ui.Green(pad(string(r.state), 22))
-			detail = ui.ShortPath(expected)
-		case plan.RebootPending:
-			glyph, state = ui.Yellow("↻"), ui.Yellow(pad(string(r.state), 22))
-			detail = fmt.Sprintf("reboot to finish %s → %s", ui.ShortPath(r.probe.Booted), ui.ShortPath(r.probe.Current))
-		case plan.Staged:
-			glyph, state = ui.Yellow("↻"), ui.Yellow(pad(string(r.state), 22))
-			detail = fmt.Sprintf("staged %s, running %s", ui.ShortPath(r.probe.Profile), ui.ShortPath(r.probe.Current))
-		case plan.OutOfDate:
-			glyph, state = ui.Yellow("↻"), ui.Yellow(pad(string(r.state), 22))
-			detail = fmt.Sprintf("running %s, expected %s", ui.ShortPath(r.probe.Profile), ui.ShortPath(expected))
-		case plan.Unreachable:
-			glyph, state = ui.Red("~"), ui.Red(pad(string(r.state), 22))
-			detail = r.probe.Err.Error()
-		case plan.LocalOnly:
-			glyph, state = ui.Dim("⌂"), ui.Dim(pad(string(r.state), 22))
-			detail = ui.Dim("no ssh server; run andiamo on the host itself")
-		}
-		fmt.Printf("%s %s  %s %s %s\n", glyph, pad(r.name, nameW), state, meta, detail)
-	}
+	fmt.Print(ui.Table(table))
 	return exit
 }
 
@@ -560,31 +589,41 @@ func cmdDeploy(args []string) int {
 
 	if *dryRun {
 		fmt.Println("\ndry run — planned actions:")
-		printWave := func(names []string, tag string) {
+		table := [][]string{dimAll(append([]string{"", "HOST", "STATE", "ACTION"}, factHeader...))}
+		addWave := func(names []string, tag string) {
 			for _, n := range names {
+				h := f.hosts[n]
 				hp := plans[n]
-				var action string
+				st := plan.Classify(h.Toplevel, true, probes[n])
+				glyph, label := stateCells(st)
+				var action, detail string
 				switch {
 				case hp.probeErr != nil:
-					action = ui.Red("unreachable: " + hp.probeErr.Error())
+					action = "-"
+					detail = hp.probeErr.Error()
 				case hp.skipInSync:
-					action = ui.Dim("nothing to do (in sync)")
+					action = ui.Dim("nothing to do")
 				case hp.mode == "switch":
 					action = ui.Green("switch (no reboot)")
 				case hp.doReboot:
 					action = ui.Yellow("boot + reboot + verify")
-				case f.isLocal(f.hosts[n]):
+				case f.isLocal(h):
 					action = ui.Yellow("boot, then reboot this machine yourself")
 				case *rebootMode == "ask":
 					action = ui.Yellow("boot, then prompt to reboot")
 				default:
 					action = ui.Yellow("boot (reboot left to you)")
 				}
-				fmt.Printf("  %s %s%s\n", pad(n, 8), action, tag)
+				if tag != "" && detail == "" {
+					detail = tag
+				}
+				cells := append([]string{glyph, n, label, action}, factCells(h, probes[n], true)...)
+				table = append(table, append(cells, detail))
 			}
 		}
-		printWave(normal, "")
-		printWave(last, ui.Dim("  [reboot-last wave]"))
+		addWave(normal, "")
+		addWave(last, ui.Dim("reboot-last wave"))
+		fmt.Print(ui.Table(table))
 		return 0
 	}
 
