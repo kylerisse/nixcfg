@@ -80,22 +80,6 @@ func TestParseGeneration(t *testing.T) {
 	}
 }
 
-func TestNixpkgsRev(t *testing.T) {
-	cases := []struct {
-		in, want string
-	}{
-		{"26.05.20260809.fcb8fcd", "fcb8fcd"},
-		{"noversion", ""},
-		{"trailing.", ""},
-		{"", ""},
-	}
-	for _, c := range cases {
-		if got := NixpkgsRev(c.in); got != c.want {
-			t.Errorf("NixpkgsRev(%q) = %q, want %q", c.in, got, c.want)
-		}
-	}
-}
-
 func TestLabelDetail(t *testing.T) {
 	labels := map[State]string{
 		InSync: "in sync", RebootPending: "reboot pending", Staged: "staged",

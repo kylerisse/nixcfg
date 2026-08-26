@@ -133,17 +133,6 @@ func ParseGeneration(link string) int {
 	return n
 }
 
-// NixpkgsRev extracts the nixpkgs revision from a nixos-version string
-// like "26.05.20260809.fcb8fcd" (the last dot-segment). Returns ""
-// when the string doesn't look versioned.
-func NixpkgsRev(version string) string {
-	i := strings.LastIndexByte(version, '.')
-	if i < 0 || i == len(version)-1 {
-		return ""
-	}
-	return version[i+1:]
-}
-
 // Label is the human-readable form of a State for tables. The State
 // values themselves stay stable for -json consumers.
 func Label(s State) string {
