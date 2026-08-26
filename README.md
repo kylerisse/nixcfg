@@ -27,18 +27,18 @@
 │   └───watson: Ryzen Desktop
 └───packages
     ├───aarch64-darwin
-    │   ├───andiamo: package 'andiamo-0.1.0'
+    │   ├───andiamo: package 'andiamo-0.1.1'
     │   ├───docket-unstable: package 'docket-unstable'
     │   ├───terraform_1-8-2: package 'terraform_1-8-2-binary'
     │   ├───terraform_1-8-3: package 'terraform_1-8-3-binary'
     │   ├───terraform_1-9-1: package 'terraform_1-9-1-binary'
     │   └───terraform_1-9-6: package 'terraform_1-9-6-binary'
     ├───aarch64-linux
-    │   ├───andiamo: package 'andiamo-0.1.0'
+    │   ├───andiamo: package 'andiamo-0.1.1'
     │   ├───pi3Image: package 'nixos-sd-image'
     │   └───pi4Image: package 'nixos-sd-image'
     └───x86_64-linux
-        ├───andiamo: package 'andiamo-0.1.0'
+        ├───andiamo: package 'andiamo-0.1.1'
         ├───debian-netinst-iso: package 'debian-netinst-iso-12.10.0'
         ├───doImage: package 'digital-ocean-image'
         ├───docket-unstable: package 'docket-unstable'
