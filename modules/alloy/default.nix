@@ -72,6 +72,7 @@ let
 
   alloyConfig = pkgs.writeText "config.alloy" ''
     prometheus.exporter.unix "local" {
+      enable_collectors = ["systemd"]
     }
 
     prometheus.scrape "local" {
