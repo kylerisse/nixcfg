@@ -586,31 +586,41 @@ func cmdDeploy(args []string) int {
 
 	if *dryRun {
 		fmt.Println("\ndry run — planned actions:")
-		printWave := func(names []string, tag string) {
+		table := [][]string{dimAll(append([]string{"", "HOST", "STATE", "ACTION"}, factHeader...))}
+		addWave := func(names []string, tag string) {
 			for _, n := range names {
+				h := f.hosts[n]
 				hp := plans[n]
-				var action string
+				st := plan.Classify(h.Toplevel, true, probes[n])
+				glyph, label := stateCells(st)
+				var action, detail string
 				switch {
 				case hp.probeErr != nil:
-					action = ui.Red("unreachable: " + hp.probeErr.Error())
+					action = "-"
+					detail = hp.probeErr.Error()
 				case hp.skipInSync:
-					action = ui.Dim("nothing to do (in sync)")
+					action = ui.Dim("nothing to do")
 				case hp.mode == "switch":
 					action = ui.Green("switch (no reboot)")
 				case hp.doReboot:
 					action = ui.Yellow("boot + reboot + verify")
-				case f.isLocal(f.hosts[n]):
+				case f.isLocal(h):
 					action = ui.Yellow("boot, then reboot this machine yourself")
 				case *rebootMode == "ask":
 					action = ui.Yellow("boot, then prompt to reboot")
 				default:
 					action = ui.Yellow("boot (reboot left to you)")
 				}
-				fmt.Printf("  %s %s%s\n", pad(n, 8), action, tag)
+				if tag != "" && detail == "" {
+					detail = tag
+				}
+				cells := append([]string{glyph, n, label, action}, factCells(h, probes[n], true)...)
+				table = append(table, append(cells, detail))
 			}
 		}
-		printWave(normal, "")
-		printWave(last, ui.Dim("  [reboot-last wave]"))
+		addWave(normal, "")
+		addWave(last, ui.Dim("reboot-last wave"))
+		fmt.Print(ui.Table(table))
 		return 0
 	}
 
