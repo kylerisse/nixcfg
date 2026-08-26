@@ -33,33 +33,17 @@ test-all-x86-nixos:
 	nix build -L .#nixosConfigurations.qube.config.system.build.toplevel
 	nix build -L .#nixosConfigurations.watson.config.system.build.toplevel
 
-test-all-nixos: lint check test-all-arm-nixos build-x86-pkgs test-all-x86-nixos test-galleta test-monitoring
+test-all-nixos: lint check test-all-arm-nixos build-x86-pkgs test-all-x86-nixos
 
 test-all: test-all-images test-all-nixos
 
-status:
-	nix run . -- status
+# Boot a test's VMs into the interactive driver (Python REPL) to debug it;
+# `check` is what actually runs the tests, and andiamo gates deploys on it.
+debug-galleta:
+	nix run .#checks.x86_64-linux.galleta.driverInteractive
 
-deploy-qube:
-	nix run . -- deploy qube
-
-deploy-pis:
-	nix run . -- deploy pi3 pi4
-
-deploy-gibson:
-	nix run . -- deploy gibson
-
-deploy-galleta:
-	nix run . -- deploy galleta
-
-deploy-all-nixos:
-	nix run . -- deploy -all
-
-test-galleta:
-	nix run .#checks.x86_64-linux.galleta.driver
-
-test-monitoring:
-	nix run .#checks.x86_64-linux.monitoring.driver
+debug-monitoring:
+	nix run .#checks.x86_64-linux.monitoring.driverInteractive
 
 check:
 	nix flake check
