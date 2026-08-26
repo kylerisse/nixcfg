@@ -108,24 +108,27 @@
             ];
           };
         });
+      # Each test is built from the package set of the host it exercises,
+      # so the VMs share the host's nixpkgs, overlays, and config: the
+      # test follows the host's channel automatically and is mostly a
+      # cache hit after the host itself has been built.
       checks.x86_64-linux =
         let
-          pkgs = import nixos-unstable { system = "x86_64-linux"; };
+          testFor = host: file: extra:
+            let pkgs = self.nixosConfigurations.${host}.pkgs;
+            in
+            pkgs.testers.runNixOSTest (import file ({
+              inherit (pkgs) lib;
+              inherit network inputs;
+              nixpkgs = pkgs.path;
+              allModule = all;
+            } // extra));
         in
         {
-          galleta = pkgs.testers.runNixOSTest (import ./tests/galleta.nix {
-            lib = nixos-unstable.lib;
-            inherit network inputs;
-            nixpkgs = nixos-2605;
+          galleta = testFor "galleta" ./tests/galleta.nix {
             galletaConfig = ./machines/galleta/configuration.nix;
-            allModule = all;
-          });
-          monitoring = pkgs.testers.runNixOSTest (import ./tests/monitoring.nix {
-            lib = nixos-unstable.lib;
-            inherit network inputs;
-            nixpkgs = nixos-2605;
-            allModule = all;
-          });
+          };
+          monitoring = testFor "qube" ./tests/monitoring.nix { };
         };
       formatter = forAllSystems (system:
         let
