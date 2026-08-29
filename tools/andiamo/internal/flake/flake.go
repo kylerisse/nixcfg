@@ -34,6 +34,7 @@ import (
 // built.
 const hostExpr = `c: let a = c._module.args.andiamo or { }; in {
   toplevel = c.config.system.build.toplevel.outPath;
+  toplevelDrv = c.config.system.build.toplevel.drvPath;
   system = c.pkgs.stdenv.hostPlatform.system;
   sshable = c.config.mynixcfg.ssh-server.enable;
   hostName = c.config.networking.hostName;
@@ -43,8 +44,14 @@ const hostExpr = `c: let a = c._module.args.andiamo or { }; in {
   rebootLast = a.rebootLast or false;
 }`
 
+// checkExpr resolves one flake check to its derivation and output.
+// Deliberately not named drvPath/outPath: nix eval --json collapses
+// any attrset carrying outPath to a bare string.
+const checkExpr = `c: { drv = c.drvPath; out = c.outPath; }`
+
 type facts struct {
 	Toplevel     string   `json:"toplevel"`
+	ToplevelDrv  string   `json:"toplevelDrv"`
 	System       string   `json:"system"`
 	Sshable      bool     `json:"sshable"`
 	HostName     string   `json:"hostName"`
@@ -52,6 +59,11 @@ type facts struct {
 	Kernel       string   `json:"kernel"`       // modDirVersion: what uname -r reports
 	Checks       []string `json:"checks"`
 	RebootLast   bool     `json:"rebootLast"`
+}
+
+type checkFacts struct {
+	Drv string `json:"drv"`
+	Out string `json:"out"`
 }
 
 // HostNames lists the nixosConfigurations without forcing any of them
@@ -76,6 +88,7 @@ type Inventory struct {
 	dir       string
 	mu        sync.Mutex
 	facts     map[string]facts
+	checks    map[string]checkFacts
 }
 
 // Open prepares an inventory. Caching is silently disabled when the
@@ -88,6 +101,7 @@ func Open(flakePath string, jobs int, noCache bool) *Inventory {
 		flakePath: flakePath,
 		jobs:      jobs,
 		facts:     map[string]facts{},
+		checks:    map[string]checkFacts{},
 	}
 	if base, err := os.UserCacheDir(); err == nil {
 		inv.dir = filepath.Join(base, "andiamo")
@@ -101,11 +115,13 @@ func Open(flakePath string, jobs int, noCache bool) *Inventory {
 }
 
 // Cached loads whatever the cache holds for names and reports which
-// hosts still need a live eval.
+// hosts still need a live eval. A cached record whose .drv has since
+// been garbage-collected is a miss: the build phase needs the file,
+// and a re-eval writes it back.
 func (inv *Inventory) Cached(names []string) (have, missing []string) {
 	for _, n := range names {
 		if inv.key != "" {
-			if f, ok := loadCached(inv.dir, inv.key, n); ok {
+			if f, ok := loadCached(inv.dir, inv.key, n); ok && exists(f.ToplevelDrv) {
 				inv.facts[n] = f
 				have = append(have, n)
 				continue
@@ -114,6 +130,26 @@ func (inv *Inventory) Cached(names []string) (have, missing []string) {
 		missing = append(missing, n)
 	}
 	return have, missing
+}
+
+// CachedChecks is Cached for flake checks.
+func (inv *Inventory) CachedChecks(names []string) (have, missing []string) {
+	for _, n := range names {
+		if inv.key != "" {
+			if f, ok := loadCachedCheck(inv.dir, inv.key, n); ok && exists(f.Drv) {
+				inv.checks[n] = f
+				have = append(have, n)
+				continue
+			}
+		}
+		missing = append(missing, n)
+	}
+	return have, missing
+}
+
+func exists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
 }
 
 // EvalProgress carries optional callbacks so the caller can render
@@ -132,6 +168,55 @@ type EvalProgress struct {
 // jobs) and stores the results in memory and, when caching is active,
 // on disk.
 func (inv *Inventory) Eval(ctx context.Context, names []string, p EvalProgress) error {
+	return inv.evalAll(ctx, names, p, func(n string, line func(string)) error {
+		out, err := nixEval(ctx, fmt.Sprintf("%s#nixosConfigurations.%s", inv.flakePath, n), line, "--apply", hostExpr)
+		if err != nil {
+			return err
+		}
+		var f facts
+		if err := json.Unmarshal(out, &f); err != nil {
+			return err
+		}
+		inv.mu.Lock()
+		defer inv.mu.Unlock()
+		inv.facts[n] = f
+		if inv.key != "" {
+			storeCached(inv.dir, inv.key, n, f)
+		}
+		return nil
+	})
+}
+
+// EvalChecks resolves the named flake checks (x86_64-linux, the only
+// system with checks in this flake) the same way Eval resolves hosts.
+func (inv *Inventory) EvalChecks(ctx context.Context, names []string, p EvalProgress) error {
+	return inv.evalAll(ctx, names, p, func(n string, line func(string)) error {
+		out, err := nixEval(ctx, fmt.Sprintf("%s#checks.x86_64-linux.%s", inv.flakePath, n), line, "--apply", checkExpr)
+		if err != nil {
+			return err
+		}
+		var f checkFacts
+		if err := json.Unmarshal(out, &f); err != nil {
+			return err
+		}
+		if f.Drv == "" || f.Out == "" {
+			return fmt.Errorf("check %s did not resolve to a derivation", n)
+		}
+		inv.mu.Lock()
+		defer inv.mu.Unlock()
+		inv.checks[n] = f
+		if inv.key != "" {
+			storeCachedCheck(inv.dir, inv.key, n, f)
+		}
+		return nil
+	})
+}
+
+// evalAll runs do for every name, at most jobs at a time, wiring the
+// progress callbacks and honouring cancellation. do must record its
+// own result before returning, so a caller acting on Done never sees
+// the entry missing.
+func (inv *Inventory) evalAll(ctx context.Context, names []string, p EvalProgress, do func(n string, line func(string)) error) error {
 	if len(names) == 0 {
 		return nil
 	}
@@ -164,25 +249,14 @@ func (inv *Inventory) Eval(ctx context.Context, names []string, p EvalProgress) 
 			if p.Line != nil {
 				line = func(t string) { p.Line(n, t) }
 			}
-			out, err := nixEval(ctx, fmt.Sprintf("%s#nixosConfigurations.%s", inv.flakePath, n), line, "--apply", hostExpr)
-			var f facts
-			if err == nil {
-				err = json.Unmarshal(out, &f)
-			}
-			// Record before reporting, so a caller acting on Done
-			// never observes the host as missing.
-			inv.mu.Lock()
+			err := do(n, line)
 			if err != nil {
+				inv.mu.Lock()
 				if firstErr == nil {
 					firstErr = fmt.Errorf("evaluating %s: %w", n, err)
 				}
-			} else {
-				inv.facts[n] = f
-				if inv.key != "" {
-					storeCached(inv.dir, inv.key, n, f)
-				}
+				inv.mu.Unlock()
 			}
-			inv.mu.Unlock()
 			if p.Done != nil {
 				p.Done(n, err)
 			}
@@ -206,6 +280,7 @@ func (inv *Inventory) Hosts() (map[string]plan.Host, map[string]plan.Policy) {
 		hosts[name] = plan.Host{
 			Name:         name,
 			Toplevel:     f.Toplevel,
+			ToplevelDrv:  f.ToplevelDrv,
 			System:       f.System,
 			Sshable:      f.Sshable,
 			HostName:     f.HostName,
@@ -220,10 +295,19 @@ func (inv *Inventory) Hosts() (map[string]plan.Host, map[string]plan.Policy) {
 	return hosts, policies
 }
 
+// Checks returns every check resolved so far.
+func (inv *Inventory) Checks() map[string]plan.Check {
+	out := make(map[string]plan.Check, len(inv.checks))
+	for name, f := range inv.checks {
+		out[name] = plan.Check{Name: name, DrvPath: f.Drv, OutPath: f.Out}
+	}
+	return out
+}
+
 // treeKey hashes everything a pure flake eval can observe: HEAD, the
 // diff of tracked files against it (what nix's dirty-tree copy sees;
 // untracked files are invisible to the flake), the nix version, and
-// the eval expression itself.
+// the eval expressions themselves.
 func treeKey(flakePath string) (string, error) {
 	head, err := exec.Command("git", "-C", flakePath, "rev-parse", "HEAD").Output()
 	if err != nil {
@@ -237,7 +321,7 @@ func treeKey(flakePath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return hashKey(string(head), string(diff), string(ver), hostExpr), nil
+	return hashKey(string(head), string(diff), string(ver), hostExpr, checkExpr), nil
 }
 
 func hashKey(parts ...string) string {
@@ -253,25 +337,49 @@ func cachePath(dir, key, host string) string {
 	return filepath.Join(dir, key+"-"+host+".json")
 }
 
+func checkCachePath(dir, key, name string) string {
+	return filepath.Join(dir, key+"-check-"+name+".json")
+}
+
 func loadCached(dir, key, host string) (facts, bool) {
 	var f facts
-	data, err := os.ReadFile(cachePath(dir, key, host))
-	if err != nil || json.Unmarshal(data, &f) != nil || f.Toplevel == "" {
+	if !loadJSON(cachePath(dir, key, host), &f) || f.Toplevel == "" {
 		return facts{}, false
+	}
+	return f, true
+}
+
+func loadCachedCheck(dir, key, name string) (checkFacts, bool) {
+	var f checkFacts
+	if !loadJSON(checkCachePath(dir, key, name), &f) || f.Drv == "" || f.Out == "" {
+		return checkFacts{}, false
 	}
 	return f, true
 }
 
 // storeCached is best-effort: a failed write only costs a re-eval.
 func storeCached(dir, key, host string, f facts) {
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	storeJSON(cachePath(dir, key, host), f)
+}
+
+func storeCachedCheck(dir, key, name string, f checkFacts) {
+	storeJSON(checkCachePath(dir, key, name), f)
+}
+
+func loadJSON(path string, v any) bool {
+	data, err := os.ReadFile(path)
+	return err == nil && json.Unmarshal(data, v) == nil
+}
+
+func storeJSON(path string, v any) {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return
 	}
-	data, err := json.Marshal(f)
+	data, err := json.Marshal(v)
 	if err != nil {
 		return
 	}
-	_ = os.WriteFile(cachePath(dir, key, host), data, 0o644)
+	_ = os.WriteFile(path, data, 0o644)
 }
 
 // pruneCache drops entries untouched for longer than maxAge. The cache

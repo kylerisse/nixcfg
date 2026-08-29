@@ -177,9 +177,31 @@ func fail(ctx context.Context, code int, err error) int {
 // the machine andiamo runs on. hosts/policies cover only the hosts that
 // were resolved for this invocation.
 type fleet struct {
+	inv      *flake.Inventory
+	flakeDir string // absolute, for shortening eval paths
 	hosts    map[string]plan.Host
 	policies map[string]plan.Policy
 	self     string
+}
+
+// evalProgress wires an eval Progress block: rows flip to evaluating,
+// stream what nix is reading, and end evaluated / eval failed /
+// interrupted.
+func (f *fleet) evalProgress(ctx context.Context, prog *ui.Progress) flake.EvalProgress {
+	return flake.EvalProgress{
+		Start: func(n string) { prog.Set(n, "evaluating") },
+		Line:  func(n, t string) { prog.Detail(n, shortEvalLine(f.flakeDir, t)) },
+		Done: func(n string, err error) {
+			switch {
+			case err != nil && ctx.Err() != nil:
+				prog.Done(n, false, "interrupted")
+			case err != nil:
+				prog.Done(n, false, "eval failed")
+			default:
+				prog.Done(n, true, "evaluated")
+			}
+		},
+	}
 }
 
 // loadFleet resolves the requested hosts against the flake and loads
@@ -194,26 +216,14 @@ func loadFleet(ctx context.Context, c *common, args []string, all bool) (*fleet,
 	if err != nil {
 		return nil, nil, err
 	}
-	inv := flake.Open(c.flakePath, c.evalJobs, c.noCache)
-	have, missing := inv.Cached(sel)
+	f := &fleet{inv: flake.Open(c.flakePath, c.evalJobs, c.noCache)}
+	f.flakeDir, _ = filepath.Abs(c.flakePath)
+	f.self, _ = os.Hostname()
+	have, missing := f.inv.Cached(sel)
 	start := time.Now()
 	if len(missing) > 0 {
-		dir, _ := filepath.Abs(c.flakePath)
 		prog := ui.NewProgress(missing)
-		err := inv.Eval(ctx, missing, flake.EvalProgress{
-			Start: func(n string) { prog.Set(n, "evaluating") },
-			Line:  func(n, t string) { prog.Detail(n, shortEvalLine(dir, t)) },
-			Done: func(n string, err error) {
-				switch {
-				case err != nil && ctx.Err() != nil:
-					prog.Done(n, false, "interrupted")
-				case err != nil:
-					prog.Done(n, false, "eval failed")
-				default:
-					prog.Done(n, true, "evaluated")
-				}
-			},
-		})
+		err := f.inv.Eval(ctx, missing, f.evalProgress(ctx, prog))
 		prog.Close()
 		if err != nil {
 			return nil, nil, err
@@ -224,9 +234,25 @@ func loadFleet(ctx context.Context, c *common, args []string, all bool) (*fleet,
 		summary += fmt.Sprintf(", %d evaluated in %.1fs", len(missing), time.Since(start).Seconds())
 	}
 	fmt.Fprintln(os.Stderr, ui.Dim(summary))
-	hosts, policies := inv.Hosts()
-	self, _ := os.Hostname()
-	return &fleet{hosts: hosts, policies: policies, self: self}, sel, nil
+	f.hosts, f.policies = f.inv.Hosts()
+	return f, sel, nil
+}
+
+// loadChecks resolves the named flake checks to derivations, from the
+// cache where possible, otherwise via parallel evals shown as their
+// own progress block.
+func (f *fleet) loadChecks(ctx context.Context, names []string) (map[string]plan.Check, error) {
+	_, missing := f.inv.CachedChecks(names)
+	if len(missing) > 0 {
+		fmt.Printf("▸ evaluating checks: %s\n", strings.Join(missing, ", "))
+		prog := ui.NewProgress(missing)
+		err := f.inv.EvalChecks(ctx, missing, f.evalProgress(ctx, prog))
+		prog.Close()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return f.inv.Checks(), nil
 }
 
 // resolveNames validates positional host args (or all) against the
@@ -654,22 +680,40 @@ func cmdDeploy(ctx context.Context, args []string) int {
 			if *dryRun {
 				fmt.Printf("would gate on checks: %s\n", strings.Join(checks, ", "))
 			} else {
+				resolved, err := f.loadChecks(ctx, checks)
+				if err != nil {
+					return fail(ctx, 2, err)
+				}
 				fmt.Printf("▸ gating on checks: %s\n", strings.Join(checks, ", "))
-				if err := nixcmd.BuildChecks(ctx, c.flakePath, checks, ui.Live()); err != nil {
+				drvs := make([]string, len(checks))
+				for i, n := range checks {
+					drvs[i] = resolved[n].DrvPath
+				}
+				outs, err := nixcmd.Build(ctx, drvs, ui.Live())
+				if err != nil {
 					return fail(ctx, 1, fmt.Errorf("check gate failed: %w", err))
+				}
+				for i, n := range checks {
+					if outs[i] != resolved[n].OutPath {
+						return fail(ctx, 1, fmt.Errorf("check %s: built %s but eval expected %s", n, outs[i], resolved[n].OutPath))
+					}
 				}
 			}
 		}
 
 		// Build all needed toplevels in one nix invocation.
 		fmt.Printf("▸ building %d system(s)\n", len(toDeploy))
-		tops, err := nixcmd.BuildToplevels(ctx, c.flakePath, toDeploy, ui.Live())
+		drvs := make([]string, len(toDeploy))
+		for i, n := range toDeploy {
+			drvs[i] = f.hosts[n].ToplevelDrv
+		}
+		outs, err := nixcmd.Build(ctx, drvs, ui.Live())
 		if err != nil {
 			return fail(ctx, 1, err)
 		}
-		for _, n := range toDeploy {
-			if tops[n] != f.hosts[n].Toplevel {
-				return fail(ctx, 1, fmt.Errorf("%s: built %s but eval expected %s", n, tops[n], f.hosts[n].Toplevel))
+		for i, n := range toDeploy {
+			if outs[i] != f.hosts[n].Toplevel {
+				return fail(ctx, 1, fmt.Errorf("%s: built %s but eval expected %s", n, outs[i], f.hosts[n].Toplevel))
 			}
 		}
 

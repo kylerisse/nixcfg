@@ -88,3 +88,23 @@ func TestLineWriter(t *testing.T) {
 		t.Errorf("text() = %q", got)
 	}
 }
+
+func TestCheckCacheRoundTrip(t *testing.T) {
+	dir := t.TempDir()
+	f := checkFacts{Drv: "/nix/store/abc-vm-test-run-galleta.drv", Out: "/nix/store/def-vm-test-run-galleta"}
+	if _, ok := loadCachedCheck(dir, "key1", "galleta"); ok {
+		t.Fatal("unexpected cache hit in empty dir")
+	}
+	storeCachedCheck(dir, "key1", "galleta", f)
+	if got, ok := loadCachedCheck(dir, "key1", "galleta"); !ok || got != f {
+		t.Errorf("round trip: ok=%v got=%+v", ok, got)
+	}
+	// Host and check records never collide, even on the same name.
+	if _, ok := loadCached(dir, "key1", "galleta"); ok {
+		t.Error("check record served as a host record")
+	}
+	storeCachedCheck(dir, "key2", "galleta", checkFacts{Drv: "/nix/store/x.drv"})
+	if _, ok := loadCachedCheck(dir, "key2", "galleta"); ok {
+		t.Error("cache hit on record with empty out")
+	}
+}

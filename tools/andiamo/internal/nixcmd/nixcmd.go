@@ -47,14 +47,18 @@ func runLive(ctx context.Context, args ...string) (string, error) {
 	return strings.TrimSpace(string(out)), nil
 }
 
-// BuildToplevels builds the system toplevels for the given hosts in a
-// single nix invocation (nix parallelizes internally; fanning out at
-// this layer would only contend on the daemon). live streams nix's
-// progress bar to the terminal. Returns host→outPath.
-func BuildToplevels(ctx context.Context, flakePath string, hosts []string, live bool) (map[string]string, error) {
+// Build realizes the given derivations' out outputs in a single nix
+// invocation (nix parallelizes internally; fanning out at this layer
+// would only contend on the daemon) and returns their out paths in
+// order. Building by .drv path skips the per-installable flake eval
+// nix would otherwise run serially inside the build — the inventory
+// eval already paid for it. A derivation that already built (or a
+// nixos test that already passed) is a cache hit. live streams nix's
+// progress bar to the terminal.
+func Build(ctx context.Context, drvs []string, live bool) ([]string, error) {
 	args := []string{"build", "--no-link", "--print-out-paths"}
-	for _, h := range hosts {
-		args = append(args, fmt.Sprintf("%s#nixosConfigurations.%s.config.system.build.toplevel", flakePath, h))
+	for _, d := range drvs {
+		args = append(args, d+"^out")
 	}
 	var out string
 	var err error
@@ -67,31 +71,13 @@ func BuildToplevels(ctx context.Context, flakePath string, hosts []string, live 
 		return nil, err
 	}
 	lines := strings.Split(out, "\n")
-	if len(lines) != len(hosts) {
-		return nil, fmt.Errorf("built %d toplevels, expected %d", len(lines), len(hosts))
+	if len(lines) != len(drvs) {
+		return nil, fmt.Errorf("built %d paths, expected %d", len(lines), len(drvs))
 	}
-	paths := make(map[string]string, len(hosts))
-	for i, h := range hosts {
-		paths[h] = strings.TrimSpace(lines[i])
+	for i := range lines {
+		lines[i] = strings.TrimSpace(lines[i])
 	}
-	return paths, nil
-}
-
-// BuildChecks realizes the given flake checks (x86_64-linux, the only
-// system with checks in this flake). A check that already passed at
-// this eval is a cache hit. live streams nix's progress bar.
-func BuildChecks(ctx context.Context, flakePath string, checks []string, live bool) error {
-	args := []string{"build", "--no-link"}
-	for _, c := range checks {
-		args = append(args, fmt.Sprintf("%s#checks.x86_64-linux.%s", flakePath, c))
-	}
-	var err error
-	if live {
-		_, err = runLive(ctx, args...)
-	} else {
-		_, err = run(ctx, nil, args...)
-	}
-	return err
+	return lines, nil
 }
 
 // Copy pushes a closure to a host over ssh. The legacy ssh:// store is
