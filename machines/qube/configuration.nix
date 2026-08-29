@@ -8,7 +8,7 @@ in
   mynixcfg.users.kylerisse.enable = true;
   mynixcfg.nix-common.enable = true;
   mynixcfg.ssh-server.enable = true;
-  networking.firewall.allowedTCPPorts = [ 443 2017 2018 ];
+  networking.firewall.allowedTCPPorts = [ 443 ];
   mynixcfg.mrtg = {
     enable = true;
     package = pkgs-2411.mrtg;
@@ -60,6 +60,22 @@ in
             autoindex_exact_size off;
             autoindex_localtime on;
           '';
+        };
+      };
+      "dev-scale-signs.risse.tv" = {
+        forceSSL = true;
+        enableACME = true;
+        acmeRoot = null;
+        locations."/" = {
+          proxyPass = "http://localhost:2017/";
+        };
+      };
+      "dev-scale-simulator.risse.tv" = {
+        forceSSL = true;
+        enableACME = true;
+        acmeRoot = null;
+        locations."/" = {
+          proxyPass = "http://localhost:2018/";
         };
       };
       "wasgeht.risse.tv" = {
