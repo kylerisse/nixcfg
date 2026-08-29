@@ -31,15 +31,6 @@ func Init(noColor bool) {
 // progress bar) is active on stderr.
 func Live() bool { return liveEnabled }
 
-// IsTTY reports whether f is a character device.
-func IsTTY(f *os.File) bool {
-	fi, err := f.Stat()
-	if err != nil {
-		return false
-	}
-	return fi.Mode()&os.ModeCharDevice != 0
-}
-
 func paint(code, s string) string {
 	if !colorEnabled {
 		return s

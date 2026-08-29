@@ -1,6 +1,9 @@
 package ui
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
 
 func TestTruncate(t *testing.T) {
 	cases := []struct {
@@ -47,4 +50,24 @@ func TestProgressDetail(t *testing.T) {
 		t.Error("Detail after Done was accepted")
 	}
 	p.Close()
+}
+
+func TestIsTTY(t *testing.T) {
+	null, err := os.Open(os.DevNull)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer null.Close()
+	if IsTTY(null) {
+		t.Error("IsTTY(/dev/null) = true; a character device is not a terminal")
+	}
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer r.Close()
+	defer w.Close()
+	if IsTTY(w) {
+		t.Error("IsTTY(pipe) = true")
+	}
 }
