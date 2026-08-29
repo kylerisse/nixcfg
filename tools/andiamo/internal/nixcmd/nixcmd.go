@@ -8,10 +8,14 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"syscall"
+	"time"
 )
 
 func run(ctx context.Context, extraEnv []string, args ...string) (string, error) {
 	cmd := exec.CommandContext(ctx, "nix", args...)
+	cmd.Cancel = func() error { return cmd.Process.Signal(syscall.SIGINT) } // nix aborts cleanly on INT
+	cmd.WaitDelay = 3 * time.Second                                         // then KILL
 	cmd.Env = append(os.Environ(), extraEnv...)
 	var stderr strings.Builder
 	cmd.Stderr = &stderr
@@ -33,6 +37,8 @@ func run(ctx context.Context, extraEnv []string, args ...string) (string, error)
 func runLive(ctx context.Context, args ...string) (string, error) {
 	args = append(args, "--log-format", "bar")
 	cmd := exec.CommandContext(ctx, "nix", args...)
+	cmd.Cancel = func() error { return cmd.Process.Signal(syscall.SIGINT) } // nix aborts cleanly on INT
+	cmd.WaitDelay = 3 * time.Second                                         // then KILL
 	cmd.Stderr = os.Stderr
 	out, err := cmd.Output()
 	if err != nil {

@@ -18,6 +18,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/kylerisse/nixcfg/tools/andiamo/internal/plan"
@@ -135,7 +136,20 @@ func (inv *Inventory) Eval(ctx context.Context, names []string, p EvalProgress) 
 		wg.Add(1)
 		go func(n string) {
 			defer wg.Done()
-			sem <- struct{}{}
+			select {
+			case sem <- struct{}{}:
+			case <-ctx.Done():
+				// Interrupted while queued: don't spawn a doomed nix.
+				if p.Done != nil {
+					p.Done(n, ctx.Err())
+				}
+				inv.mu.Lock()
+				defer inv.mu.Unlock()
+				if firstErr == nil {
+					firstErr = fmt.Errorf("evaluating %s: %w", n, ctx.Err())
+				}
+				return
+			}
 			defer func() { <-sem }()
 			if p.Start != nil {
 				p.Start(n)
@@ -269,6 +283,8 @@ func pruneCache(dir string, maxAge time.Duration) {
 func nixEval(ctx context.Context, installable string, extra ...string) ([]byte, error) {
 	args := append([]string{"eval", "--json", installable}, extra...)
 	cmd := exec.CommandContext(ctx, "nix", args...)
+	cmd.Cancel = func() error { return cmd.Process.Signal(syscall.SIGINT) } // nix aborts cleanly on INT
+	cmd.WaitDelay = 3 * time.Second                                         // then KILL
 	var stderr strings.Builder
 	cmd.Stderr = &stderr
 	out, err := cmd.Output()
