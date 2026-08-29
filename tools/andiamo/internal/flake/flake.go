@@ -8,6 +8,7 @@
 package flake
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -56,7 +57,7 @@ type facts struct {
 // HostNames lists the nixosConfigurations without forcing any of them
 // — this is near-instant regardless of fleet size.
 func HostNames(ctx context.Context, flakePath string) ([]string, error) {
-	out, err := nixEval(ctx, flakePath+"#nixosConfigurations", "--apply", "builtins.attrNames")
+	out, err := nixEval(ctx, flakePath+"#nixosConfigurations", nil, "--apply", "builtins.attrNames")
 	if err != nil {
 		return nil, fmt.Errorf("listing nixosConfigurations: %w", err)
 	}
@@ -120,6 +121,11 @@ func (inv *Inventory) Cached(names []string) (have, missing []string) {
 type EvalProgress struct {
 	Start func(name string)
 	Done  func(name string, err error)
+	// Line receives each line nix writes to stderr while evaluating
+	// name, as it arrives — with -v that is one "evaluating file …"
+	// per file, thousands per host. Called from the child's copy
+	// goroutine; must be cheap and safe to call concurrently.
+	Line func(name, text string)
 }
 
 // Eval evaluates the given hosts in parallel nix processes (bounded by
@@ -154,25 +160,31 @@ func (inv *Inventory) Eval(ctx context.Context, names []string, p EvalProgress) 
 			if p.Start != nil {
 				p.Start(n)
 			}
-			out, err := nixEval(ctx, fmt.Sprintf("%s#nixosConfigurations.%s", inv.flakePath, n), "--apply", hostExpr)
+			var line func(string)
+			if p.Line != nil {
+				line = func(t string) { p.Line(n, t) }
+			}
+			out, err := nixEval(ctx, fmt.Sprintf("%s#nixosConfigurations.%s", inv.flakePath, n), line, "--apply", hostExpr)
 			var f facts
 			if err == nil {
 				err = json.Unmarshal(out, &f)
 			}
-			if p.Done != nil {
-				p.Done(n, err)
-			}
+			// Record before reporting, so a caller acting on Done
+			// never observes the host as missing.
 			inv.mu.Lock()
-			defer inv.mu.Unlock()
 			if err != nil {
 				if firstErr == nil {
 					firstErr = fmt.Errorf("evaluating %s: %w", n, err)
 				}
-				return
+			} else {
+				inv.facts[n] = f
+				if inv.key != "" {
+					storeCached(inv.dir, inv.key, n, f)
+				}
 			}
-			inv.facts[n] = f
-			if inv.key != "" {
-				storeCached(inv.dir, inv.key, n, f)
+			inv.mu.Unlock()
+			if p.Done != nil {
+				p.Done(n, err)
 			}
 		}(n)
 	}
@@ -280,17 +292,72 @@ func pruneCache(dir string, maxAge time.Duration) {
 	}
 }
 
-func nixEval(ctx context.Context, installable string, extra ...string) ([]byte, error) {
+// lineWriter splits a child's stderr into lines as they arrive. Every
+// line goes to fn; lines other than eval progress are kept so a
+// failure can still report nix's real warnings, traces and error. It
+// is installed as cmd.Stderr (exec owns the pipe and copy goroutine,
+// so Output/Wait and WaitDelay keep working) rather than read through
+// StderrPipe, where Wait closes the pipe under the reader, and a
+// bufio.Scanner would choke on a >64 KiB trace line.
+type lineWriter struct {
+	fn   func(string)
+	tail []byte
+	kept []string
+}
+
+func (w *lineWriter) Write(p []byte) (int, error) {
+	w.tail = append(w.tail, p...)
+	for {
+		i := bytes.IndexByte(w.tail, '\n')
+		if i < 0 {
+			break
+		}
+		w.line(string(w.tail[:i]))
+		w.tail = w.tail[i+1:]
+	}
+	return len(p), nil
+}
+
+func (w *lineWriter) line(s string) {
+	if w.fn != nil {
+		w.fn(s)
+	}
+	if !strings.HasPrefix(s, "evaluating file ") {
+		w.kept = append(w.kept, s)
+	}
+}
+
+// flush emits a trailing partial line; call once the child has exited.
+func (w *lineWriter) flush() {
+	if len(w.tail) > 0 {
+		w.line(string(w.tail))
+		w.tail = nil
+	}
+}
+
+// text is everything kept, as an error message.
+func (w *lineWriter) text() string {
+	return strings.TrimSpace(strings.Join(w.kept, "\n"))
+}
+
+// nixEval runs `nix eval --json` and returns its stdout. With line set
+// the eval runs at -v, which makes nix report each file it evaluates
+// on stderr (measured free: same time and memory as default verbosity)
+// and streams every stderr line to it as it arrives.
+func nixEval(ctx context.Context, installable string, line func(string), extra ...string) ([]byte, error) {
 	args := append([]string{"eval", "--json", installable}, extra...)
+	if line != nil {
+		args = append(args, "-v")
+	}
 	cmd := exec.CommandContext(ctx, "nix", args...)
 	cmd.Cancel = func() error { return cmd.Process.Signal(syscall.SIGINT) } // nix aborts cleanly on INT
 	cmd.WaitDelay = 3 * time.Second                                         // then KILL
-	var stderr strings.Builder
-	cmd.Stderr = &stderr
+	stderr := &lineWriter{fn: line}
+	cmd.Stderr = stderr
 	out, err := cmd.Output()
+	stderr.flush()
 	if err != nil {
-		msg := strings.TrimSpace(stderr.String())
-		if msg != "" {
+		if msg := stderr.text(); msg != "" {
 			return nil, fmt.Errorf("%s", msg)
 		}
 		return nil, err

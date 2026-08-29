@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime"
 	"sort"
 	"strconv"
@@ -197,9 +198,11 @@ func loadFleet(ctx context.Context, c *common, args []string, all bool) (*fleet,
 	have, missing := inv.Cached(sel)
 	start := time.Now()
 	if len(missing) > 0 {
+		dir, _ := filepath.Abs(c.flakePath)
 		prog := ui.NewProgress(missing)
 		err := inv.Eval(ctx, missing, flake.EvalProgress{
 			Start: func(n string) { prog.Set(n, "evaluating") },
+			Line:  func(n, t string) { prog.Detail(n, shortEvalLine(dir, t)) },
 			Done: func(n string, err error) {
 				switch {
 				case err != nil && ctx.Err() != nil:
@@ -303,6 +306,61 @@ func (f *fleet) probeAll(ctx context.Context, names []string, timeout time.Durat
 	}
 	wg.Wait()
 	return probes
+}
+
+// shortEvalLine compresses one line of `nix eval -v` stderr for a
+// progress row. "evaluating file '<p>'" becomes a readable <p>:
+//
+//	«github:nixos/nixpkgs/f4f6…?narHash=…»/nixos/modules/x.nix → nixpkgs/nixos/modules/x.nix
+//	«nix-internal»/derivation-internal.nix                    → nix-internal/derivation-internal.nix
+//	/nix/store/<hash>-source/nixos/modules/x.nix              → nixos/modules/x.nix (pre-lazy-trees nix)
+//	<flakeDir>/modules/nix-common/default.nix                 → modules/nix-common/default.nix
+//
+// Anything else (warning:, trace:, copying …) passes through. Tabs
+// and escape bytes are scrubbed either way so a trace can't wreck the
+// live redraw.
+func shortEvalLine(flakeDir, text string) string {
+	if p, ok := strings.CutPrefix(text, "evaluating file '"); ok {
+		p = strings.TrimSuffix(p, "'")
+		switch {
+		case strings.HasPrefix(p, "«"):
+			if i := strings.Index(p, "»"); i >= 0 {
+				p = flakeRefName(p[len("«"):i]) + p[i+len("»"):]
+			}
+		case strings.HasPrefix(p, "/nix/store/"):
+			rest := p[len("/nix/store/"):]
+			if i := strings.Index(rest, "-source/"); i >= 0 {
+				p = rest[i+len("-source/"):]
+			}
+		case flakeDir != "" && strings.HasPrefix(p, flakeDir+"/"):
+			p = p[len(flakeDir)+1:]
+		}
+		text = p
+	}
+	text = strings.ReplaceAll(text, "\t", " ")
+	return strings.ReplaceAll(text, "\x1b", "")
+}
+
+// flakeRefName reduces a flake reference as nix prints it inside «»
+// to a short name: the repo for forge refs (github:owner/repo/rev →
+// repo), the last path element otherwise, and internal sources
+// (nix-internal, flakes-internal) unchanged.
+func flakeRefName(ref string) string {
+	if i := strings.IndexByte(ref, '?'); i >= 0 {
+		ref = ref[:i]
+	}
+	scheme, rest, ok := strings.Cut(ref, ":")
+	if !ok {
+		return ref
+	}
+	parts := strings.Split(strings.Trim(rest, "/"), "/")
+	switch scheme {
+	case "github", "gitlab", "sourcehut":
+		if len(parts) >= 2 {
+			return parts[1]
+		}
+	}
+	return parts[len(parts)-1]
 }
 
 func pad(s string, w int) string {
