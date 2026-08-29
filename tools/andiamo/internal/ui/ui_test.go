@@ -71,3 +71,22 @@ func TestIsTTY(t *testing.T) {
 		t.Error("IsTTY(pipe) = true")
 	}
 }
+
+func TestScrub(t *testing.T) {
+	const in = "\x1b[2mserver # \x1b[0mok\tdone\x1b[K\x1b[1;32m✓\x1b[m\x1b]0;title\x07\x1b"
+	colorEnabled = false
+	if got, want := Scrub(in), "server # ok done✓"; got != want {
+		t.Errorf("colour off: %q, want %q", got, want)
+	}
+	colorEnabled = true
+	defer func() { colorEnabled = false }()
+	want := "\x1b[2mserver # \x1b[0m\x1b[2mok done\x1b[1;32m✓\x1b[0m\x1b[2m"
+	if got := Scrub(in); got != want {
+		t.Errorf("colour on: %q, want %q", got, want)
+	}
+	// What the row renders: a dim detail whose inner reset no longer
+	// un-dims the tail, and whose width is still counted right.
+	if w := Width(Dim(Scrub(in))); w != 17 {
+		t.Errorf("visible width = %d, want 17", w)
+	}
+}

@@ -16,6 +16,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -342,9 +343,8 @@ func (f *fleet) probeAll(ctx context.Context, names []string, timeout time.Durat
 //	/nix/store/<hash>-source/nixos/modules/x.nix              → nixos/modules/x.nix (pre-lazy-trees nix)
 //	<flakeDir>/modules/nix-common/default.nix                 → modules/nix-common/default.nix
 //
-// Anything else (warning:, trace:, copying …) passes through. Tabs
-// and escape bytes are scrubbed either way so a trace can't wreck the
-// live redraw.
+// Anything else (warning:, trace:, copying …) passes through. Either
+// way the line is scrubbed for the live display (see ui.Scrub).
 func shortEvalLine(flakeDir, text string) string {
 	if p, ok := strings.CutPrefix(text, "evaluating file '"); ok {
 		p = strings.TrimSuffix(p, "'")
@@ -363,8 +363,7 @@ func shortEvalLine(flakeDir, text string) string {
 		}
 		text = p
 	}
-	text = strings.ReplaceAll(text, "\t", " ")
-	return strings.ReplaceAll(text, "\x1b", "")
+	return ui.Scrub(text)
 }
 
 // flakeRefName reduces a flake reference as nix prints it inside «»
@@ -685,11 +684,11 @@ func cmdDeploy(ctx context.Context, args []string) int {
 					return fail(ctx, 2, err)
 				}
 				fmt.Printf("▸ gating on checks: %s\n", strings.Join(checks, ", "))
-				drvs := make([]string, len(checks))
-				for i, n := range checks {
-					drvs[i] = resolved[n].DrvPath
+				rows := make(map[string]buildRow, len(checks))
+				for _, n := range checks {
+					rows[n] = buildRow{drv: resolved[n].DrvPath, out: resolved[n].OutPath}
 				}
-				outs, err := nixcmd.Build(ctx, drvs, ui.Live())
+				outs, err := buildRows(ctx, checks, rows)
 				if err != nil {
 					return fail(ctx, 1, fmt.Errorf("check gate failed: %w", err))
 				}
@@ -703,11 +702,11 @@ func cmdDeploy(ctx context.Context, args []string) int {
 
 		// Build all needed toplevels in one nix invocation.
 		fmt.Printf("▸ building %d system(s)\n", len(toDeploy))
-		drvs := make([]string, len(toDeploy))
-		for i, n := range toDeploy {
-			drvs[i] = f.hosts[n].ToplevelDrv
+		rows := make(map[string]buildRow, len(toDeploy))
+		for _, n := range toDeploy {
+			rows[n] = buildRow{drv: f.hosts[n].ToplevelDrv, out: f.hosts[n].Toplevel}
 		}
-		outs, err := nixcmd.Build(ctx, drvs, ui.Live())
+		outs, err := buildRows(ctx, toDeploy, rows)
 		if err != nil {
 			return fail(ctx, 1, err)
 		}
@@ -868,6 +867,147 @@ func cmdDeploy(ctx context.Context, args []string) int {
 		fmt.Printf("%s %s  %s — %s\n", mark, pad(n, 8), pad(r.action, 14), r.msg)
 	}
 	return exit
+}
+
+// ---------------------------------------------------------------- build
+
+// buildRow is one line of a build phase: the derivation to realize and
+// the output whose appearance proves it done.
+type buildRow struct{ drv, out string }
+
+// buildRows realizes every row's derivation in ONE nix build — nix
+// schedules shared dependencies once and the daemon serializes on its
+// own locks, so one build per row would only contend — and shows what
+// each row is waiting on, read from that build's internal-json log.
+// An activity on a store path is shown under every row whose closure
+// contains it, so a shared dependency appears under all the rows it
+// blocks. A row finishes the moment its output lands in the store
+// (outputs are registered atomically; this also covers substituted
+// toplevels and already-passed tests). Returns the out paths in order.
+func buildRows(ctx context.Context, order []string, rows map[string]buildRow) ([]string, error) {
+	prog := ui.NewProgress(order)
+	for _, n := range order {
+		prog.Set(n, "building")
+	}
+
+	// Attribution: row → closure, queried alongside the build (under a
+	// second each) and cancelled with it. A row whose query fails just
+	// shows the fleet-wide totals.
+	cctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	var memberMu sync.Mutex
+	member := map[string][]string{}
+	sem := make(chan struct{}, 4)
+	for _, n := range order {
+		go func(n string) {
+			select {
+			case sem <- struct{}{}:
+			case <-cctx.Done():
+				return
+			}
+			defer func() { <-sem }()
+			paths, err := nixcmd.Closure(cctx, rows[n].drv)
+			if err != nil {
+				return
+			}
+			memberMu.Lock()
+			defer memberMu.Unlock()
+			for _, p := range paths {
+				member[p] = append(member[p], n)
+			}
+		}(n)
+	}
+
+	var tr nixcmd.Tracker
+	drvs := make([]string, len(order))
+	for i, n := range order {
+		drvs[i] = rows[n].drv
+	}
+	type result struct {
+		outs []string
+		err  error
+	}
+	done := make(chan result, 1)
+	go func() {
+		outs, err := nixcmd.Build(ctx, drvs, tr.Apply)
+		done <- result{outs, err}
+	}()
+
+	finished := map[string]bool{}
+	update := func() {
+		acts := tr.Snapshot()
+		totals := tr.Totals()
+		memberMu.Lock()
+		defer memberMu.Unlock()
+		for _, n := range order {
+			if finished[n] {
+				continue
+			}
+			if _, err := os.Stat(rows[n].out); err == nil {
+				prog.Done(n, true, "built")
+				finished[n] = true
+				continue
+			}
+			prog.Detail(n, buildDetail(n, acts, member, totals))
+		}
+	}
+	tick := time.NewTicker(120 * time.Millisecond)
+	defer tick.Stop()
+	var res result
+	for waiting := true; waiting; {
+		select {
+		case res = <-done:
+			waiting = false
+		case <-tick.C:
+			update()
+		}
+	}
+	update()
+	for _, n := range order {
+		if finished[n] {
+			continue
+		}
+		if ctx.Err() != nil {
+			prog.Done(n, false, "interrupted")
+		} else {
+			prog.Done(n, false, "build failed")
+		}
+	}
+	prog.Close()
+	return res.outs, res.err
+}
+
+// buildDetail describes what row is waiting on: its newest live
+// build or fetch, else the fleet-wide counters.
+func buildDetail(row string, acts []nixcmd.Activity, member map[string][]string, t nixcmd.Totals) string {
+	for _, a := range acts { // newest first
+		if a.Path == "" || !slices.Contains(member[a.Path], row) {
+			continue
+		}
+		name := nixcmd.StoreName(a.Path)
+		switch a.Type {
+		case nixcmd.ActBuild:
+			s := "building " + name
+			if a.LastLine != "" {
+				s += " › " + ui.Scrub(a.LastLine)
+			}
+			return s
+		case nixcmd.ActSubstitute, nixcmd.ActCopyPath:
+			s := "fetching " + name
+			if a.BytesTotal > 0 {
+				s += " " + nixcmd.HumanSize(a.Bytes, a.BytesTotal)
+			}
+			return s
+		}
+	}
+	parts := []string{"waiting"}
+	if t.BuildsExpected > 0 {
+		parts = append(parts, fmt.Sprintf("%d/%d built", t.Built, t.BuildsExpected))
+	}
+	if t.FetchesExpected > 0 {
+		parts = append(parts, fmt.Sprintf("%d/%d fetched", t.Fetched, t.FetchesExpected))
+	}
+	return strings.Join(parts, " · ")
 }
 
 // rebootWait allows the slow-booting pis extra time to come back.

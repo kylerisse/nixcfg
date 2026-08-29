@@ -7,6 +7,7 @@ package ui
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -26,10 +27,6 @@ func Init(noColor bool) {
 	colorEnabled = !noColor && os.Getenv("NO_COLOR") == "" && IsTTY(os.Stdout)
 	liveEnabled = colorEnabled && IsTTY(os.Stderr)
 }
-
-// Live reports whether rich terminal output (live redraw, nix's own
-// progress bar) is active on stderr.
-func Live() bool { return liveEnabled }
 
 func paint(code, s string) string {
 	if !colorEnabled {
@@ -55,6 +52,30 @@ func ShortPath(p string) string {
 		return p
 	}
 	return base[:8]
+}
+
+// escRE matches one escape: a CSI sequence (ESC [ … final byte), an
+// OSC sequence (ESC ] … BEL), or a lone ESC byte.
+var escRE = regexp.MustCompile("\x1b(?:\\[[0-9;?]*[ -/]*[@-~]|\\][^\x07]*\x07)?")
+
+// Scrub makes one line of child output safe to embed in a dim detail
+// on the live display. Tabs become spaces. Colour (SGR) sequences are
+// kept when colour is on — nixos test drivers and compilers colour
+// their output, and it's worth seeing — but a reset inside them would
+// end the row's dim early, so every reset re-asserts dim. Every other
+// escape sequence (cursor movement, erase, OSC) and stray ESC byte is
+// dropped: those would wreck the redraw.
+func Scrub(s string) string {
+	s = strings.ReplaceAll(s, "\t", " ")
+	return escRE.ReplaceAllStringFunc(s, func(seq string) string {
+		switch {
+		case !colorEnabled || !strings.HasPrefix(seq, "\x1b[") || !strings.HasSuffix(seq, "m"):
+			return ""
+		case seq == "\x1b[m" || seq == "\x1b[0m":
+			return "\x1b[0m\x1b[2m"
+		}
+		return seq
+	})
 }
 
 // Truncate cuts s to at most max visible cells. ANSI colour sequences
