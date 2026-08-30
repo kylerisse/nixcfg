@@ -61,3 +61,62 @@ func TestBuildDetail(t *testing.T) {
 		t.Errorf("substitute without bytes = %q", got)
 	}
 }
+
+func TestHumanDelta(t *testing.T) {
+	cases := []struct {
+		in   int64
+		want string
+	}{
+		{0, "+0 B"},
+		{3, "+3 B"},
+		{-512, "-512 B"},
+		{12902, "+12.6 KiB"},
+		{-155852, "-152.2 KiB"},
+		{42572185, "+40.6 MiB"},
+		{-1610612736, "-1.5 GiB"},
+	}
+	for _, c := range cases {
+		if got := humanDelta(c.in); got != c.want {
+			t.Errorf("humanDelta(%d) = %q, want %q", c.in, got, c.want)
+		}
+	}
+}
+
+func TestSummarizeDiffs(t *testing.T) {
+	diffs := []nixcmd.PkgDiff{
+		{Name: "changed", Removed: []string{"1"}, Added: []string{"2"}, SizeDelta: 100},
+		{Name: "added", Added: []string{"1"}, SizeDelta: 50},
+		{Name: "removed", Removed: []string{"1"}, SizeDelta: -30},
+		{Name: "rebuilt1", SizeDelta: 10},
+		{Name: "rebuilt2", SizeDelta: -5},
+	}
+	s := summarizeDiffs(diffs)
+	if s.changed != 1 || s.added != 1 || s.removed != 1 || s.rebuilt != 2 {
+		t.Errorf("counts = %+v", s)
+	}
+	if s.net != 125 || s.rebuiltDelta != 5 {
+		t.Errorf("deltas = net %d, rebuilt %d", s.net, s.rebuiltDelta)
+	}
+	if got := s.oneLine(); got != "1 changed · 1 version added · 1 version removed · 2 rebuilt · net +125 B" {
+		t.Errorf("oneLine = %q", got)
+	}
+	if got := summarizeDiffs(nil).oneLine(); got != "no package changes" {
+		t.Errorf("empty oneLine = %q", got)
+	}
+}
+
+func TestVersionsCell(t *testing.T) {
+	cases := []struct {
+		d    nixcmd.PkgDiff
+		want string
+	}{
+		{nixcmd.PkgDiff{Removed: []string{"1.2"}, Added: []string{"1.3"}}, "1.2 → 1.3"},
+		{nixcmd.PkgDiff{Added: []string{"1.0"}}, "∅ → 1.0"},
+		{nixcmd.PkgDiff{Removed: []string{"1.0", "1.0-fhs"}}, "1.0, 1.0-fhs → ∅"},
+	}
+	for _, c := range cases {
+		if got := versionsCell(c.d); got != c.want {
+			t.Errorf("versionsCell(%+v) = %q, want %q", c.d, got, c.want)
+		}
+	}
+}

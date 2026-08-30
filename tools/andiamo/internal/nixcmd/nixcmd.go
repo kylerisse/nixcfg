@@ -147,3 +147,14 @@ func Copy(ctx context.Context, host, path string) error {
 	_, err := run(ctx, env, "nix", "copy", "--to", "ssh://"+host, path)
 	return err
 }
+
+// CopyFrom pulls a closure from a host back into the local store —
+// used to diff against a running system the local store no longer
+// holds. The legacy ssh:// store mirrors Copy, and --no-check-sigs is
+// its trust model in the other direction: fleet paths are locally
+// built and unsigned, and the operator is a trusted user on both ends.
+func CopyFrom(ctx context.Context, host, path string) error {
+	env := []string{"NIX_SSHOPTS=-o BatchMode=yes -o ConnectTimeout=10"}
+	_, err := run(ctx, env, "nix", "copy", "--no-check-sigs", "--from", "ssh://"+host, path)
+	return err
+}

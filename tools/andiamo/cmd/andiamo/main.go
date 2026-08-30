@@ -38,6 +38,7 @@ const usageText = `andiamo — let's go
 
 Usage:
   andiamo status [HOST...] [flags]     show fleet deployment state (read-only)
+  andiamo plan [HOST...] [flags]       preview deploys: actions and closure diffs
   andiamo deploy (HOST... | -all) [flags]   deploy hosts in parallel
   andiamo hosts [flags]                show derived inventory and policy
   andiamo version
@@ -51,6 +52,11 @@ Common flags:
 
 Status flags:
   -json           machine-readable output
+
+Plan flags:
+  -reboot MODE    predict actions under this mode (default ask). Plan
+                  builds missing systems locally and may fetch a host's
+                  running closure for the diff; hosts are not touched.
 
 Deploy flags:
   -all            deploy every deployable host
@@ -115,6 +121,8 @@ func run(args []string) int {
 	switch args[0] {
 	case "status":
 		cmd = cmdStatus
+	case "plan":
+		cmd = cmdPlan
 	case "deploy":
 		cmd = cmdDeploy
 	case "hosts":
@@ -548,6 +556,420 @@ func cmdStatus(ctx context.Context, args []string) int {
 	return exit
 }
 
+// ---------------------------------------------------------------- plan
+
+// hostPlanT is the per-host outcome of planning: what deploy will do,
+// or why the host is skipped.
+type hostPlanT struct {
+	name       string
+	mode       string // switch | boot
+	doReboot   bool
+	skipInSync bool
+	probeErr   error
+}
+
+// classifyPlans sorts probed hosts into skipped (probe failed, already
+// in sync) and toDeploy. Every name must have been probed.
+func classifyPlans(f *fleet, names []string, probes map[string]plan.Probe) (map[string]hostPlanT, []string) {
+	plans := make(map[string]hostPlanT, len(names))
+	var toDeploy []string
+	for _, n := range names {
+		h := f.hosts[n]
+		p := probes[n]
+		hp := hostPlanT{name: n}
+		switch {
+		case p.Err != nil:
+			hp.probeErr = p.Err
+		case plan.Classify(h.Toplevel, true, p) == plan.InSync:
+			hp.skipInSync = true
+		default:
+			toDeploy = append(toDeploy, n)
+		}
+		plans[n] = hp
+	}
+	return plans, toDeploy
+}
+
+// decideModes fills in switch vs boot(+reboot) for the hosts getting a
+// deployment. The toplevels must already exist in the local store —
+// the reboot call reads their boot-critical links.
+func decideModes(f *fleet, toDeploy []string, probes map[string]plan.Probe, plans map[string]hostPlanT, rebootMode string) {
+	for _, n := range toDeploy {
+		h := f.hosts[n]
+		hp := plans[n]
+		needs := plan.NeedsReboot(remote.LocalLinks(h.Toplevel), probes[n].BootedLinks)
+		switch rebootMode {
+		case "always":
+			hp.mode, hp.doReboot = "boot", true
+		default: // ask, auto, never
+			if needs {
+				hp.mode = "boot"
+				hp.doReboot = rebootMode == "auto"
+			} else {
+				hp.mode = "switch"
+			}
+		}
+		if f.isLocal(h) {
+			hp.doReboot = false // never reboot the machine andiamo runs on
+		}
+		plans[n] = hp
+	}
+}
+
+// actionLabel describes what deploy will do for a planned host, shared
+// by the plan command and the deploy dry run.
+func actionLabel(hp hostPlanT, local bool, rebootMode string) string {
+	switch {
+	case hp.probeErr != nil:
+		return "-"
+	case hp.skipInSync:
+		return ui.Dim("nothing to do")
+	case hp.mode == "switch":
+		return ui.Green("switch (no reboot)")
+	case hp.doReboot:
+		return ui.Yellow("boot + reboot + verify")
+	case local:
+		return ui.Yellow("boot, then reboot this machine yourself")
+	case rebootMode == "ask":
+		return ui.Yellow("boot, then prompt to reboot")
+	default:
+		return ui.Yellow("boot (reboot left to you)")
+	}
+}
+
+func cmdPlan(ctx context.Context, args []string) int {
+	fs := flag.NewFlagSet("plan", flag.ExitOnError)
+	c := addCommon(fs)
+	rebootMode := fs.String("reboot", "ask", "ask | auto | always | never")
+	hostArgs := parseMixed(fs, args)
+	ui.Init(c.noColor)
+
+	switch *rebootMode {
+	case "ask", "auto", "always", "never":
+	default:
+		fmt.Fprintf(os.Stderr, "andiamo: -reboot must be ask, auto, always, or never\n")
+		return 2
+	}
+
+	f, selected, err := loadFleet(ctx, c, hostArgs, len(hostArgs) == 0)
+	if err != nil {
+		return fail(ctx, 2, err)
+	}
+	printBanner(c)
+
+	var probed []string
+	for _, n := range selected {
+		if f.reachable(f.hosts[n]) {
+			probed = append(probed, n)
+		}
+	}
+	fmt.Printf("▸ probing %d host(s)\n", len(probed))
+	probes := f.probeAll(ctx, probed, c.timeout)
+	if ctx.Err() != nil {
+		return fail(ctx, 2, ctx.Err())
+	}
+	plans, toDeploy := classifyPlans(f, probed, probes)
+
+	if len(toDeploy) > 0 {
+		if checks := plan.Checks(toDeploy, f.policies); len(checks) > 0 {
+			fmt.Printf("deploy would gate on checks: %s\n", strings.Join(checks, ", "))
+		}
+		// The new systems must exist locally: the switch-vs-boot call
+		// reads their boot-critical links, the diff their closures.
+		fmt.Printf("▸ building %d system(s)\n", len(toDeploy))
+		rows := make(map[string]buildRow, len(toDeploy))
+		for _, n := range toDeploy {
+			rows[n] = buildRow{drv: f.hosts[n].ToplevelDrv, out: f.hosts[n].Toplevel}
+		}
+		outs, err := buildRows(ctx, toDeploy, rows)
+		if err != nil {
+			return fail(ctx, 1, err)
+		}
+		for i, n := range toDeploy {
+			if outs[i] != f.hosts[n].Toplevel {
+				return fail(ctx, 1, fmt.Errorf("%s: built %s but eval expected %s", n, outs[i], f.hosts[n].Toplevel))
+			}
+		}
+		decideModes(f, toDeploy, probes, plans, *rebootMode)
+	}
+
+	// Action table: the deploy waves, then hosts plan can only observe.
+	normal, last := plan.Partition(probed, f.policies)
+	fmt.Println("\nplanned actions:")
+	table := [][]string{dimAll(append([]string{"", "HOST", "STATE", "ACTION"}, factHeader...))}
+	addWave := func(names []string, tag string) {
+		for _, n := range names {
+			h := f.hosts[n]
+			hp := plans[n]
+			st := plan.Classify(h.Toplevel, true, probes[n])
+			glyph, label := stateCells(st)
+			detail := tag
+			if hp.probeErr != nil {
+				detail = hp.probeErr.Error()
+			}
+			cells := append([]string{glyph, n, label, actionLabel(hp, f.isLocal(h), *rebootMode)}, factCells(h, probes[n], true)...)
+			table = append(table, append(cells, detail))
+		}
+	}
+	addWave(normal, "")
+	addWave(last, ui.Dim("reboot-last wave"))
+	for _, n := range selected {
+		if f.reachable(f.hosts[n]) {
+			continue
+		}
+		glyph, label := stateCells(plan.LocalOnly)
+		cells := append([]string{glyph, n, label, ui.Dim("-")}, factCells(f.hosts[n], plan.Probe{}, false)...)
+		table = append(table, append(cells, ui.Dim(plan.Detail(plan.LocalOnly, nil))))
+	}
+	fmt.Print(ui.Table(table))
+
+	if len(toDeploy) > 0 && ctx.Err() == nil {
+		fmt.Printf("\n▸ computing closure diffs\n")
+		hds := diffAll(ctx, f, toDeploy, probes)
+		dNormal, dLast := plan.Partition(toDeploy, f.policies)
+		for _, n := range append(append([]string{}, dNormal...), dLast...) {
+			printHostDiff(n, hds[n])
+		}
+	}
+	if ctx.Err() != nil {
+		return fail(ctx, 2, ctx.Err())
+	}
+
+	exit := 0
+	for _, n := range probed {
+		switch plan.Classify(f.hosts[n].Toplevel, true, probes[n]) {
+		case plan.Unreachable:
+			exit = 2
+		case plan.OutOfDate, plan.Staged, plan.RebootPending:
+			if exit < 1 {
+				exit = 1
+			}
+		}
+	}
+	return exit
+}
+
+// hostDiff is one host's closure diff, or the reason there isn't one.
+type hostDiff struct {
+	diffs []nixcmd.PkgDiff
+	note  string
+}
+
+// diffAll computes running→expected closure diffs for the hosts about
+// to be deployed. Old closures usually still exist locally (this
+// machine built them once); one that doesn't (GC'd, or deployed from
+// elsewhere) is fetched back from its host first.
+func diffAll(ctx context.Context, f *fleet, names []string, probes map[string]plan.Probe) map[string]hostDiff {
+	out := make(map[string]hostDiff, len(names))
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	sem := make(chan struct{}, 4)
+	prog := ui.NewProgress(names)
+	for _, n := range names {
+		wg.Add(1)
+		go func(n string) {
+			defer wg.Done()
+			var hd hostDiff
+			select {
+			case sem <- struct{}{}:
+				hd = diffHost(ctx, f, n, probes[n].Current, prog)
+				<-sem
+			case <-ctx.Done():
+				prog.Done(n, false, "interrupted")
+				hd.note = "interrupted"
+			}
+			mu.Lock()
+			out[n] = hd
+			mu.Unlock()
+		}(n)
+	}
+	wg.Wait()
+	prog.Close()
+	return out
+}
+
+func diffHost(ctx context.Context, f *fleet, n, old string, prog *ui.Progress) hostDiff {
+	h := f.hosts[n]
+	interrupted := func() hostDiff {
+		prog.Done(n, false, "interrupted")
+		return hostDiff{note: "interrupted"}
+	}
+	if old == "" {
+		prog.Done(n, true, "no running system to diff against")
+		return hostDiff{note: "running system unknown — nothing to diff against"}
+	}
+	if old == h.Toplevel {
+		prog.Done(n, true, "same system, reboot only")
+		return hostDiff{note: "target system already active — only the reboot is pending"}
+	}
+	if _, err := os.Stat(old); err != nil {
+		if f.isLocal(h) {
+			prog.Done(n, false, "running system missing from store")
+			return hostDiff{note: "closure diff unavailable: running system missing from the local store"}
+		}
+		prog.Set(n, "fetching running system from host")
+		if err := nixcmd.CopyFrom(ctx, h.Name, old); err != nil {
+			if ctx.Err() != nil {
+				return interrupted()
+			}
+			prog.Done(n, false, "fetch failed")
+			return hostDiff{note: "closure diff unavailable: " + err.Error()}
+		}
+	}
+	prog.Set(n, "diffing closures")
+	diffs, err := nixcmd.DiffClosures(ctx, old, h.Toplevel)
+	if err != nil {
+		if ctx.Err() != nil {
+			return interrupted()
+		}
+		prog.Done(n, false, "diff failed")
+		return hostDiff{note: "closure diff unavailable: " + err.Error()}
+	}
+	prog.Done(n, true, summarizeDiffs(diffs).oneLine())
+	return hostDiff{diffs: diffs}
+}
+
+// diffSummary tallies a closure diff. added/removed count packages
+// that only gained or only lost versions (which per PkgDiff need not
+// mean the package itself appeared or vanished); rebuilt counts
+// packages whose contents changed without any version change.
+type diffSummary struct {
+	changed, added, removed int
+	rebuilt                 int
+	rebuiltDelta            int64
+	net                     int64
+}
+
+func summarizeDiffs(diffs []nixcmd.PkgDiff) diffSummary {
+	var s diffSummary
+	for _, d := range diffs {
+		s.net += d.SizeDelta
+		switch {
+		case d.Removed == nil && d.Added == nil:
+			s.rebuilt++
+			s.rebuiltDelta += d.SizeDelta
+		case d.Removed == nil:
+			s.added++
+		case d.Added == nil:
+			s.removed++
+		default:
+			s.changed++
+		}
+	}
+	return s
+}
+
+func (s diffSummary) oneLine() string {
+	var parts []string
+	count := func(n int, word string) {
+		if n > 0 {
+			parts = append(parts, fmt.Sprintf("%d %s", n, word))
+		}
+	}
+	count(s.changed, "changed")
+	if s.added > 0 {
+		parts = append(parts, versionCount(s.added, "added"))
+	}
+	if s.removed > 0 {
+		parts = append(parts, versionCount(s.removed, "removed"))
+	}
+	count(s.rebuilt, "rebuilt")
+	if len(parts) == 0 {
+		return "no package changes"
+	}
+	if s.net != 0 {
+		parts = append(parts, "net "+humanDelta(s.net))
+	}
+	return strings.Join(parts, " · ")
+}
+
+// versionCount says "N versions added/removed" rather than "N added":
+// a package under "versions added" may be brand new to the closure or
+// just gaining a second version next to one it keeps (see PkgDiff).
+func versionCount(n int, what string) string {
+	if n == 1 {
+		return "1 version " + what
+	}
+	return fmt.Sprintf("%d versions %s", n, what)
+}
+
+// printHostDiff renders one host's section: added/removed/version
+// changes as rows, content-only rebuilds collapsed into one line.
+func printHostDiff(name string, hd hostDiff) {
+	if hd.note != "" {
+		fmt.Printf("\n%s — %s\n", name, hd.note)
+		return
+	}
+	s := summarizeDiffs(hd.diffs)
+	fmt.Printf("\n%s — %s\n", name, s.oneLine())
+	var table [][]string
+	for _, d := range hd.diffs {
+		if d.Removed == nil && d.Added == nil {
+			continue
+		}
+		// Green: only gained versions; red: only lost them. Version
+		// changes stay plain — the arrow says it all.
+		pkg := d.Name
+		switch {
+		case d.Removed == nil:
+			pkg = ui.Green(pkg)
+		case d.Added == nil:
+			pkg = ui.Red(pkg)
+		}
+		table = append(table, []string{"  " + pkg, versionsCell(d), deltaCell(d.SizeDelta)})
+	}
+	if len(table) > 0 {
+		fmt.Print(ui.Table(table))
+	}
+	if s.rebuilt > 0 {
+		fmt.Println(ui.Dim(fmt.Sprintf("  %d package(s) rebuilt without a version change (net %s)", s.rebuilt, humanDelta(s.rebuiltDelta))))
+	}
+}
+
+// versionsCell renders the version-set delta exactly as nix prints
+// it: versions dropped → versions gained, ∅ for none.
+func versionsCell(d nixcmd.PkgDiff) string {
+	join := func(v []string) string {
+		if len(v) == 0 {
+			return "∅"
+		}
+		return strings.Join(v, ", ")
+	}
+	return join(d.Removed) + " → " + join(d.Added)
+}
+
+// deltaCell colors a size delta the way nix does: growth red,
+// shrinkage green, zero omitted.
+func deltaCell(n int64) string {
+	switch {
+	case n == 0:
+		return ""
+	case n > 0:
+		return ui.Red(humanDelta(n))
+	default:
+		return ui.Green(humanDelta(n))
+	}
+}
+
+// humanDelta renders a signed byte count in the binary units
+// diff-closures itself uses.
+func humanDelta(n int64) string {
+	sign, v := "+", float64(n)
+	if n < 0 {
+		sign, v = "-", -v
+	}
+	switch {
+	case v >= 1<<30:
+		return fmt.Sprintf("%s%.1f GiB", sign, v/(1<<30))
+	case v >= 1<<20:
+		return fmt.Sprintf("%s%.1f MiB", sign, v/(1<<20))
+	case v >= 1<<10:
+		return fmt.Sprintf("%s%.1f KiB", sign, v/(1<<10))
+	default:
+		return fmt.Sprintf("%s%.0f B", sign, v)
+	}
+}
+
 // ---------------------------------------------------------------- hosts
 
 func cmdHosts(ctx context.Context, args []string) int {
@@ -649,29 +1071,7 @@ func cmdDeploy(ctx context.Context, args []string) int {
 		return fail(ctx, 2, ctx.Err())
 	}
 
-	type hostPlanT struct {
-		name       string
-		mode       string // switch | boot
-		doReboot   bool
-		skipInSync bool
-		probeErr   error
-	}
-	plans := make(map[string]hostPlanT, len(selected))
-	var toDeploy []string
-	for _, n := range selected {
-		h := f.hosts[n]
-		p := probes[n]
-		hp := hostPlanT{name: n}
-		switch {
-		case p.Err != nil:
-			hp.probeErr = p.Err
-		case plan.Classify(h.Toplevel, true, p) == plan.InSync:
-			hp.skipInSync = true
-		default:
-			toDeploy = append(toDeploy, n)
-		}
-		plans[n] = hp
-	}
+	plans, toDeploy := classifyPlans(f, selected, probes)
 
 	if len(toDeploy) > 0 {
 		// Check gates, only for hosts that actually get a deployment.
@@ -717,27 +1117,7 @@ func cmdDeploy(ctx context.Context, args []string) int {
 			}
 		}
 
-		// Decide switch vs boot(+reboot) per host.
-		for _, n := range toDeploy {
-			h := f.hosts[n]
-			hp := plans[n]
-			needs := plan.NeedsReboot(remote.LocalLinks(h.Toplevel), probes[n].BootedLinks)
-			switch *rebootMode {
-			case "always":
-				hp.mode, hp.doReboot = "boot", true
-			default: // ask, auto, never
-				if needs {
-					hp.mode = "boot"
-					hp.doReboot = *rebootMode == "auto"
-				} else {
-					hp.mode = "switch"
-				}
-			}
-			if f.isLocal(h) {
-				hp.doReboot = false // never reboot the machine andiamo runs on
-			}
-			plans[n] = hp
-		}
+		decideModes(f, toDeploy, probes, plans, *rebootMode)
 	}
 
 	normal, last := plan.Partition(selected, f.policies)
@@ -751,23 +1131,10 @@ func cmdDeploy(ctx context.Context, args []string) int {
 				hp := plans[n]
 				st := plan.Classify(h.Toplevel, true, probes[n])
 				glyph, label := stateCells(st)
-				var action, detail string
-				switch {
-				case hp.probeErr != nil:
-					action = "-"
+				action := actionLabel(hp, f.isLocal(h), *rebootMode)
+				var detail string
+				if hp.probeErr != nil {
 					detail = hp.probeErr.Error()
-				case hp.skipInSync:
-					action = ui.Dim("nothing to do")
-				case hp.mode == "switch":
-					action = ui.Green("switch (no reboot)")
-				case hp.doReboot:
-					action = ui.Yellow("boot + reboot + verify")
-				case f.isLocal(h):
-					action = ui.Yellow("boot, then reboot this machine yourself")
-				case *rebootMode == "ask":
-					action = ui.Yellow("boot, then prompt to reboot")
-				default:
-					action = ui.Yellow("boot (reboot left to you)")
 				}
 				if tag != "" && detail == "" {
 					detail = tag
