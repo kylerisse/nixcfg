@@ -35,19 +35,26 @@ type Check struct {
 	OutPath string
 }
 
-// Links are the boot-critical symlink targets of a system toplevel.
-// A change in any of them means switch-to-configuration cannot fully
-// apply the new system without a reboot.
+// Links are the boot-critical parts of a system toplevel: the symlink
+// targets of kernel/initrd/kernel-modules/systemd plus the content of
+// the kernel-params file (the kernel command line). A change in any of
+// them means switch-to-configuration cannot fully apply the new system
+// without a reboot.
 type Links struct {
 	Kernel        string
 	Initrd        string
 	KernelModules string
 	Systemd       string
+	KernelParams  string // kernel-params file content, not a link target
 }
 
-// Complete reports whether every link was resolved.
+// Complete reports whether every part was resolved. An empty
+// kernel-params file is indistinguishable from an unreadable one and so
+// counts as unresolved (failing safe toward reboot); in practice NixOS
+// always emits at least the console log level.
 func (l Links) Complete() bool {
-	return l.Kernel != "" && l.Initrd != "" && l.KernelModules != "" && l.Systemd != ""
+	return l.Kernel != "" && l.Initrd != "" && l.KernelModules != "" &&
+		l.Systemd != "" && l.KernelParams != ""
 }
 
 // Probe is the observed state of one host.

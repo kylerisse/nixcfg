@@ -56,7 +56,8 @@ Deploy flags:
   -all            deploy every deployable host
   -reboot MODE    ask | auto | always | never (default ask). Safe changes
                   always activate live via switch; boot-critical changes
-                  (kernel/initrd/kernel-modules/systemd) are staged, then:
+                  (kernel/initrd/kernel-modules/systemd/kernel-params)
+                  are staged, then:
                   ask = offer to reboot now (non-TTY: stays staged),
                   auto = reboot without asking, never = stay staged.
                   always = boot + reboot every host regardless.

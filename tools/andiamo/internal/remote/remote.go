@@ -7,6 +7,7 @@ package remote
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
@@ -81,20 +82,24 @@ var probePaths = []string{
 // probeScript resolves probePaths, then prints one line each for: the
 // generation name (unresolved link), the profile symlink mtime (store
 // paths carry no dates; the symlink records when the profile was set),
-// the running system's version string, uptime in whole seconds, and
-// the booted kernel release. Each value is captured and echoed so a
-// file without a trailing newline (nixos-version) or a failing command
-// still yields exactly one line.
+// the running system's version string, uptime in whole seconds, the
+// booted kernel release, and the kernel command lines of the running
+// and booted systems (kernel-params is a file, not a link, so content
+// is what gets compared). Each value is captured and echoed so a file
+// without a trailing newline (nixos-version, kernel-params) or a
+// failing command still yields exactly one line.
 var probeScript = "for p in " + strings.Join(probePaths, " ") +
 	`; do readlink -f "$p" 2>/dev/null || echo MISSING; done; ` +
 	`readlink /nix/var/nix/profiles/system 2>/dev/null || echo MISSING; ` +
 	`stat -c %Y /nix/var/nix/profiles/system 2>/dev/null || echo 0; ` +
 	`v=$(cat /run/current-system/nixos-version 2>/dev/null); echo "${v:-MISSING}"; ` +
 	`v=$(cut -d. -f1 /proc/uptime 2>/dev/null); echo "${v:-0}"; ` +
-	`v=$(uname -r 2>/dev/null); echo "${v:-MISSING}"`
+	`v=$(uname -r 2>/dev/null); echo "${v:-MISSING}"; ` +
+	`v=$(cat /run/current-system/kernel-params 2>/dev/null); echo "${v:-MISSING}"; ` +
+	`v=$(cat /run/booted-system/kernel-params 2>/dev/null); echo "${v:-MISSING}"`
 
 // probeExtra is the number of lines probeScript prints after probePaths.
-const probeExtra = 5
+const probeExtra = 7
 
 // Probe reads the target's system symlinks plus generation, deploy
 // time, version, uptime, and kernel in one round trip.
@@ -129,9 +134,11 @@ func parseProbe(out string) plan.Probe {
 		Profile: get(2),
 		CurrentLinks: plan.Links{
 			Kernel: get(3), Initrd: get(4), KernelModules: get(5), Systemd: get(6),
+			KernelParams: get(n + 5),
 		},
 		BootedLinks: plan.Links{
 			Kernel: get(7), Initrd: get(8), KernelModules: get(9), Systemd: get(10),
+			KernelParams: get(n + 6),
 		},
 		Generation:   plan.ParseGeneration(get(n)),
 		DeployedAt:   deployedAt,
@@ -152,11 +159,16 @@ func LocalLinks(toplevel string) plan.Links {
 		}
 		return p
 	}
+	params := ""
+	if data, err := os.ReadFile(filepath.Join(toplevel, "kernel-params")); err == nil {
+		params = strings.TrimSpace(string(data))
+	}
 	return plan.Links{
 		Kernel:        resolve("kernel"),
 		Initrd:        resolve("initrd"),
 		KernelModules: resolve("kernel-modules"),
 		Systemd:       resolve("systemd"),
+		KernelParams:  params,
 	}
 }
 

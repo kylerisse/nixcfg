@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	linksA = Links{Kernel: "/nix/store/aaa-linux", Initrd: "/nix/store/aaa-initrd", KernelModules: "/nix/store/aaa-mods", Systemd: "/nix/store/aaa-systemd"}
-	linksB = Links{Kernel: "/nix/store/bbb-linux", Initrd: "/nix/store/aaa-initrd", KernelModules: "/nix/store/aaa-mods", Systemd: "/nix/store/aaa-systemd"}
+	linksA = Links{Kernel: "/nix/store/aaa-linux", Initrd: "/nix/store/aaa-initrd", KernelModules: "/nix/store/aaa-mods", Systemd: "/nix/store/aaa-systemd", KernelParams: "loglevel=4"}
+	linksB = Links{Kernel: "/nix/store/bbb-linux", Initrd: "/nix/store/aaa-initrd", KernelModules: "/nix/store/aaa-mods", Systemd: "/nix/store/aaa-systemd", KernelParams: "loglevel=4"}
 )
 
 func TestNeedsReboot(t *testing.T) {
@@ -19,11 +19,13 @@ func TestNeedsReboot(t *testing.T) {
 	}{
 		{"identical", linksA, linksA, false},
 		{"kernel differs", linksB, linksA, true},
-		{"initrd differs", Links{linksA.Kernel, "/nix/store/other", linksA.KernelModules, linksA.Systemd}, linksA, true},
-		{"modules differ", Links{linksA.Kernel, linksA.Initrd, "/nix/store/other", linksA.Systemd}, linksA, true},
-		{"systemd differs", Links{linksA.Kernel, linksA.Initrd, linksA.KernelModules, "/nix/store/other"}, linksA, true},
+		{"initrd differs", Links{linksA.Kernel, "/nix/store/other", linksA.KernelModules, linksA.Systemd, linksA.KernelParams}, linksA, true},
+		{"modules differ", Links{linksA.Kernel, linksA.Initrd, "/nix/store/other", linksA.Systemd, linksA.KernelParams}, linksA, true},
+		{"systemd differs", Links{linksA.Kernel, linksA.Initrd, linksA.KernelModules, "/nix/store/other", linksA.KernelParams}, linksA, true},
+		{"kernel params differ", Links{linksA.Kernel, linksA.Initrd, linksA.KernelModules, linksA.Systemd, "loglevel=4 amd_iommu=on"}, linksA, true},
 		{"next unresolved fails safe", Links{}, linksA, true},
 		{"booted unresolved fails safe", linksA, Links{Kernel: "/nix/store/aaa-linux"}, true},
+		{"empty params fails safe", Links{linksA.Kernel, linksA.Initrd, linksA.KernelModules, linksA.Systemd, ""}, linksA, true},
 	}
 	for _, c := range cases {
 		if got := NeedsReboot(c.next, c.booted); got != c.want {

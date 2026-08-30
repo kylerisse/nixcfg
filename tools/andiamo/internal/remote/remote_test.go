@@ -23,6 +23,8 @@ var canned = []string{
 	"26.05.20260825.f4f6986",
 	"3542400",
 	"6.18.46",
+	"console=ttyS0,115200 loglevel=4",
+	"loglevel=4",
 }
 
 func TestParseProbe(t *testing.T) {
@@ -35,6 +37,9 @@ func TestParseProbe(t *testing.T) {
 	}
 	if p.CurrentLinks.Kernel != "/nix/store/new-linux" || p.BootedLinks.Systemd != "/nix/store/old-systemd" {
 		t.Errorf("boot-critical links mis-mapped: %+v %+v", p.CurrentLinks, p.BootedLinks)
+	}
+	if p.CurrentLinks.KernelParams != "console=ttyS0,115200 loglevel=4" || p.BootedLinks.KernelParams != "loglevel=4" {
+		t.Errorf("kernel params mis-mapped: %+v %+v", p.CurrentLinks, p.BootedLinks)
 	}
 	if p.Generation != 64 {
 		t.Errorf("Generation = %d, want 64", p.Generation)
@@ -59,11 +64,12 @@ func TestParseProbeMissing(t *testing.T) {
 	lines[12] = "0"       // stat failed
 	lines[14] = "0"       // no /proc/uptime
 	lines[15] = "MISSING" // uname failed
+	lines[17] = "MISSING" // no booted kernel-params
 	p := parseProbe(strings.Join(lines, "\n"))
 	if p.Err != nil {
 		t.Fatalf("unexpected error: %v", p.Err)
 	}
-	if p.Booted != "" || p.DeployedAt != 0 || p.UptimeSec != 0 || p.Kernel != "" {
+	if p.Booted != "" || p.DeployedAt != 0 || p.UptimeSec != 0 || p.Kernel != "" || p.BootedLinks.KernelParams != "" {
 		t.Errorf("missing values not zeroed: %+v", p)
 	}
 }
@@ -73,7 +79,7 @@ func TestParseProbeLineCount(t *testing.T) {
 	if p.Err == nil {
 		t.Error("short output must be an error, not a misaligned probe")
 	}
-	if p.Err != nil && !strings.Contains(p.Err.Error(), "want 16") {
+	if p.Err != nil && !strings.Contains(p.Err.Error(), "want 18") {
 		t.Errorf("error should name the expected count: %v", p.Err)
 	}
 }
