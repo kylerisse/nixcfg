@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/kylerisse/nixcfg/tools/andiamo/internal/plan"
@@ -38,6 +39,12 @@ func (t Target) Run(ctx context.Context, script string) (string, error) {
 			"-o", fmt.Sprintf("ConnectTimeout=%d", secs),
 			t.Host, script)
 	}
+	// On cancel, INT rather than the default KILL so ssh closes its
+	// session (and nix children exit cleanly); KILL after WaitDelay if
+	// it doesn't. Local sh -c gets INT too, but its sudo child keeps
+	// running — same exposure as before.
+	cmd.Cancel = func() error { return cmd.Process.Signal(syscall.SIGINT) }
+	cmd.WaitDelay = 3 * time.Second
 	out, err := cmd.CombinedOutput()
 	text := strings.TrimSpace(string(out))
 	if err != nil {

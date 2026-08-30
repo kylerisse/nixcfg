@@ -13,11 +13,16 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
+	"path/filepath"
 	"runtime"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
+	"syscall"
 	"time"
 
 	"github.com/kylerisse/nixcfg/tools/andiamo/internal/flake"
@@ -27,7 +32,7 @@ import (
 	"github.com/kylerisse/nixcfg/tools/andiamo/internal/ui"
 )
 
-const version = "0.1.1"
+const version = "0.1.2"
 
 const usageText = `andiamo — let's go
 
@@ -105,13 +110,14 @@ func run(args []string) int {
 		fmt.Print(usageText)
 		return 2
 	}
+	var cmd func(context.Context, []string) int
 	switch args[0] {
 	case "status":
-		return cmdStatus(args[1:])
+		cmd = cmdStatus
 	case "deploy":
-		return cmdDeploy(args[1:])
+		cmd = cmdDeploy
 	case "hosts":
-		return cmdHosts(args[1:])
+		cmd = cmdHosts
 	case "version", "-version", "--version":
 		fmt.Println("andiamo " + version)
 		return 0
@@ -122,15 +128,81 @@ func run(args []string) int {
 		fmt.Fprintf(os.Stderr, "andiamo: unknown command %q\n\n%s", args[0], usageText)
 		return 2
 	}
+
+	// One root context for the whole command. The first SIGINT/SIGTERM
+	// cancels everything — queued work bails out, running nix and ssh
+	// children get SIGINT (see the spawn sites) — and restores the
+	// default disposition so a second signal kills outright.
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
+	var got atomic.Value
+	go func() {
+		s := <-sigs
+		got.Store(s)
+		cancel()
+		signal.Stop(sigs)
+	}()
+
+	code := cmd(ctx, args[1:])
+	if s, ok := got.Load().(syscall.Signal); ok {
+		fmt.Fprintf(os.Stderr, "andiamo: interrupted (%s)\n", sigName(s))
+		return 128 + int(s)
+	}
+	return code
+}
+
+func sigName(s syscall.Signal) string {
+	switch s {
+	case syscall.SIGINT:
+		return "SIGINT"
+	case syscall.SIGTERM:
+		return "SIGTERM"
+	}
+	return s.String()
+}
+
+// fail reports err on stderr and returns code. Once the context is
+// cancelled it prints nothing: run's closing "interrupted" line is the
+// only explanation the operator needs, not "context canceled" or
+// "signal: interrupt" from whichever child died first.
+func fail(ctx context.Context, code int, err error) int {
+	if ctx.Err() == nil {
+		fmt.Fprintln(os.Stderr, "andiamo:", err)
+	}
+	return code
 }
 
 // fleet bundles everything derived from the flake plus the identity of
 // the machine andiamo runs on. hosts/policies cover only the hosts that
 // were resolved for this invocation.
 type fleet struct {
+	inv      *flake.Inventory
+	flakeDir string // absolute, for shortening eval paths
 	hosts    map[string]plan.Host
 	policies map[string]plan.Policy
 	self     string
+}
+
+// evalProgress wires an eval Progress block: rows flip to evaluating,
+// stream what nix is reading, and end evaluated / eval failed /
+// interrupted.
+func (f *fleet) evalProgress(ctx context.Context, prog *ui.Progress) flake.EvalProgress {
+	return flake.EvalProgress{
+		Start: func(n string) { prog.Set(n, "evaluating") },
+		Line:  func(n, t string) { prog.Detail(n, shortEvalLine(f.flakeDir, t)) },
+		Done: func(n string, err error) {
+			switch {
+			case err != nil && ctx.Err() != nil:
+				prog.Done(n, false, "interrupted")
+			case err != nil:
+				prog.Done(n, false, "eval failed")
+			default:
+				prog.Done(n, true, "evaluated")
+			}
+		},
+	}
 }
 
 // loadFleet resolves the requested hosts against the flake and loads
@@ -145,21 +217,14 @@ func loadFleet(ctx context.Context, c *common, args []string, all bool) (*fleet,
 	if err != nil {
 		return nil, nil, err
 	}
-	inv := flake.Open(c.flakePath, c.evalJobs, c.noCache)
-	have, missing := inv.Cached(sel)
+	f := &fleet{inv: flake.Open(c.flakePath, c.evalJobs, c.noCache)}
+	f.flakeDir, _ = filepath.Abs(c.flakePath)
+	f.self, _ = os.Hostname()
+	have, missing := f.inv.Cached(sel)
 	start := time.Now()
 	if len(missing) > 0 {
 		prog := ui.NewProgress(missing)
-		err := inv.Eval(ctx, missing, flake.EvalProgress{
-			Start: func(n string) { prog.Set(n, "evaluating") },
-			Done: func(n string, err error) {
-				if err != nil {
-					prog.Done(n, false, "eval failed")
-				} else {
-					prog.Done(n, true, "evaluated")
-				}
-			},
-		})
+		err := f.inv.Eval(ctx, missing, f.evalProgress(ctx, prog))
 		prog.Close()
 		if err != nil {
 			return nil, nil, err
@@ -170,9 +235,25 @@ func loadFleet(ctx context.Context, c *common, args []string, all bool) (*fleet,
 		summary += fmt.Sprintf(", %d evaluated in %.1fs", len(missing), time.Since(start).Seconds())
 	}
 	fmt.Fprintln(os.Stderr, ui.Dim(summary))
-	hosts, policies := inv.Hosts()
-	self, _ := os.Hostname()
-	return &fleet{hosts: hosts, policies: policies, self: self}, sel, nil
+	f.hosts, f.policies = f.inv.Hosts()
+	return f, sel, nil
+}
+
+// loadChecks resolves the named flake checks to derivations, from the
+// cache where possible, otherwise via parallel evals shown as their
+// own progress block.
+func (f *fleet) loadChecks(ctx context.Context, names []string) (map[string]plan.Check, error) {
+	_, missing := f.inv.CachedChecks(names)
+	if len(missing) > 0 {
+		fmt.Printf("▸ evaluating checks: %s\n", strings.Join(missing, ", "))
+		prog := ui.NewProgress(missing)
+		err := f.inv.EvalChecks(ctx, missing, f.evalProgress(ctx, prog))
+		prog.Close()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return f.inv.Checks(), nil
 }
 
 // resolveNames validates positional host args (or all) against the
@@ -237,9 +318,14 @@ func (f *fleet) probeAll(ctx context.Context, names []string, timeout time.Durat
 		wg.Add(1)
 		go func(n string, h plan.Host) {
 			defer wg.Done()
-			sem <- struct{}{}
-			defer func() { <-sem }()
-			p := remote.Probe(ctx, f.target(h, timeout))
+			var p plan.Probe
+			select {
+			case sem <- struct{}{}:
+				p = remote.Probe(ctx, f.target(h, timeout))
+				<-sem
+			case <-ctx.Done():
+				p = plan.Probe{Err: ctx.Err()}
+			}
 			mu.Lock()
 			probes[n] = p
 			mu.Unlock()
@@ -247,6 +333,59 @@ func (f *fleet) probeAll(ctx context.Context, names []string, timeout time.Durat
 	}
 	wg.Wait()
 	return probes
+}
+
+// shortEvalLine compresses one line of `nix eval -v` stderr for a
+// progress row. "evaluating file '<p>'" becomes a readable <p>:
+//
+//	«github:nixos/nixpkgs/f4f6…?narHash=…»/nixos/modules/x.nix → nixpkgs/nixos/modules/x.nix
+//	«nix-internal»/derivation-internal.nix                    → nix-internal/derivation-internal.nix
+//	/nix/store/<hash>-source/nixos/modules/x.nix              → nixos/modules/x.nix (pre-lazy-trees nix)
+//	<flakeDir>/modules/nix-common/default.nix                 → modules/nix-common/default.nix
+//
+// Anything else (warning:, trace:, copying …) passes through. Either
+// way the line is scrubbed for the live display (see ui.Scrub).
+func shortEvalLine(flakeDir, text string) string {
+	if p, ok := strings.CutPrefix(text, "evaluating file '"); ok {
+		p = strings.TrimSuffix(p, "'")
+		switch {
+		case strings.HasPrefix(p, "«"):
+			if i := strings.Index(p, "»"); i >= 0 {
+				p = flakeRefName(p[len("«"):i]) + p[i+len("»"):]
+			}
+		case strings.HasPrefix(p, "/nix/store/"):
+			rest := p[len("/nix/store/"):]
+			if i := strings.Index(rest, "-source/"); i >= 0 {
+				p = rest[i+len("-source/"):]
+			}
+		case flakeDir != "" && strings.HasPrefix(p, flakeDir+"/"):
+			p = p[len(flakeDir)+1:]
+		}
+		text = p
+	}
+	return ui.Scrub(text)
+}
+
+// flakeRefName reduces a flake reference as nix prints it inside «»
+// to a short name: the repo for forge refs (github:owner/repo/rev →
+// repo), the last path element otherwise, and internal sources
+// (nix-internal, flakes-internal) unchanged.
+func flakeRefName(ref string) string {
+	if i := strings.IndexByte(ref, '?'); i >= 0 {
+		ref = ref[:i]
+	}
+	scheme, rest, ok := strings.Cut(ref, ":")
+	if !ok {
+		return ref
+	}
+	parts := strings.Split(strings.Trim(rest, "/"), "/")
+	switch scheme {
+	case "github", "gitlab", "sourcehut":
+		if len(parts) >= 2 {
+			return parts[1]
+		}
+	}
+	return parts[len(parts)-1]
 }
 
 func pad(s string, w int) string {
@@ -307,20 +446,21 @@ func dimAll(cells []string) []string {
 
 // ---------------------------------------------------------------- status
 
-func cmdStatus(args []string) int {
+func cmdStatus(ctx context.Context, args []string) int {
 	fs := flag.NewFlagSet("status", flag.ExitOnError)
 	c := addCommon(fs)
 	jsonOut := fs.Bool("json", false, "machine-readable output")
 	hostArgs := parseMixed(fs, args)
 	ui.Init(c.noColor)
-	ctx := context.Background()
 
 	f, selected, err := loadFleet(ctx, c, hostArgs, len(hostArgs) == 0)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "andiamo:", err)
-		return 2
+		return fail(ctx, 2, err)
 	}
 	probes := f.probeAll(ctx, selected, c.timeout)
+	if ctx.Err() != nil {
+		return fail(ctx, 2, ctx.Err())
+	}
 
 	type rowT struct {
 		name  string
@@ -409,17 +549,15 @@ func cmdStatus(args []string) int {
 
 // ---------------------------------------------------------------- hosts
 
-func cmdHosts(args []string) int {
+func cmdHosts(ctx context.Context, args []string) int {
 	fs := flag.NewFlagSet("hosts", flag.ExitOnError)
 	c := addCommon(fs)
 	_ = fs.Parse(args)
 	ui.Init(c.noColor)
-	ctx := context.Background()
 
 	f, selected, err := loadFleet(ctx, c, nil, true)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "andiamo:", err)
-		return 2
+		return fail(ctx, 2, err)
 	}
 	printBanner(c)
 	fmt.Printf("%s  %s  %s  %s  %s\n",
@@ -460,7 +598,7 @@ type deployResult struct {
 	msg    string
 }
 
-func cmdDeploy(args []string) int {
+func cmdDeploy(ctx context.Context, args []string) int {
 	fs := flag.NewFlagSet("deploy", flag.ExitOnError)
 	c := addCommon(fs)
 	all := fs.Bool("all", false, "deploy every deployable host")
@@ -470,7 +608,6 @@ func cmdDeploy(args []string) int {
 	jobs := fs.Int("jobs", 4, "max concurrent host deployments")
 	hostArgs := parseMixed(fs, args)
 	ui.Init(c.noColor)
-	ctx := context.Background()
 
 	switch *rebootMode {
 	case "ask", "auto", "always", "never":
@@ -485,8 +622,7 @@ func cmdDeploy(args []string) int {
 	explicit := len(hostArgs) > 0
 	f, sel, err := loadFleet(ctx, c, hostArgs, *all)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "andiamo:", err)
-		return 2
+		return fail(ctx, 2, err)
 	}
 	// Enforce reachability: explicitly named unreachable hosts are an
 	// error; -all silently excludes them.
@@ -508,6 +644,9 @@ func cmdDeploy(args []string) int {
 	// Probe first: hosts already in sync need no checks and no build.
 	fmt.Printf("▸ probing %d host(s)\n", len(selected))
 	probes := f.probeAll(ctx, selected, c.timeout)
+	if ctx.Err() != nil {
+		return fail(ctx, 2, ctx.Err())
+	}
 
 	type hostPlanT struct {
 		name       string
@@ -540,25 +679,40 @@ func cmdDeploy(args []string) int {
 			if *dryRun {
 				fmt.Printf("would gate on checks: %s\n", strings.Join(checks, ", "))
 			} else {
+				resolved, err := f.loadChecks(ctx, checks)
+				if err != nil {
+					return fail(ctx, 2, err)
+				}
 				fmt.Printf("▸ gating on checks: %s\n", strings.Join(checks, ", "))
-				if err := nixcmd.BuildChecks(ctx, c.flakePath, checks, ui.Live()); err != nil {
-					fmt.Fprintln(os.Stderr, "andiamo: check gate failed:", err)
-					return 1
+				rows := make(map[string]buildRow, len(checks))
+				for _, n := range checks {
+					rows[n] = buildRow{drv: resolved[n].DrvPath, out: resolved[n].OutPath}
+				}
+				outs, err := buildRows(ctx, checks, rows)
+				if err != nil {
+					return fail(ctx, 1, fmt.Errorf("check gate failed: %w", err))
+				}
+				for i, n := range checks {
+					if outs[i] != resolved[n].OutPath {
+						return fail(ctx, 1, fmt.Errorf("check %s: built %s but eval expected %s", n, outs[i], resolved[n].OutPath))
+					}
 				}
 			}
 		}
 
 		// Build all needed toplevels in one nix invocation.
 		fmt.Printf("▸ building %d system(s)\n", len(toDeploy))
-		tops, err := nixcmd.BuildToplevels(ctx, c.flakePath, toDeploy, ui.Live())
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "andiamo:", err)
-			return 1
-		}
+		rows := make(map[string]buildRow, len(toDeploy))
 		for _, n := range toDeploy {
-			if tops[n] != f.hosts[n].Toplevel {
-				fmt.Fprintf(os.Stderr, "andiamo: %s: built %s but eval expected %s\n", n, tops[n], f.hosts[n].Toplevel)
-				return 1
+			rows[n] = buildRow{drv: f.hosts[n].ToplevelDrv, out: f.hosts[n].Toplevel}
+		}
+		outs, err := buildRows(ctx, toDeploy, rows)
+		if err != nil {
+			return fail(ctx, 1, err)
+		}
+		for i, n := range toDeploy {
+			if outs[i] != f.hosts[n].Toplevel {
+				return fail(ctx, 1, fmt.Errorf("%s: built %s but eval expected %s", n, outs[i], f.hosts[n].Toplevel))
 			}
 		}
 
@@ -657,9 +811,17 @@ func cmdDeploy(args []string) int {
 				wg.Add(1)
 				go func(n string) {
 					defer wg.Done()
-					sem <- struct{}{}
-					defer func() { <-sem }()
-					res := deployHost(ctx, f, f.hosts[n], plans[n].mode, plans[n].doReboot, c.timeout, prog)
+					var res deployResult
+					select {
+					case sem <- struct{}{}:
+						res = deployHost(ctx, f, f.hosts[n], plans[n].mode, plans[n].doReboot, c.timeout, prog)
+						<-sem
+					case <-ctx.Done():
+						// Never started: no child was spawned, so this
+						// host's state is exactly what the probe saw.
+						prog.Done(n, false, "interrupted")
+						res = deployResult{host: n, action: "none", ok: false, msg: "interrupted"}
+					}
 					mu.Lock()
 					results[n] = res
 					mu.Unlock()
@@ -682,9 +844,9 @@ func cmdDeploy(args []string) int {
 				staged = append(staged, n)
 			}
 		}
-		if len(staged) > 0 && ui.IsTTY(os.Stdin) {
+		if len(staged) > 0 && ui.IsTTY(os.Stdin) && ctx.Err() == nil {
 			fmt.Printf("\n%d host(s) staged awaiting reboot: %s\n", len(staged), strings.Join(staged, ", "))
-			if confirm("reboot them now?") {
+			if confirm(ctx, "reboot them now?") {
 				rebootStaged(ctx, f, staged, *jobs, c.timeout, results)
 			}
 		}
@@ -707,6 +869,147 @@ func cmdDeploy(args []string) int {
 	return exit
 }
 
+// ---------------------------------------------------------------- build
+
+// buildRow is one line of a build phase: the derivation to realize and
+// the output whose appearance proves it done.
+type buildRow struct{ drv, out string }
+
+// buildRows realizes every row's derivation in ONE nix build — nix
+// schedules shared dependencies once and the daemon serializes on its
+// own locks, so one build per row would only contend — and shows what
+// each row is waiting on, read from that build's internal-json log.
+// An activity on a store path is shown under every row whose closure
+// contains it, so a shared dependency appears under all the rows it
+// blocks. A row finishes the moment its output lands in the store
+// (outputs are registered atomically; this also covers substituted
+// toplevels and already-passed tests). Returns the out paths in order.
+func buildRows(ctx context.Context, order []string, rows map[string]buildRow) ([]string, error) {
+	prog := ui.NewProgress(order)
+	for _, n := range order {
+		prog.Set(n, "building")
+	}
+
+	// Attribution: row → closure, queried alongside the build (under a
+	// second each) and cancelled with it. A row whose query fails just
+	// shows the fleet-wide totals.
+	cctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	var memberMu sync.Mutex
+	member := map[string][]string{}
+	sem := make(chan struct{}, 4)
+	for _, n := range order {
+		go func(n string) {
+			select {
+			case sem <- struct{}{}:
+			case <-cctx.Done():
+				return
+			}
+			defer func() { <-sem }()
+			paths, err := nixcmd.Closure(cctx, rows[n].drv)
+			if err != nil {
+				return
+			}
+			memberMu.Lock()
+			defer memberMu.Unlock()
+			for _, p := range paths {
+				member[p] = append(member[p], n)
+			}
+		}(n)
+	}
+
+	var tr nixcmd.Tracker
+	drvs := make([]string, len(order))
+	for i, n := range order {
+		drvs[i] = rows[n].drv
+	}
+	type result struct {
+		outs []string
+		err  error
+	}
+	done := make(chan result, 1)
+	go func() {
+		outs, err := nixcmd.Build(ctx, drvs, tr.Apply)
+		done <- result{outs, err}
+	}()
+
+	finished := map[string]bool{}
+	update := func() {
+		acts := tr.Snapshot()
+		totals := tr.Totals()
+		memberMu.Lock()
+		defer memberMu.Unlock()
+		for _, n := range order {
+			if finished[n] {
+				continue
+			}
+			if _, err := os.Stat(rows[n].out); err == nil {
+				prog.Done(n, true, "built")
+				finished[n] = true
+				continue
+			}
+			prog.Detail(n, buildDetail(n, acts, member, totals))
+		}
+	}
+	tick := time.NewTicker(120 * time.Millisecond)
+	defer tick.Stop()
+	var res result
+	for waiting := true; waiting; {
+		select {
+		case res = <-done:
+			waiting = false
+		case <-tick.C:
+			update()
+		}
+	}
+	update()
+	for _, n := range order {
+		if finished[n] {
+			continue
+		}
+		if ctx.Err() != nil {
+			prog.Done(n, false, "interrupted")
+		} else {
+			prog.Done(n, false, "build failed")
+		}
+	}
+	prog.Close()
+	return res.outs, res.err
+}
+
+// buildDetail describes what row is waiting on: its newest live
+// build or fetch, else the fleet-wide counters.
+func buildDetail(row string, acts []nixcmd.Activity, member map[string][]string, t nixcmd.Totals) string {
+	for _, a := range acts { // newest first
+		if a.Path == "" || !slices.Contains(member[a.Path], row) {
+			continue
+		}
+		name := nixcmd.StoreName(a.Path)
+		switch a.Type {
+		case nixcmd.ActBuild:
+			s := "building " + name
+			if a.LastLine != "" {
+				s += " › " + ui.Scrub(a.LastLine)
+			}
+			return s
+		case nixcmd.ActSubstitute, nixcmd.ActCopyPath:
+			s := "fetching " + name
+			if a.BytesTotal > 0 {
+				s += " " + nixcmd.HumanSize(a.Bytes, a.BytesTotal)
+			}
+			return s
+		}
+	}
+	parts := []string{"waiting"}
+	if t.BuildsExpected > 0 {
+		parts = append(parts, fmt.Sprintf("%d/%d built", t.Built, t.BuildsExpected))
+	}
+	if t.FetchesExpected > 0 {
+		parts = append(parts, fmt.Sprintf("%d/%d fetched", t.Fetched, t.FetchesExpected))
+	}
+	return strings.Join(parts, " · ")
+}
+
 // rebootWait allows the slow-booting pis extra time to come back.
 func rebootWait(system string) time.Duration {
 	if strings.HasPrefix(system, "aarch64") {
@@ -716,15 +1019,36 @@ func rebootWait(system string) time.Duration {
 }
 
 // confirm asks a yes/no question on the terminal; anything but y/yes
-// (including EOF) is no.
-func confirm(msg string) bool {
+// (including EOF or an interrupt while waiting) is no. The read runs
+// in a goroutine so a signal at the prompt isn't swallowed by the
+// blocking read; if it's abandoned it dies with the process.
+func confirm(ctx context.Context, msg string) bool {
 	fmt.Printf("%s [y/N] ", msg)
-	line, err := bufio.NewReader(os.Stdin).ReadString('\n')
-	if err != nil {
+	answer := make(chan string, 1)
+	go func() {
+		line, err := bufio.NewReader(os.Stdin).ReadString('\n')
+		if err != nil {
+			line = ""
+		}
+		answer <- line
+	}()
+	select {
+	case line := <-answer:
+		line = strings.TrimSpace(strings.ToLower(line))
+		return line == "y" || line == "yes"
+	case <-ctx.Done():
+		fmt.Println()
 		return false
 	}
-	line = strings.TrimSpace(strings.ToLower(line))
-	return line == "y" || line == "yes"
+}
+
+// interrupted records a host whose deploy was cut short by a signal
+// during step. The ssh session died mid-command, so the remote side
+// may be half-done; the only honest report is "unknown".
+func interrupted(prog *ui.Progress, host, action, step string) deployResult {
+	prog.Done(host, false, "interrupted")
+	return deployResult{host: host, action: action, ok: false,
+		msg: "interrupted during " + step + " — state unknown, run andiamo status"}
 }
 
 // rebootStaged reboots hosts that were staged in ask mode, honoring
@@ -742,7 +1066,14 @@ func rebootStaged(ctx context.Context, f *fleet, names []string, jobs int, timeo
 			wg.Add(1)
 			go func(n string) {
 				defer wg.Done()
-				sem <- struct{}{}
+				select {
+				case sem <- struct{}{}:
+				case <-ctx.Done():
+					// Not rebooted: the staged result already in
+					// results stands.
+					prog.Done(n, false, "interrupted")
+					return
+				}
 				defer func() { <-sem }()
 				h := f.hosts[n]
 				t := f.target(h, timeout)
@@ -751,9 +1082,13 @@ func rebootStaged(ctx context.Context, f *fleet, names []string, jobs int, timeo
 				prog.Set(n, "waiting for reboot")
 				res := deployResult{host: n, action: "boot+reboot", ok: true, msg: "booted " + ui.ShortPath(h.Toplevel)}
 				if err := remote.WaitForBoot(ctx, t, h.Toplevel, rebootWait(h.System)); err != nil {
-					res.ok = false
-					res.msg = err.Error()
-					prog.Done(n, false, "reboot verify failed")
+					if ctx.Err() != nil {
+						res = interrupted(prog, n, "boot+reboot", "reboot")
+					} else {
+						res.ok = false
+						res.msg = err.Error()
+						prog.Done(n, false, "reboot verify failed")
+					}
 				} else {
 					prog.Done(n, true, "boot + reboot")
 				}
@@ -776,6 +1111,9 @@ func deployHost(ctx context.Context, f *fleet, h plan.Host, mode string, doReboo
 	if !t.Local {
 		prog.Set(h.Name, "copying closure")
 		if err := nixcmd.Copy(ctx, h.Name, top); err != nil {
+			if ctx.Err() != nil {
+				return interrupted(prog, h.Name, "copy", "copy")
+			}
 			prog.Done(h.Name, false, "copy failed")
 			return deployResult{host: h.Name, action: "copy", ok: false, msg: err.Error()}
 		}
@@ -783,6 +1121,9 @@ func deployHost(ctx context.Context, f *fleet, h plan.Host, mode string, doReboo
 
 	prog.Set(h.Name, "activating ("+mode+")")
 	if err := remote.Activate(ctx, t, top, mode); err != nil {
+		if ctx.Err() != nil {
+			return interrupted(prog, h.Name, mode, mode)
+		}
 		prog.Done(h.Name, false, "activation failed")
 		return deployResult{host: h.Name, action: mode, ok: false, msg: err.Error()}
 	}
@@ -790,6 +1131,9 @@ func deployHost(ctx context.Context, f *fleet, h plan.Host, mode string, doReboo
 	if mode == "switch" {
 		cur, err := remote.CurrentSystem(ctx, t)
 		if err != nil || cur != top {
+			if ctx.Err() != nil {
+				return interrupted(prog, h.Name, "switch", "verify")
+			}
 			prog.Done(h.Name, false, "verify failed")
 			msg := "current-system did not land on the deployed toplevel"
 			if err != nil {
@@ -814,6 +1158,9 @@ func deployHost(ctx context.Context, f *fleet, h plan.Host, mode string, doReboo
 	remote.Reboot(ctx, t)
 	prog.Set(h.Name, "waiting for reboot")
 	if err := remote.WaitForBoot(ctx, t, top, rebootWait(h.System)); err != nil {
+		if ctx.Err() != nil {
+			return interrupted(prog, h.Name, "boot+reboot", "reboot")
+		}
 		prog.Done(h.Name, false, "reboot verify failed")
 		return deployResult{host: h.Name, action: "boot+reboot", ok: false, msg: err.Error()}
 	}

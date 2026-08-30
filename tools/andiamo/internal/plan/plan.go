@@ -13,6 +13,7 @@ import (
 type Host struct {
 	Name         string
 	Toplevel     string // expected system toplevel store path
+	ToplevelDrv  string // its derivation; what gets built
 	System       string // e.g. x86_64-linux
 	Sshable      bool   // mynixcfg.ssh-server.enable
 	HostName     string // networking.hostName
@@ -25,6 +26,13 @@ type Host struct {
 type Policy struct {
 	Checks     []string
 	RebootLast bool
+}
+
+// Check is one flake check gate, resolved to store paths.
+type Check struct {
+	Name    string
+	DrvPath string
+	OutPath string
 }
 
 // Links are the boot-critical symlink targets of a system toplevel.
