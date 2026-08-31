@@ -1042,8 +1042,15 @@ func versionCount(n int, what string) string {
 	return fmt.Sprintf("%d versions %s", n, what)
 }
 
+// rebuiltListMax bounds how many content-only rebuilds are listed as
+// their own rows. A handful is signal — a version-less package like
+// scale-signs-unstable only ever shows up this way — but a nixpkgs
+// bump rebuilds hundreds, and those collapse into one line.
+const rebuiltListMax = 10
+
 // printHostDiff renders one host's section: added/removed/version
-// changes as rows, content-only rebuilds collapsed into one line.
+// changes as rows, content-only rebuilds as rows too when few enough
+// to read, otherwise collapsed into one line.
 func printHostDiff(name string, hd hostDiff) {
 	if hd.note != "" {
 		fmt.Printf("\n%s — %s\n", name, hd.note)
@@ -1051,9 +1058,13 @@ func printHostDiff(name string, hd hostDiff) {
 	}
 	s := summarizeDiffs(hd.diffs)
 	fmt.Printf("\n%s — %s\n", name, s.oneLine())
+	listRebuilt := s.rebuilt <= rebuiltListMax
 	var table [][]string
 	for _, d := range hd.diffs {
 		if d.Removed == nil && d.Added == nil {
+			if listRebuilt {
+				table = append(table, []string{"  " + ui.Dim(d.Name), ui.Dim("rebuilt"), deltaCell(d.SizeDelta)})
+			}
 			continue
 		}
 		// Green: only gained versions; red: only lost them. Version
@@ -1070,7 +1081,7 @@ func printHostDiff(name string, hd hostDiff) {
 	if len(table) > 0 {
 		fmt.Print(ui.Table(table))
 	}
-	if s.rebuilt > 0 {
+	if s.rebuilt > 0 && !listRebuilt {
 		fmt.Println(ui.Dim(fmt.Sprintf("  %d package(s) rebuilt without a version change (net %s)", s.rebuilt, humanDelta(s.rebuiltDelta))))
 	}
 	if len(hd.cmdAdded)+len(hd.cmdRemoved) > 0 {
