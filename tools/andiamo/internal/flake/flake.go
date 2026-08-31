@@ -114,6 +114,23 @@ func Open(flakePath string, jobs int, noCache bool) *Inventory {
 	return inv
 }
 
+// PlanPath is where a plan for the current tree is recorded for
+// apply's gate. Deliberately independent of -no-cache — matching
+// plans to trees must always work — and "" when no key can be
+// computed (not a git checkout) or there is no cache dir.
+func (inv *Inventory) PlanPath() string {
+	key := inv.key
+	if key == "" {
+		if k, err := treeKey(inv.flakePath); err == nil {
+			key = k
+		}
+	}
+	if key == "" || inv.dir == "" {
+		return ""
+	}
+	return filepath.Join(inv.dir, "plan-"+key+".json")
+}
+
 // Cached loads whatever the cache holds for names and reports which
 // hosts still need a live eval. A cached record whose .drv has since
 // been garbage-collected is a miss: the build phase needs the file,

@@ -1,9 +1,13 @@
 package main
 
 import (
+	"errors"
+	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/kylerisse/nixcfg/tools/andiamo/internal/nixcmd"
+	"github.com/kylerisse/nixcfg/tools/andiamo/internal/plan"
 )
 
 func TestShortEvalLine(t *testing.T) {
@@ -118,5 +122,54 @@ func TestVersionsCell(t *testing.T) {
 		if got := versionsCell(c.d); got != c.want {
 			t.Errorf("versionsCell(%+v) = %q, want %q", c.d, got, c.want)
 		}
+	}
+}
+
+func TestVerifyAgainstPlan(t *testing.T) {
+	const expected = "/nix/store/new"
+	const old = "/nix/store/old"
+	entry := planEntry{Toplevel: expected, Current: old, Action: "switch"}
+	cases := []struct {
+		name    string
+		e       planEntry
+		covered bool
+		probe   plan.Probe
+		wantErr bool
+	}{
+		{"not covered", planEntry{}, false, plan.Probe{Current: old}, true},
+		{"expected drifted", planEntry{Toplevel: "/nix/store/other", Current: old}, true, plan.Probe{Current: old}, true},
+		{"host unchanged", entry, true, plan.Probe{Current: old}, false},
+		{"already applied", entry, true, plan.Probe{Current: expected}, false},
+		{"host drifted", entry, true, plan.Probe{Current: "/nix/store/third"}, true},
+		{"unreachable passes to the executor", entry, true, plan.Probe{Err: errors.New("timeout")}, false},
+	}
+	for _, c := range cases {
+		err := verifyAgainstPlan(c.e, c.covered, expected, c.probe)
+		if (err != nil) != c.wantErr {
+			t.Errorf("%s: err = %v, wantErr %v", c.name, err, c.wantErr)
+		}
+	}
+}
+
+func TestPlanRecordRoundtrip(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "sub", "plan-x.json")
+	rec := planRecord{
+		CreatedAt: time.Now(),
+		Hosts: map[string]planEntry{
+			"qube": {Toplevel: "/nix/store/x", Current: "/nix/store/y", Action: "switch", Changes: "2 changed"},
+		},
+	}
+	savePlanRecord(path, rec)
+	got, ok := loadPlanRecord(path)
+	if !ok || got.Hosts["qube"] != rec.Hosts["qube"] {
+		t.Errorf("roundtrip = %+v, %v", got, ok)
+	}
+	if _, ok := loadPlanRecord(filepath.Join(t.TempDir(), "missing.json")); ok {
+		t.Error("missing file must not load")
+	}
+	empty := filepath.Join(t.TempDir(), "empty.json")
+	savePlanRecord(empty, planRecord{CreatedAt: time.Now()})
+	if _, ok := loadPlanRecord(empty); ok {
+		t.Error("a record with no hosts must not gate an apply open")
 	}
 }

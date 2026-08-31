@@ -61,8 +61,10 @@ Plan flags:
   -q              summary table only: skip the per-host diff sections
                   (the CHANGES column still summarizes each host).
 
-Apply flags:
+Apply flags (apply requires a plan recorded for the identical tree —
+run andiamo plan first; any edit, even uncommitted, forces a re-plan):
   -all            apply to every deployable host
+  -yes            skip the confirmation prompt
   -reboot MODE    ask | auto | always | never (default ask). Safe changes
                   always activate live via switch; boot-critical changes
                   (kernel/initrd/kernel-modules/systemd/kernel-params)
@@ -752,6 +754,39 @@ func cmdPlan(ctx context.Context, args []string) int {
 		return fail(ctx, 2, ctx.Err())
 	}
 
+	// Leave the record apply's gate checks against. The recorded mode
+	// reflects this plan's -reboot flag; apply re-decides under its
+	// own flag, the record is what the operator reviewed. Merging into
+	// any record already present for this key keeps the fleet-wide
+	// entries valid when a follow-up plan drills into a single host —
+	// the tree is identical, so the earlier review still stands.
+	if pp := f.inv.PlanPath(); pp != "" {
+		rec, _ := loadPlanRecord(pp)
+		rec.CreatedAt = time.Now()
+		if rec.Hosts == nil {
+			rec.Hosts = make(map[string]planEntry, len(probed))
+		}
+		for _, n := range probed {
+			hp := plans[n]
+			e := planEntry{Toplevel: f.hosts[n].Toplevel}
+			switch {
+			case hp.probeErr != nil:
+				e.Action = "unreachable"
+			case hp.skipInSync:
+				e.Action = "none"
+				e.Current = probes[n].Current
+			default:
+				e.Action = hp.mode
+				e.Current = probes[n].Current
+				e.Changes = changesCell(hds[n])
+			}
+			rec.Hosts[n] = e
+		}
+		savePlanRecord(pp, rec)
+	} else {
+		fmt.Fprintln(os.Stderr, ui.Dim("plan not recorded (no content key for this tree) — apply will refuse"))
+	}
+
 	exit := 0
 	for _, n := range probed {
 		switch plan.Classify(f.hosts[n].Toplevel, true, probes[n]) {
@@ -779,6 +814,61 @@ func changesCell(hd hostDiff) string {
 		s += fmt.Sprintf(" · %d command(s)", k)
 	}
 	return s
+}
+
+// planRecord is what plan leaves behind for apply's gate: proof that
+// this exact tree's changes were reviewed against the fleet state
+// observed at plan time. It lives next to the inventory cache under
+// the same content key, so any change to the tree orphans it.
+type planRecord struct {
+	CreatedAt time.Time            `json:"createdAt"`
+	Hosts     map[string]planEntry `json:"hosts"`
+}
+
+type planEntry struct {
+	Toplevel string `json:"toplevel"`          // expected system
+	Current  string `json:"current,omitempty"` // running at plan time; "" = not probed
+	Action   string `json:"action"`            // switch | boot | none | unreachable
+	Changes  string `json:"changes,omitempty"` // summary for apply's confirmation
+}
+
+// savePlanRecord is best-effort: a failed write only means apply will
+// ask for a re-plan.
+func savePlanRecord(path string, rec planRecord) {
+	data, err := json.Marshal(rec)
+	if err != nil {
+		return
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return
+	}
+	_ = os.WriteFile(path, data, 0o644)
+}
+
+func loadPlanRecord(path string) (planRecord, bool) {
+	var rec planRecord
+	data, err := os.ReadFile(path)
+	if err != nil || json.Unmarshal(data, &rec) != nil || len(rec.Hosts) == 0 {
+		return planRecord{}, false
+	}
+	return rec, true
+}
+
+// verifyAgainstPlan checks one host of an apply against the recorded
+// plan: the host must be covered, the expected system must be the one
+// that was reviewed, and the host must still run what plan saw (or
+// already run the expected system — re-applying after a partial run
+// is fine). An unreachable host passes; the executor reports it.
+func verifyAgainstPlan(e planEntry, covered bool, expected string, p plan.Probe) error {
+	switch {
+	case !covered:
+		return fmt.Errorf("not covered by the recorded plan — run `andiamo plan` first")
+	case e.Toplevel != expected:
+		return fmt.Errorf("expected system differs from the plan — run `andiamo plan` again")
+	case p.Err == nil && p.Current != expected && p.Current != e.Current:
+		return fmt.Errorf("running system changed since the plan — run `andiamo plan` again")
+	}
+	return nil
 }
 
 // hostDiff is one host's closure and config diff, or the reason there
@@ -1136,6 +1226,7 @@ func cmdApply(ctx context.Context, args []string) int {
 	all := fs.Bool("all", false, "apply to every deployable host")
 	rebootMode := fs.String("reboot", "ask", "ask | auto | always | never")
 	skipChecks := fs.Bool("skip-checks", false, "skip flake check gates")
+	yes := fs.Bool("yes", false, "skip the confirmation prompt")
 	jobs := fs.Int("jobs", 4, "max concurrent host deployments")
 	hostArgs := parseMixed(fs, args)
 	ui.Init(c.noColor)
@@ -1172,14 +1263,55 @@ func cmdApply(ctx context.Context, args []string) int {
 	}
 	printBanner(c)
 
+	// The plan gate: apply refuses to run against a tree whose changes
+	// were never reviewed. The record's key covers HEAD, uncommitted
+	// changes, and the nix version, so any edit after planning forces
+	// a re-plan; the per-host checks below catch fleet drift since.
+	pp := f.inv.PlanPath()
+	if pp == "" {
+		return fail(ctx, 2, fmt.Errorf("cannot key this tree (not a git checkout?) — apply requires a recorded plan"))
+	}
+	rec, ok := loadPlanRecord(pp)
+	if !ok {
+		return fail(ctx, 2, fmt.Errorf("no plan matches the current tree — run `andiamo plan` first"))
+	}
+
 	// Probe first: hosts already in sync need no checks and no build.
 	fmt.Printf("▸ probing %d host(s)\n", len(selected))
 	probes := f.probeAll(ctx, selected, c.timeout)
 	if ctx.Err() != nil {
 		return fail(ctx, 2, ctx.Err())
 	}
+	for _, n := range selected {
+		e, covered := rec.Hosts[n]
+		if err := verifyAgainstPlan(e, covered, f.hosts[n].Toplevel, probes[n]); err != nil {
+			return fail(ctx, 2, fmt.Errorf("%s: %w", n, err))
+		}
+	}
 
 	plans, toDeploy := classifyPlans(f, selected, probes)
+
+	// Show what was reviewed and get a go-ahead before any work.
+	if len(toDeploy) > 0 {
+		fmt.Printf("using plan from %s ago\n", plan.Uptime(int64(time.Since(rec.CreatedAt).Seconds())))
+		for _, n := range toDeploy {
+			e := rec.Hosts[n]
+			line := "  " + pad(n, 8) + "  " + pad(e.Action, 6)
+			if e.Changes != "" {
+				line += "  " + e.Changes
+			}
+			fmt.Println(line)
+		}
+		if !*yes {
+			if !ui.IsTTY(os.Stdin) {
+				return fail(ctx, 2, fmt.Errorf("confirmation needed on a non-TTY — pass -yes"))
+			}
+			if !confirm(ctx, fmt.Sprintf("apply %d host(s)?", len(toDeploy))) {
+				fmt.Fprintln(os.Stderr, "andiamo: aborted")
+				return 2
+			}
+		}
+	}
 
 	if len(toDeploy) > 0 {
 		// Check gates, only for hosts that actually get a deployment.
