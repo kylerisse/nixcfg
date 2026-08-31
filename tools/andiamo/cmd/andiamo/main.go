@@ -39,8 +39,8 @@ const usageText = `andiamo — let's go
 
 Usage:
   andiamo status [HOST...] [flags]     show fleet deployment state (read-only)
-  andiamo plan [HOST...] [flags]       preview deploys: actions, closure and config diffs
-  andiamo deploy (HOST... | -all) [flags]   deploy hosts in parallel
+  andiamo plan [HOST...] [flags]       preview an apply: actions, closure and config diffs
+  andiamo apply (HOST... | -all) [flags]    apply the flake to hosts
   andiamo hosts [flags]                show derived inventory and policy
   andiamo version
 
@@ -61,8 +61,8 @@ Plan flags:
   -q              summary table only: skip the per-host diff sections
                   (the CHANGES column still summarizes each host).
 
-Deploy flags:
-  -all            deploy every deployable host
+Apply flags:
+  -all            apply to every deployable host
   -reboot MODE    ask | auto | always | never (default ask). Safe changes
                   always activate live via switch; boot-critical changes
                   (kernel/initrd/kernel-modules/systemd/kernel-params)
@@ -70,7 +70,6 @@ Deploy flags:
                   ask = offer to reboot now (non-TTY: stays staged),
                   auto = reboot without asking, never = stay staged.
                   always = boot + reboot every host regardless.
-  -dry-run        build and probe, print the per-host action plan, change nothing
   -skip-checks    skip the hosts' flake check gates
   -jobs N         max concurrent host deployments (default 4)
 `
@@ -126,8 +125,8 @@ func run(args []string) int {
 		cmd = cmdStatus
 	case "plan":
 		cmd = cmdPlan
-	case "deploy":
-		cmd = cmdDeploy
+	case "apply":
+		cmd = cmdApply
 	case "hosts":
 		cmd = cmdHosts
 	case "version", "-version", "--version":
@@ -424,7 +423,7 @@ func stateCells(s plan.State) (glyph, label string) {
 }
 
 // factHeader and factCells are the per-host columns shared by status
-// and the deploy dry run: what the host runs now, with "→ expected"
+// and the plan table: what the host runs now, with "→ expected"
 // where the flake says otherwise. SYSTEM is the toplevel store hash —
 // the thing the state is actually decided on — so a row is never
 // "out of date" without showing what differs, even when no other
@@ -561,7 +560,7 @@ func cmdStatus(ctx context.Context, args []string) int {
 
 // ---------------------------------------------------------------- plan
 
-// hostPlanT is the per-host outcome of planning: what deploy will do,
+// hostPlanT is the per-host outcome of planning: what apply will do,
 // or why the host is skipped.
 type hostPlanT struct {
 	name       string
@@ -619,8 +618,7 @@ func decideModes(f *fleet, toDeploy []string, probes map[string]plan.Probe, plan
 	}
 }
 
-// actionLabel describes what deploy will do for a planned host, shared
-// by the plan command and the deploy dry run.
+// actionLabel describes what apply will do for a planned host.
 func actionLabel(hp hostPlanT, local bool, rebootMode string) string {
 	switch {
 	case hp.probeErr != nil:
@@ -677,7 +675,7 @@ func cmdPlan(ctx context.Context, args []string) int {
 
 	if len(toDeploy) > 0 {
 		if checks := plan.Checks(toDeploy, f.policies); len(checks) > 0 {
-			fmt.Printf("deploy would gate on checks: %s\n", strings.Join(checks, ", "))
+			fmt.Printf("apply will gate on checks: %s\n", strings.Join(checks, ", "))
 		}
 		// The new systems must exist locally: the switch-vs-boot call
 		// reads their boot-critical links, the diff their closures.
@@ -1122,9 +1120,9 @@ func cmdHosts(ctx context.Context, args []string) int {
 	return 0
 }
 
-// ---------------------------------------------------------------- deploy
+// ---------------------------------------------------------------- apply
 
-type deployResult struct {
+type applyResult struct {
 	host   string
 	action string
 	ok     bool
@@ -1132,12 +1130,11 @@ type deployResult struct {
 	msg    string
 }
 
-func cmdDeploy(ctx context.Context, args []string) int {
-	fs := flag.NewFlagSet("deploy", flag.ExitOnError)
+func cmdApply(ctx context.Context, args []string) int {
+	fs := flag.NewFlagSet("apply", flag.ExitOnError)
 	c := addCommon(fs)
-	all := fs.Bool("all", false, "deploy every deployable host")
+	all := fs.Bool("all", false, "apply to every deployable host")
 	rebootMode := fs.String("reboot", "ask", "ask | auto | always | never")
-	dryRun := fs.Bool("dry-run", false, "print the action plan, change nothing")
 	skipChecks := fs.Bool("skip-checks", false, "skip flake check gates")
 	jobs := fs.Int("jobs", 4, "max concurrent host deployments")
 	hostArgs := parseMixed(fs, args)
@@ -1170,7 +1167,7 @@ func cmdDeploy(ctx context.Context, args []string) int {
 		}
 	}
 	if len(selected) == 0 {
-		fmt.Fprintln(os.Stderr, "andiamo: nothing to deploy")
+		fmt.Fprintln(os.Stderr, "andiamo: nothing to apply")
 		return 2
 	}
 	printBanner(c)
@@ -1188,26 +1185,22 @@ func cmdDeploy(ctx context.Context, args []string) int {
 		// Check gates, only for hosts that actually get a deployment.
 		checks := plan.Checks(toDeploy, f.policies)
 		if len(checks) > 0 && !*skipChecks {
-			if *dryRun {
-				fmt.Printf("would gate on checks: %s\n", strings.Join(checks, ", "))
-			} else {
-				resolved, err := f.loadChecks(ctx, checks)
-				if err != nil {
-					return fail(ctx, 2, err)
-				}
-				fmt.Printf("▸ gating on checks: %s\n", strings.Join(checks, ", "))
-				rows := make(map[string]buildRow, len(checks))
-				for _, n := range checks {
-					rows[n] = buildRow{drv: resolved[n].DrvPath, out: resolved[n].OutPath}
-				}
-				outs, err := buildRows(ctx, checks, rows)
-				if err != nil {
-					return fail(ctx, 1, fmt.Errorf("check gate failed: %w", err))
-				}
-				for i, n := range checks {
-					if outs[i] != resolved[n].OutPath {
-						return fail(ctx, 1, fmt.Errorf("check %s: built %s but eval expected %s", n, outs[i], resolved[n].OutPath))
-					}
+			resolved, err := f.loadChecks(ctx, checks)
+			if err != nil {
+				return fail(ctx, 2, err)
+			}
+			fmt.Printf("▸ gating on checks: %s\n", strings.Join(checks, ", "))
+			rows := make(map[string]buildRow, len(checks))
+			for _, n := range checks {
+				rows[n] = buildRow{drv: resolved[n].DrvPath, out: resolved[n].OutPath}
+			}
+			outs, err := buildRows(ctx, checks, rows)
+			if err != nil {
+				return fail(ctx, 1, fmt.Errorf("check gate failed: %w", err))
+			}
+			for i, n := range checks {
+				if outs[i] != resolved[n].OutPath {
+					return fail(ctx, 1, fmt.Errorf("check %s: built %s but eval expected %s", n, outs[i], resolved[n].OutPath))
 				}
 			}
 		}
@@ -1233,51 +1226,24 @@ func cmdDeploy(ctx context.Context, args []string) int {
 
 	normal, last := plan.Partition(selected, f.policies)
 
-	if *dryRun {
-		fmt.Println("\ndry run — planned actions:")
-		table := [][]string{dimAll(append([]string{"", "HOST", "STATE", "ACTION"}, factHeader...))}
-		addWave := func(names []string, tag string) {
-			for _, n := range names {
-				h := f.hosts[n]
-				hp := plans[n]
-				st := plan.Classify(h.Toplevel, true, probes[n])
-				glyph, label := stateCells(st)
-				action := actionLabel(hp, f.isLocal(h), *rebootMode)
-				var detail string
-				if hp.probeErr != nil {
-					detail = hp.probeErr.Error()
-				}
-				if tag != "" && detail == "" {
-					detail = tag
-				}
-				cells := append([]string{glyph, n, label, action}, factCells(h, probes[n], true)...)
-				table = append(table, append(cells, detail))
-			}
-		}
-		addWave(normal, "")
-		addWave(last, ui.Dim("reboot-last wave"))
-		fmt.Print(ui.Table(table))
-		return 0
-	}
-
 	// Execute: normal wave, then the reboot-last wave.
 	ordered := append(append([]string{}, normal...), last...)
 	var toShow []string
-	results := make(map[string]deployResult, len(ordered))
+	results := make(map[string]applyResult, len(ordered))
 	for _, n := range ordered {
 		hp := plans[n]
 		switch {
 		case hp.probeErr != nil:
-			results[n] = deployResult{host: n, action: "none", ok: false, msg: "unreachable: " + hp.probeErr.Error()}
+			results[n] = applyResult{host: n, action: "none", ok: false, msg: "unreachable: " + hp.probeErr.Error()}
 		case hp.skipInSync:
-			results[n] = deployResult{host: n, action: "none", ok: true, msg: "already in sync"}
+			results[n] = applyResult{host: n, action: "none", ok: true, msg: "already in sync"}
 		default:
 			toShow = append(toShow, n)
 		}
 	}
 
 	if len(toShow) > 0 {
-		fmt.Printf("▸ deploying %d host(s), %d at a time\n", len(toShow), *jobs)
+		fmt.Printf("▸ applying %d host(s), %d at a time\n", len(toShow), *jobs)
 		prog := ui.NewProgress(toShow)
 		var mu sync.Mutex
 		runWave := func(names []string) {
@@ -1290,16 +1256,16 @@ func cmdDeploy(ctx context.Context, args []string) int {
 				wg.Add(1)
 				go func(n string) {
 					defer wg.Done()
-					var res deployResult
+					var res applyResult
 					select {
 					case sem <- struct{}{}:
-						res = deployHost(ctx, f, f.hosts[n], plans[n].mode, plans[n].doReboot, c.timeout, prog)
+						res = applyHost(ctx, f, f.hosts[n], plans[n].mode, plans[n].doReboot, c.timeout, prog)
 						<-sem
 					case <-ctx.Done():
 						// Never started: no child was spawned, so this
 						// host's state is exactly what the probe saw.
 						prog.Done(n, false, "interrupted")
-						res = deployResult{host: n, action: "none", ok: false, msg: "interrupted"}
+						res = applyResult{host: n, action: "none", ok: false, msg: "interrupted"}
 					}
 					mu.Lock()
 					results[n] = res
@@ -1521,18 +1487,18 @@ func confirm(ctx context.Context, msg string) bool {
 	}
 }
 
-// interrupted records a host whose deploy was cut short by a signal
+// interrupted records a host whose apply was cut short by a signal
 // during step. The ssh session died mid-command, so the remote side
 // may be half-done; the only honest report is "unknown".
-func interrupted(prog *ui.Progress, host, action, step string) deployResult {
+func interrupted(prog *ui.Progress, host, action, step string) applyResult {
 	prog.Done(host, false, "interrupted")
-	return deployResult{host: host, action: action, ok: false,
+	return applyResult{host: host, action: action, ok: false,
 		msg: "interrupted during " + step + " — state unknown, run andiamo status"}
 }
 
 // rebootStaged reboots hosts that were staged in ask mode, honoring
 // the rebootLast partition, and updates results in place.
-func rebootStaged(ctx context.Context, f *fleet, names []string, jobs int, timeout time.Duration, results map[string]deployResult) {
+func rebootStaged(ctx context.Context, f *fleet, names []string, jobs int, timeout time.Duration, results map[string]applyResult) {
 	normal, last := plan.Partition(names, f.policies)
 	ordered := append(append([]string{}, normal...), last...)
 	fmt.Printf("▸ rebooting %d host(s)\n", len(ordered))
@@ -1559,7 +1525,7 @@ func rebootStaged(ctx context.Context, f *fleet, names []string, jobs int, timeo
 				prog.Set(n, "rebooting")
 				remote.Reboot(ctx, t)
 				prog.Set(n, "waiting for reboot")
-				res := deployResult{host: n, action: "boot+reboot", ok: true, msg: "booted " + ui.ShortPath(h.Toplevel)}
+				res := applyResult{host: n, action: "boot+reboot", ok: true, msg: "booted " + ui.ShortPath(h.Toplevel)}
 				if err := remote.WaitForBoot(ctx, t, h.Toplevel, rebootWait(h.System)); err != nil {
 					if ctx.Err() != nil {
 						res = interrupted(prog, n, "boot+reboot", "reboot")
@@ -1583,7 +1549,7 @@ func rebootStaged(ctx context.Context, f *fleet, names []string, jobs int, timeo
 	prog.Close()
 }
 
-func deployHost(ctx context.Context, f *fleet, h plan.Host, mode string, doReboot bool, timeout time.Duration, prog *ui.Progress) deployResult {
+func applyHost(ctx context.Context, f *fleet, h plan.Host, mode string, doReboot bool, timeout time.Duration, prog *ui.Progress) applyResult {
 	t := f.target(h, timeout)
 	top := h.Toplevel
 
@@ -1594,7 +1560,7 @@ func deployHost(ctx context.Context, f *fleet, h plan.Host, mode string, doReboo
 				return interrupted(prog, h.Name, "copy", "copy")
 			}
 			prog.Done(h.Name, false, "copy failed")
-			return deployResult{host: h.Name, action: "copy", ok: false, msg: err.Error()}
+			return applyResult{host: h.Name, action: "copy", ok: false, msg: err.Error()}
 		}
 	}
 
@@ -1604,7 +1570,7 @@ func deployHost(ctx context.Context, f *fleet, h plan.Host, mode string, doReboo
 			return interrupted(prog, h.Name, mode, mode)
 		}
 		prog.Done(h.Name, false, "activation failed")
-		return deployResult{host: h.Name, action: mode, ok: false, msg: err.Error()}
+		return applyResult{host: h.Name, action: mode, ok: false, msg: err.Error()}
 	}
 
 	if mode == "switch" {
@@ -1618,10 +1584,10 @@ func deployHost(ctx context.Context, f *fleet, h plan.Host, mode string, doReboo
 			if err != nil {
 				msg = err.Error()
 			}
-			return deployResult{host: h.Name, action: "switch", ok: false, msg: msg}
+			return applyResult{host: h.Name, action: "switch", ok: false, msg: msg}
 		}
 		prog.Done(h.Name, true, "switch (no reboot)")
-		return deployResult{host: h.Name, action: "switch", ok: true, msg: "activated " + ui.ShortPath(top)}
+		return applyResult{host: h.Name, action: "switch", ok: true, msg: "activated " + ui.ShortPath(top)}
 	}
 
 	if !doReboot {
@@ -1630,7 +1596,7 @@ func deployHost(ctx context.Context, f *fleet, h plan.Host, mode string, doReboo
 			msg = "staged " + ui.ShortPath(top) + " — reboot this machine to finish"
 		}
 		prog.Done(h.Name, true, "boot (staged)")
-		return deployResult{host: h.Name, action: "boot", ok: true, staged: true, msg: msg}
+		return applyResult{host: h.Name, action: "boot", ok: true, staged: true, msg: msg}
 	}
 
 	prog.Set(h.Name, "rebooting")
@@ -1641,8 +1607,8 @@ func deployHost(ctx context.Context, f *fleet, h plan.Host, mode string, doReboo
 			return interrupted(prog, h.Name, "boot+reboot", "reboot")
 		}
 		prog.Done(h.Name, false, "reboot verify failed")
-		return deployResult{host: h.Name, action: "boot+reboot", ok: false, msg: err.Error()}
+		return applyResult{host: h.Name, action: "boot+reboot", ok: false, msg: err.Error()}
 	}
 	prog.Done(h.Name, true, "boot + reboot")
-	return deployResult{host: h.Name, action: "boot+reboot", ok: true, msg: "booted " + ui.ShortPath(top)}
+	return applyResult{host: h.Name, action: "boot+reboot", ok: true, msg: "booted " + ui.ShortPath(top)}
 }
