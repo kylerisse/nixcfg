@@ -58,6 +58,8 @@ Plan flags:
   -reboot MODE    predict actions under this mode (default ask). Plan
                   builds missing systems locally and may fetch a host's
                   running closure for the diff; hosts are not touched.
+  -q              summary table only: skip the per-host diff sections
+                  (the CHANGES column still summarizes each host).
 
 Deploy flags:
   -all            deploy every deployable host
@@ -642,8 +644,10 @@ func cmdPlan(ctx context.Context, args []string) int {
 	fs := flag.NewFlagSet("plan", flag.ExitOnError)
 	c := addCommon(fs)
 	rebootMode := fs.String("reboot", "ask", "ask | auto | always | never")
+	quiet := fs.Bool("q", false, "summary table only, no per-host diff sections")
 	hostArgs := parseMixed(fs, args)
 	ui.Init(c.noColor)
+	full := !*quiet
 
 	switch *rebootMode {
 	case "ask", "auto", "always", "never":
@@ -694,10 +698,18 @@ func cmdPlan(ctx context.Context, args []string) int {
 		decideModes(f, toDeploy, probes, plans, *rebootMode)
 	}
 
-	// Action table: the deploy waves, then hosts plan can only observe.
+	// Diffs are always computed (the summaries are cheap next to the
+	// build); every row gets a CHANGES summary, and unless -q was
+	// given each host also gets a full diff section after the table.
+	hds := map[string]hostDiff{}
+	if len(toDeploy) > 0 && ctx.Err() == nil {
+		fmt.Printf("▸ computing change summaries\n")
+		hds = diffAll(ctx, f, toDeploy, probes)
+	}
+
 	normal, last := plan.Partition(probed, f.policies)
 	fmt.Println("\nplanned actions:")
-	table := [][]string{dimAll(append([]string{"", "HOST", "STATE", "ACTION"}, factHeader...))}
+	table := [][]string{dimAll(append([]string{"", "HOST", "STATE", "ACTION"}, append(append([]string{}, factHeader...), "CHANGES")...))}
 	addWave := func(names []string, tag string) {
 		for _, n := range names {
 			h := f.hosts[n]
@@ -705,8 +717,16 @@ func cmdPlan(ctx context.Context, args []string) int {
 			st := plan.Classify(h.Toplevel, true, probes[n])
 			glyph, label := stateCells(st)
 			detail := tag
-			if hp.probeErr != nil {
+			switch {
+			case hp.probeErr != nil:
 				detail = hp.probeErr.Error()
+			case !hp.skipInSync:
+				if s := changesCell(hds[n]); s != "" {
+					detail = s
+					if tag != "" {
+						detail += "  " + tag
+					}
+				}
 			}
 			cells := append([]string{glyph, n, label, actionLabel(hp, f.isLocal(h), *rebootMode)}, factCells(h, probes[n], true)...)
 			table = append(table, append(cells, detail))
@@ -724,9 +744,7 @@ func cmdPlan(ctx context.Context, args []string) int {
 	}
 	fmt.Print(ui.Table(table))
 
-	if len(toDeploy) > 0 && ctx.Err() == nil {
-		fmt.Printf("\n▸ computing closure diffs\n")
-		hds := diffAll(ctx, f, toDeploy, probes)
+	if full {
 		dNormal, dLast := plan.Partition(toDeploy, f.policies)
 		for _, n := range append(append([]string{}, dNormal...), dLast...) {
 			printHostDiff(n, hds[n])
@@ -748,6 +766,21 @@ func cmdPlan(ctx context.Context, args []string) int {
 		}
 	}
 	return exit
+}
+
+// changesCell is the one-line CHANGES column of a fleet plan row.
+func changesCell(hd hostDiff) string {
+	if hd.note != "" {
+		return hd.note
+	}
+	s := summarizeDiffs(hd.diffs).oneLine()
+	if len(hd.conf) > 0 {
+		s += fmt.Sprintf(" · %d config file(s)", len(hd.conf))
+	}
+	if k := len(hd.cmdAdded) + len(hd.cmdRemoved); k > 0 {
+		s += fmt.Sprintf(" · %d command(s)", k)
+	}
+	return s
 }
 
 // hostDiff is one host's closure and config diff, or the reason there
