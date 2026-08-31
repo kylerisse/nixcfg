@@ -25,6 +25,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/kylerisse/nixcfg/tools/andiamo/internal/confdiff"
 	"github.com/kylerisse/nixcfg/tools/andiamo/internal/flake"
 	"github.com/kylerisse/nixcfg/tools/andiamo/internal/nixcmd"
 	"github.com/kylerisse/nixcfg/tools/andiamo/internal/plan"
@@ -38,7 +39,7 @@ const usageText = `andiamo — let's go
 
 Usage:
   andiamo status [HOST...] [flags]     show fleet deployment state (read-only)
-  andiamo plan [HOST...] [flags]       preview deploys: actions and closure diffs
+  andiamo plan [HOST...] [flags]       preview deploys: actions, closure and config diffs
   andiamo deploy (HOST... | -all) [flags]   deploy hosts in parallel
   andiamo hosts [flags]                show derived inventory and policy
   andiamo version
@@ -749,10 +750,15 @@ func cmdPlan(ctx context.Context, args []string) int {
 	return exit
 }
 
-// hostDiff is one host's closure diff, or the reason there isn't one.
+// hostDiff is one host's closure and config diff, or the reason there
+// isn't one.
 type hostDiff struct {
-	diffs []nixcmd.PkgDiff
-	note  string
+	diffs      []nixcmd.PkgDiff
+	conf       []confdiff.Change
+	confNote   string // when only the config diff failed
+	cmdAdded   []string
+	cmdRemoved []string
+	note       string // when no diff could be produced at all
 }
 
 // diffAll computes running→expected closure diffs for the hosts about
@@ -825,8 +831,30 @@ func diffHost(ctx context.Context, f *fleet, n, old string, prog *ui.Progress) h
 		prog.Done(n, false, "diff failed")
 		return hostDiff{note: "closure diff unavailable: " + err.Error()}
 	}
-	prog.Done(n, true, summarizeDiffs(diffs).oneLine())
-	return hostDiff{diffs: diffs}
+	hd := hostDiff{diffs: diffs}
+	// Config diff over the same pair: what changes in the rendered
+	// /etc and on the system path. This is what catches changes the
+	// closure cannot show, like a systemPackages entry whose store
+	// path some package already carried.
+	prog.Set(n, "diffing config")
+	conf, err := confdiff.Etc(ctx, old, h.Toplevel)
+	if err != nil {
+		if ctx.Err() != nil {
+			return interrupted()
+		}
+		hd.confNote = "config diff unavailable: " + err.Error()
+	} else {
+		hd.conf = conf
+	}
+	if added, removed, err := confdiff.Commands(old, h.Toplevel); err == nil {
+		hd.cmdAdded, hd.cmdRemoved = added, removed
+	}
+	summary := summarizeDiffs(diffs).oneLine()
+	if len(hd.conf) > 0 {
+		summary += fmt.Sprintf(" · %d config file(s)", len(hd.conf))
+	}
+	prog.Done(n, true, summary)
+	return hd
 }
 
 // diffSummary tallies a closure diff. added/removed count packages
@@ -923,6 +951,56 @@ func printHostDiff(name string, hd hostDiff) {
 	}
 	if s.rebuilt > 0 {
 		fmt.Println(ui.Dim(fmt.Sprintf("  %d package(s) rebuilt without a version change (net %s)", s.rebuilt, humanDelta(s.rebuiltDelta))))
+	}
+	if len(hd.cmdAdded)+len(hd.cmdRemoved) > 0 {
+		var parts []string
+		for _, c := range hd.cmdAdded {
+			parts = append(parts, ui.Green("+"+c))
+		}
+		for _, c := range hd.cmdRemoved {
+			parts = append(parts, ui.Red("-"+c))
+		}
+		fmt.Println("  commands: " + strings.Join(parts, " "))
+	}
+	if hd.confNote != "" {
+		fmt.Println("  " + hd.confNote)
+	}
+	for _, ch := range hd.conf {
+		switch ch.Kind {
+		case confdiff.Added:
+			fmt.Println("  " + ui.Green("A") + " " + ch.Path)
+		case confdiff.Removed:
+			fmt.Println("  " + ui.Red("D") + " " + ch.Path)
+		case confdiff.Changed:
+			fmt.Println("  " + ui.Yellow("M") + " " + ch.Path)
+			printDiffLines(ch.Diff)
+		}
+	}
+}
+
+// maxDiffLines caps one config file's rendered diff; the full change
+// is always a `diff -u` on the two toplevels away.
+const maxDiffLines = 30
+
+func printDiffLines(lines []string) {
+	shown := lines
+	if len(shown) > maxDiffLines {
+		shown = shown[:maxDiffLines]
+	}
+	for _, l := range shown {
+		l = ui.Scrub(l) // config contents can embed their own ANSI (etc/issue)
+		switch {
+		case strings.HasPrefix(l, "+"):
+			l = ui.Green(l)
+		case strings.HasPrefix(l, "-"):
+			l = ui.Red(l)
+		case strings.HasPrefix(l, "@@"):
+			l = ui.Dim(l)
+		}
+		fmt.Println("      " + l)
+	}
+	if n := len(lines) - len(shown); n > 0 {
+		fmt.Println(ui.Dim(fmt.Sprintf("      … %d more line(s)", n)))
 	}
 }
 
