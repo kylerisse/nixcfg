@@ -33,7 +33,7 @@ import (
 	"github.com/kylerisse/nixcfg/tools/andiamo/internal/ui"
 )
 
-const version = "0.1.2"
+const version = "0.1.3"
 
 const usageText = `andiamo — let's go
 
