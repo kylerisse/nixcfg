@@ -1,9 +1,13 @@
 package main
 
 import (
+	"errors"
+	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/kylerisse/nixcfg/tools/andiamo/internal/nixcmd"
+	"github.com/kylerisse/nixcfg/tools/andiamo/internal/plan"
 )
 
 func TestShortEvalLine(t *testing.T) {
@@ -59,5 +63,113 @@ func TestBuildDetail(t *testing.T) {
 	}
 	if got := buildDetail("pi3", []nixcmd.Activity{{Type: nixcmd.ActSubstitute, Path: linux}}, member, totals); got != "fetching linux-7.2.0" {
 		t.Errorf("substitute without bytes = %q", got)
+	}
+}
+
+func TestHumanDelta(t *testing.T) {
+	cases := []struct {
+		in   int64
+		want string
+	}{
+		{0, "+0 B"},
+		{3, "+3 B"},
+		{-512, "-512 B"},
+		{12902, "+12.6 KiB"},
+		{-155852, "-152.2 KiB"},
+		{42572185, "+40.6 MiB"},
+		{-1610612736, "-1.5 GiB"},
+	}
+	for _, c := range cases {
+		if got := humanDelta(c.in); got != c.want {
+			t.Errorf("humanDelta(%d) = %q, want %q", c.in, got, c.want)
+		}
+	}
+}
+
+func TestSummarizeDiffs(t *testing.T) {
+	diffs := []nixcmd.PkgDiff{
+		{Name: "changed", Removed: []string{"1"}, Added: []string{"2"}, SizeDelta: 100},
+		{Name: "added", Added: []string{"1"}, SizeDelta: 50},
+		{Name: "removed", Removed: []string{"1"}, SizeDelta: -30},
+		{Name: "rebuilt1", SizeDelta: 10},
+		{Name: "rebuilt2", SizeDelta: -5},
+	}
+	s := summarizeDiffs(diffs)
+	if s.changed != 1 || s.added != 1 || s.removed != 1 || s.rebuilt != 2 {
+		t.Errorf("counts = %+v", s)
+	}
+	if s.net != 125 || s.rebuiltDelta != 5 {
+		t.Errorf("deltas = net %d, rebuilt %d", s.net, s.rebuiltDelta)
+	}
+	if got := s.oneLine(); got != "1 changed · 1 version added · 1 version removed · 2 rebuilt · net +125 B" {
+		t.Errorf("oneLine = %q", got)
+	}
+	if got := summarizeDiffs(nil).oneLine(); got != "no package changes" {
+		t.Errorf("empty oneLine = %q", got)
+	}
+}
+
+func TestVersionsCell(t *testing.T) {
+	cases := []struct {
+		d    nixcmd.PkgDiff
+		want string
+	}{
+		{nixcmd.PkgDiff{Removed: []string{"1.2"}, Added: []string{"1.3"}}, "1.2 → 1.3"},
+		{nixcmd.PkgDiff{Added: []string{"1.0"}}, "∅ → 1.0"},
+		{nixcmd.PkgDiff{Removed: []string{"1.0", "1.0-fhs"}}, "1.0, 1.0-fhs → ∅"},
+	}
+	for _, c := range cases {
+		if got := versionsCell(c.d); got != c.want {
+			t.Errorf("versionsCell(%+v) = %q, want %q", c.d, got, c.want)
+		}
+	}
+}
+
+func TestVerifyAgainstPlan(t *testing.T) {
+	const expected = "/nix/store/new"
+	const old = "/nix/store/old"
+	entry := planEntry{Toplevel: expected, Current: old, Action: "switch"}
+	cases := []struct {
+		name    string
+		e       planEntry
+		covered bool
+		probe   plan.Probe
+		wantErr bool
+	}{
+		{"not covered", planEntry{}, false, plan.Probe{Current: old}, true},
+		{"expected drifted", planEntry{Toplevel: "/nix/store/other", Current: old}, true, plan.Probe{Current: old}, true},
+		{"host unchanged", entry, true, plan.Probe{Current: old}, false},
+		{"already applied", entry, true, plan.Probe{Current: expected}, false},
+		{"host drifted", entry, true, plan.Probe{Current: "/nix/store/third"}, true},
+		{"unreachable passes to the executor", entry, true, plan.Probe{Err: errors.New("timeout")}, false},
+	}
+	for _, c := range cases {
+		err := verifyAgainstPlan(c.e, c.covered, expected, c.probe)
+		if (err != nil) != c.wantErr {
+			t.Errorf("%s: err = %v, wantErr %v", c.name, err, c.wantErr)
+		}
+	}
+}
+
+func TestPlanRecordRoundtrip(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "sub", "plan-x.json")
+	rec := planRecord{
+		CreatedAt: time.Now(),
+		Hosts: map[string]planEntry{
+			"qube": {Toplevel: "/nix/store/x", Current: "/nix/store/y", Action: "switch", Changes: "2 changed"},
+		},
+	}
+	savePlanRecord(path, rec)
+	got, ok := loadPlanRecord(path)
+	if !ok || got.Hosts["qube"] != rec.Hosts["qube"] {
+		t.Errorf("roundtrip = %+v, %v", got, ok)
+	}
+	if _, ok := loadPlanRecord(filepath.Join(t.TempDir(), "missing.json")); ok {
+		t.Error("missing file must not load")
+	}
+	empty := filepath.Join(t.TempDir(), "empty.json")
+	savePlanRecord(empty, planRecord{CreatedAt: time.Now()})
+	if _, ok := loadPlanRecord(empty); ok {
+		t.Error("a record with no hosts must not gate an apply open")
 	}
 }

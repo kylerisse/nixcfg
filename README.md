@@ -62,10 +62,10 @@ andiamo is part of the devShell, so inside the repo (direnv or
 `nix develop`) it is on PATH:
 
 ```
-andiamo status                 # read-only fleet state
-andiamo hosts                  # derived inventory + policy
-andiamo deploy pi3 -dry-run    # print the action plan only
-andiamo deploy -all            # gate on checks, build, push, activate
+andiamo status      # read-only fleet state
+andiamo hosts       # derived inventory + policy
+andiamo plan        # preview: actions, closure + config diffs (-q for summary)
+andiamo apply -all  # gate on checks, build, push, activate
 ```
 
 Example:

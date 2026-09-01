@@ -167,7 +167,7 @@ in
           openssh
           podman-compose
           prettier
-          silver-searcher
+          ripgrep
           vim
           virt-manager
           vscode

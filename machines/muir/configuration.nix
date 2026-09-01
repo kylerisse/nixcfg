@@ -160,8 +160,8 @@ in
       python3
       python3Packages.meshtastic
       python3Packages.pypubsub
+      ripgrep
       signal-desktop
-      silver-searcher
       slack
       spotify
       unzip
