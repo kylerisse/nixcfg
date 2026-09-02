@@ -257,6 +257,10 @@ in
     environmentVariables = {
       OLLAMA_NUM_PARALLEL = "1";
       OLLAMA_MAX_LOADED_MODELS = "1";
+      OLLAMA_KEEP_ALIVE = "-1";
+      OLLAMA_CONTEXT_LENGTH = "8192";
+      OLLAMA_FLASH_ATTENTION = "1";
+      OLLAMA_KV_CACHE_TYPE = "q8_0";
     };
   };
   services.open-webui = {
