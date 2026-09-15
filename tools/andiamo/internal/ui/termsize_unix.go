@@ -1,4 +1,9 @@
-//go:build linux
+//go:build linux || darwin
+
+// Linux and Darwin share the TIOCGWINSZ ioctl and the winsize layout
+// below (four uint16s), so one implementation covers both. The tag
+// names those two rather than `unix` because syscall.SYS_IOCTL does not
+// exist on every unix GOOS (solaris, aix).
 
 package ui
 
