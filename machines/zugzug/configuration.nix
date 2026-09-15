@@ -219,8 +219,8 @@ in
     python3Packages.boto3
     python3Packages.botocore
     python3Packages.pytest
+    ripgrep
     shellcheck
-    silver-searcher
     terminal-notifier
     terraform_1
     inputs.self.packages.aarch64-darwin.terraform_1-8-2
