@@ -4,18 +4,22 @@
 , fetchurl
 }:
 let
+  version = "25.12.5";
+  baseUrl = "https://downloads.openwrt.org/releases/${version}/targets/mediatek/filogic";
   cfg = {
     factory = {
-      url = "https://downloads.openwrt.org/releases/25.12.0/targets/mediatek/filogic/openwrt-25.12.0-mediatek-filogic-openwrt_one-factory.ubi";
-      sha256 = "sha256-AEjLp3dPHj2SjMh7JxtYxuRI9xPk5jZZ/Bq62n9Gock=";
+      url = "${baseUrl}/openwrt-${version}-mediatek-filogic-openwrt_one-factory.ubi";
+      sha256 = "sha256-77SnCARl1wwREZA2D9LGf+BRiFMtnPsC6p0Snv8ERPo=";
     };
     sysupgrade = {
-      url = "https://downloads.openwrt.org/releases/25.12.0/targets/mediatek/filogic/openwrt-25.12.0-mediatek-filogic-openwrt_one-squashfs-sysupgrade.itb";
-      sha256 = "sha256-+VXpZ7OdZOhGwaTbrThkCXPmP08IqFk7PzPD8b8GVqs=";
+      url = "${baseUrl}/openwrt-${version}-mediatek-filogic-openwrt_one-squashfs-sysupgrade.itb";
+      sha256 = "sha256-dx+6ymzeIwrHFnYwZ01RzbQ3DTa8Spsi426xlpETd5w=";
     };
   };
 in
 stdenv.mkDerivation rec {
+  inherit version;
+
   factoryImg = pkgs.fetchurl {
     url = cfg.factory.url;
     sha256 = cfg.factory.sha256;
@@ -27,7 +31,6 @@ stdenv.mkDerivation rec {
 
   src = ./.;
   pname = "openwrt-one";
-  version = "25.12.0";
 
   installPhase = ''
     mkdir -p $out/images/
@@ -38,7 +41,7 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    description = "OpenWRT 25.12.0 OpenWRT One";
+    description = "OpenWRT ${version} OpenWRT One";
     license = licenses.gpl3;
     maintainers = [ "kylerisse" ];
   };
