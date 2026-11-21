@@ -154,7 +154,6 @@
         in
         {
           andiamo = pkgs.callPackage ./pkgs/andiamo { };
-          docket-unstable = pkgs.callPackage ./pkgs/docket-unstable { };
           terraform_1-8-2 = terraformPkgs."1.8.2";
           terraform_1-8-3 = terraformPkgs."1.8.3";
           terraform_1-9-1 = terraformPkgs."1.9.1";
@@ -197,7 +196,6 @@
           openwrt-one = pkgs.callPackage ./pkgs/openwrt-one { };
           doImage = images.doImage.config.system.build.digitalOceanImage;
           installerISO = images.installerImage.config.system.build.isoImage;
-          docket-unstable = pkgs.callPackage ./pkgs/docket-unstable { };
           sdl-ss-inhibitors = pkgs.callPackage ./pkgs/sdl-ss-inhibitors { };
           sdl-ss-inhibitors-tray = pkgs.callPackage ./pkgs/sdl-ss-inhibitors-tray { };
           wasgeht = pkgs.callPackage ./pkgs/wasgeht { };

@@ -35,7 +35,6 @@ nixcfg
 ├───pkgs:
 │   ├───andiamo: nix deploy cli
 │   ├───debian-netinst-iso: debian installer
-│   ├───docket-unstable: issue tracker for ai and humans
 │   ├───openwrt-archer-a7-v5: openwrt firmware
 │   ├───openwrt-archer-c7-v2: openwrt firmware
 │   ├───openwrt-one: openwrt firmware
