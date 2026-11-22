@@ -14,7 +14,6 @@ build-x86-pkgs:
 	nix build -L .#packages.x86_64-linux.andiamo
 	nix build -L .#packages.x86_64-linux.wasgeht
 	nix build -L .#packages.x86_64-linux.wasgeht-unstable
-	nix build -L .#packages.x86_64-linux.docket-unstable
 
 test-x86-images: doImage installerISO
 
@@ -52,7 +51,7 @@ lint:
 	nix fmt -- --ci
 
 test-darwin-pkgs:
-	nix build -L .#packages.aarch64-darwin.docket-unstable
+	nix build -L .#packages.aarch64-darwin.andiamo
 
 mac-check:
 	nix build -L .#darwinConfigurations.zugzug.config.system.build.toplevel
